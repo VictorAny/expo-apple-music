@@ -1,41 +1,74 @@
-import { Auth, MusicKit, Player, usePlaybackState } from '@wwdrew/expo-apple-music';
-import { useCallback, useState } from 'react';
-import { Button, Platform, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import {
+  Auth,
+  CatalogSearchType,
+  MusicKit,
+  Player,
+  usePlaybackState,
+} from "@wwdrew/expo-apple-music";
+import { useCallback, useState } from "react";
+import {
+  Button,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 export default function App() {
-  const [authStatus, setAuthStatus] = useState<string>('—');
-  const [log, setLog] = useState<string>('');
+  const [authStatus, setAuthStatus] = useState<string>("—");
+  const [log, setLog] = useState<string>("");
   const { playbackStatus, playbackTime } = usePlaybackState();
 
   const appendLog = useCallback((message: string) => {
     setLog((prev) => `${message}\n${prev}`.slice(0, 2000));
   }, []);
 
-  const authorize = async () => {
+  async function authorize(developerToken?: string) {
     try {
-      const status = await Auth.authorize();
+      const status = await Auth.authorize(developerToken);
       setAuthStatus(status);
       appendLog(`authorize: ${status}`);
     } catch (error) {
       appendLog(`authorize error: ${String(error)}`);
     }
-  };
+  }
 
-  const search = async () => {
+  async function search() {
     try {
-      const result = await MusicKit.catalogSearch('Beatles', ['songs', 'albums'], { limit: 5 });
-      appendLog(`search: ${result.songs.length} songs, ${result.albums.length} albums`);
+      const result = await MusicKit.catalogSearch(
+        "Beatles",
+        [CatalogSearchType.SONGS, CatalogSearchType.ALBUMS],
+        { limit: 5 },
+      );
+      appendLog(
+        `search: ${result.songs.length} songs, ${result.albums.length} albums`,
+      );
     } catch (error) {
       appendLog(`search error: ${String(error)}`);
     }
-  };
+  }
 
-  if (Platform.OS === 'android') {
+  if (Platform.OS === "android") {
+    const devToken = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
+
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.header}>Android stub</Text>
-        <Button title="Try authorize (should fail)" onPress={authorize} />
-        <Text style={styles.log}>{log}</Text>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <Text style={styles.header}>Android auth (Tier 0)</Text>
+          <Text>Auth: {authStatus}</Text>
+          <Text style={styles.hint}>
+            Set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN to a MusicKit developer
+            JWT, or pass androidDeveloperToken in the config plugin, then
+            rebuild native.
+          </Text>
+          <Button
+            title="Authorize"
+            onPress={() => authorize(devToken)}
+            disabled={!devToken}
+          />
+          <Text style={styles.log}>{log}</Text>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -61,9 +94,10 @@ export default function App() {
 }
 
 const styles = {
-  header: { fontSize: 22, fontWeight: '600' as const, marginBottom: 12 },
-  container: { flex: 1, backgroundColor: '#f4f4f4' },
+  header: { fontSize: 22, fontWeight: "600" as const, marginBottom: 12 },
+  container: { flex: 1, backgroundColor: "#f4f4f4" },
   scroll: { padding: 16 },
   row: { gap: 8, marginVertical: 12 },
-  log: { fontFamily: 'Menlo', fontSize: 12, marginTop: 16 },
+  log: { fontFamily: "Menlo", fontSize: 12, marginTop: 16 },
+  hint: { fontSize: 12, color: "#555", marginVertical: 8 },
 };
