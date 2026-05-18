@@ -21,7 +21,8 @@ export default function App() {
   async function authorize(developerToken?: string) {
     try {
       const status = await Auth.authorize(developerToken, {
-        startScreenMessage: "Start screen message for <b>Expo Example App</b>",
+        startScreenMessage:
+          "Start screen message for <b>Expo Apple MusicExample App</b>",
       });
       setAuthStatus(status);
       appendLog(`authorize: ${status}`);
@@ -54,9 +55,8 @@ export default function App() {
           <Text style={styles.header}>Android auth (Tier 0)</Text>
           <Text>Auth: {authStatus}</Text>
           <Text style={styles.hint}>
-            From repo root: copy .env.music.example → .env.music, then{" "}
-            npm run dev-token -- --write-env example/.env.local (restart Metro).
-            Or set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN manually.
+            See docs/CLI.md: npm run dev-token -- --write-env example/.env.local
+            then restart Metro.
           </Text>
           <Button
             title="Authorize"
