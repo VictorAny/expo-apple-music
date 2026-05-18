@@ -20,22 +20,15 @@ export default {
   plugins: [
     [
       '@wwdrew/expo-apple-music',
-      {
-        musicUsageDescription: 'We use Apple Music to import your library.',
-        // Android dev/example only — prefer Auth.authorize(token) from your backend in production
-        androidDeveloperToken: process.env.EXPO_PUBLIC_APPLE_MUSIC_DEV_TOKEN,
-      },
+      { musicUsageDescription: 'We use Apple Music to import your library.' },
     ],
   ],
 };
 ```
 
-| Option | Platform | Purpose |
-| ------ | -------- | ------- |
-| `musicUsageDescription` | iOS | Sets `NSAppleMusicUsageDescription` |
-| `androidDeveloperToken` | Android | Optional MusicKit developer JWT in manifest (see [docs/AUTH.md](./docs/AUTH.md)) |
+Sets `NSAppleMusicUsageDescription` on iOS. On Android, pass a MusicKit developer JWT to `Auth.authorize(token)` at runtime (see [docs/AUTH.md](./docs/AUTH.md)).
 
-The plugin also adds Android 11+ **package visibility** queries for the Apple Music app and MusicKit deeplinks. It does **not** add MusicKit entitlements on iOS — enable **MusicKit** on your App ID in the [Apple Developer portal](https://developer.apple.com) manually. See [Lomray issue #14](https://github.com/Lomray-Software/react-native-apple-music/issues/14).
+Android **package visibility** for the Apple Music app comes from this module’s library manifest (merged at build time). The plugin does **not** add MusicKit entitlements on iOS — enable **MusicKit** on your App ID in the [Apple Developer portal](https://developer.apple.com) manually. See [Lomray issue #14](https://github.com/Lomray-Software/react-native-apple-music/issues/14).
 
 ## Usage
 
@@ -56,7 +49,7 @@ if (status === AuthStatus.AUTHORIZED) {
 
 **Auth details** (return values, developer token, Android requirements, upsell options): **[docs/AUTH.md](./docs/AUTH.md)**.
 
-**Local Android dev token** (repo only): copy `.env.music.example` → `.env.music`, then `npm run dev-token -- --write-env example/.env.local`.
+**CLI tools** (repo only — generate/verify developer JWTs): **[docs/CLI.md](./docs/CLI.md)**.
 
 See [MIGRATION.md](./MIGRATION.md) when moving from `@lomray/react-native-apple-music`.
 

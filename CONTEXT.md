@@ -90,7 +90,7 @@ These need auth + REST client + JSON mapping to existing TS types.
 
 - `playLibrarySong` / `playLibraryPlaylist` — library playback (validate IDs + playback SDK on device)
 - Full error normalization across all paths
-- Config plugin: developer token / storefront for Android
+- Storefront / other Android config as needed
 
 ## Common mistakes to avoid
 
@@ -103,4 +103,5 @@ These need auth + REST client + JSON mapping to existing TS types.
 
 - [README.md](./README.md) — install and usage
 - [docs/AUTH.md](./docs/AUTH.md) — `authorize()`, developer token, `AuthStatus`, Android auth flow
+- [docs/CLI.md](./docs/CLI.md) — `npm run dev-token` (generate / verify developer JWT)
 - [MIGRATION.md](./MIGRATION.md) — Lomray migration notes

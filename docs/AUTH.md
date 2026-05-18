@@ -10,7 +10,7 @@ import { Auth, AuthStatus } from '@wwdrew/expo-apple-music';
 // iOS — developer token argument is ignored
 const status = await Auth.authorize();
 
-// Android — pass a MusicKit developer JWT (or set androidDeveloperToken in the config plugin)
+// Android — pass a MusicKit developer JWT from your backend or dev tooling
 const status = await Auth.authorize(developerToken, {
   hideStartScreen: false,
   startScreenMessage: '<b>My App</b> wants to connect to Apple Music.',
@@ -29,7 +29,7 @@ Requests access to the user’s Apple Music account.
 
 | Argument | iOS | Android |
 | -------- | --- | ------- |
-| `developerToken` | Ignored | **Required** unless set via config plugin (see below) |
+| `developerToken` | Ignored | **Required** — pass a MusicKit developer JWT |
 | `options` | Ignored | Optional upsell / deeplink behavior |
 
 Returns `Promise<AuthStatus>` — same string union on both platforms.
@@ -51,12 +51,9 @@ There is no separate “is Apple Music installed?” check on iOS — MusicKit i
 - User signed into an **Apple ID** in the Apple Music app
 - An active **Apple Music subscription** (or trial) is usually required to complete auth; without it the SDK may return `restricted`
 - A valid **MusicKit developer JWT** (see [Developer token](#developer-token-android))
-- **Rebuild after native changes**: `npx expo prebuild` when changing the config plugin or module; the plugin injects manifest `<queries>` for package visibility (Android 11+)
+- **Rebuild after native changes**: `npx expo prebuild` when changing the config plugin or module
 
-The config plugin automatically adds:
-
-- `<queries>` for the Apple Music package (install detection)
-- `<queries>` for `musicsdk://applemusic` and `com.apple.android.music` deeplinks
+The module’s Android library manifest declares `<queries>` for `com.apple.android.music` (merged into your app on build). Required for MusicKit install detection on Android 11+.
 
 ### Auth flow (Android)
 
@@ -96,59 +93,32 @@ A **developer token** is a **signed JWT** you create with your MusicKit **privat
 
 ### Providing the token
 
-**1. Argument (recommended for production)**
+**Runtime (production and apps)**
 
 ```ts
 const token = await fetchDeveloperTokenFromYourBackend();
 await Auth.authorize(token);
 ```
 
-**2. Config plugin (dev / example only)**
+**Repo CLI (local dev / example app only)**
 
-```ts
-// app.config.ts
-plugins: [
-  [
-    '@wwdrew/expo-apple-music',
-    {
-      musicUsageDescription: '…',
-      androidDeveloperToken: process.env.EXPO_PUBLIC_APPLE_MUSIC_DEV_TOKEN,
-    },
-  ],
-],
-```
+See **[docs/CLI.md](./CLI.md)** for setup (`.env.music`), generating tokens, and `--verify` to test a JWT without the Apple Music app.
 
-Writes `expo.modules.applemusic.DEVELOPER_TOKEN` into the app manifest. **Do not ship long-lived JWTs in production builds** — generate tokens on your backend and pass them at runtime.
-
-**3. Repo CLI (local dev / example app)**
-
-This repository includes a zero-dependency script to mint short-lived JWTs for testing:
+Quick start:
 
 ```sh
-# 1. Copy credentials (gitignored)
-cp .env.music.example .env.music
-# Edit: TEAM_ID, KEY_ID, path to your AuthKey_*.p8
-
-# 2. Print token to stdout
-npm run dev-token
-
-# 3. Or write the example app env file (restart Metro after)
+cp .env.music.example .env.music   # add Team ID, Key ID, .p8 path
 npm run dev-token -- --write-env example/.env.local
+npm run dev-token -- --verify "$(grep EXPO_PUBLIC example/.env.local | cut -d= -f2-)"
 ```
 
-| Command | Description |
-| ------- | ----------- |
-| `npm run dev-token` | Print JWT (default expiry `1d`) |
-| `npm run dev-token -- --write-env example/.env.local` | Update example `EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` |
-| `node scripts/generate-developer-token.mjs --help` | Full option list |
-
-Keep `.p8` keys out of git (see `.gitignore`). Production apps should sign tokens on a server, not use this CLI.
+`Auth.authorize()` does **not** validate the developer JWT before opening Apple Music — use the CLI `--verify` flag or complete the in-app flow and check for `authorized`.
 
 ### Missing or invalid token
 
 | Situation | Result |
 | --------- | ------ |
-| No token in call or plugin | Promise **rejects** with `MISSING_DEVELOPER_TOKEN` |
+| No token passed to `authorize()` | Promise **rejects** with `MISSING_DEVELOPER_TOKEN` |
 | Invalid / expired JWT | `AuthStatus.UNKNOWN` (`TOKEN_FETCH_ERROR` from SDK) |
 
 Developer tokens expire (typically on the order of months, per your Apple key settings). Refresh from your backend before calling `authorize()`.
@@ -243,8 +213,6 @@ There is **no** `Auth.isAvailable()` — use `authorize()` + `checkSubscription(
 type ExpoAppleMusicPluginProps = {
   /** iOS — NSAppleMusicUsageDescription */
   musicUsageDescription?: string;
-  /** Android — dev/example; prefer runtime Auth.authorize(token) in production */
-  androidDeveloperToken?: string;
 };
 ```
 
