@@ -12,6 +12,14 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      [
+        "@wwdrew/expo-apple-music",
+        {
+          "musicUsageDescription": "This example app uses Apple Music for testing MusicKit."
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "expo.modules.applemusic.example"

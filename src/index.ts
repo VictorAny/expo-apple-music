@@ -1,5 +1,38 @@
-// Reexport the native module. On web, it will be resolved to ExpoAppleMusicModule.web.ts
-// and on native platforms to ExpoAppleMusicModule.ts
-export { default } from './ExpoAppleMusicModule';
-export { default as ExpoAppleMusicView } from './ExpoAppleMusicView';
-export * from  './ExpoAppleMusic.types';
+export type { IPlaybackState } from './types/playback-state';
+
+export * from './types/song';
+
+export * from './types/playback-status';
+
+export * from './types/catalog-search';
+
+export * from './types/album';
+
+export * from './types/auth-status';
+
+export * from './types/check-subscription';
+
+export * from './types/music-item';
+
+export * from './types/tracks-from-library';
+
+export * from './types/playlist';
+
+import useCurrentSong from './hooks/use-current-song';
+import useIsPlaying from './hooks/use-is-playing';
+import usePlaybackState from './hooks/use-playback-state';
+import Auth from './modules/auth';
+import MusicKit from './modules/music-kit';
+import Player from './modules/player';
+
+export type { IEndlessListOptions, ILibrarySongsResponse } from './modules/music-kit';
+
+export type { IPlayerConfig, IPlaybackError } from './modules/player';
+
+export type { AppleMusicError } from './utils/apple-music-error';
+
+export { isLibraryItem } from './utils/is-library-item';
+
+export { getErrorMessage } from './utils/get-error-message';
+
+export { useCurrentSong, useIsPlaying, usePlaybackState, Auth, Player, MusicKit };

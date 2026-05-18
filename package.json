@@ -1,5 +1,5 @@
 {
-  "name": "expo-apple-music",
+  "name": "@wwdrew/expo-apple-music",
   "version": "0.1.0",
   "description": "Apple MusicKit wrapper for Expo",
   "main": "build/index.js",
@@ -18,25 +18,45 @@
   "keywords": [
     "react-native",
     "expo",
-    "expo-apple-music",
-    "ExpoAppleMusic"
+    "apple-music",
+    "music-kit",
+    "ios"
   ],
-  "repository": "https://github.com/wwdrew/expo-apple-music",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wwdrew/expo-apple-music.git"
+  },
   "bugs": {
     "url": "https://github.com/wwdrew/expo-apple-music/issues"
   },
   "author": "Drew <49833875+wwdrew@users.noreply.github.com> (https://github.com/wwdrew)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "homepage": "https://github.com/wwdrew/expo-apple-music#readme",
-  "dependencies": {},
+  "files": [
+    "app.plugin.js",
+    "build",
+    "ios",
+    "android",
+    "src",
+    "LICENSE",
+    "NOTICE",
+    "MIGRATION.md",
+    "expo-module.config.json"
+  ],
+  "expo": {
+    "plugin": "./app.plugin.js"
+  },
   "devDependencies": {
+    "@expo/config-plugins": "^55.0.9",
     "@types/react": "~19.1.1",
-    "expo-module-scripts": "^55.0.2",
     "expo": "^55.0.24",
+    "expo-module-scripts": "^55.0.2",
     "react-native": "0.82.1"
   },
   "peerDependencies": {
-    "expo": "*",
+    "@expo/config-plugins": ">=9.0.0",
+    "expo": "^55.0.0",
+    "expo-modules-core": "*",
     "react": "*",
     "react-native": "*"
   }
