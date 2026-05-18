@@ -35,7 +35,7 @@ public class ExpoAppleMusicModule: Module {
       self.playbackObserver = nil
     }
 
-    AsyncFunction("authorization") { () -> String in
+    AsyncFunction("authorization") { (_ developerToken: String?) -> String in
       let status = await self.subscriptionService.requestAuthorization()
       return status.rawValue
     }
