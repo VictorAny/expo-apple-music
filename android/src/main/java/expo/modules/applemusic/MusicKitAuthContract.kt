@@ -31,7 +31,8 @@ internal class MusicKitAuthContract(
     resultCode: Int,
     intent: Intent?,
   ): MusicKitAuthOutput {
-    if (resultCode != Activity.RESULT_OK || intent == null) {
+    // SDK cancel paths: upsell X (USER_CANCELLED intent), Apple Music back (no intent / empty token).
+    if (intent == null) {
       return MusicKitAuthOutput(status = "denied")
     }
 
@@ -45,14 +46,17 @@ internal class MusicKitAuthContract(
         when (result.error) {
           TokenError.USER_CANCELLED -> "denied"
           TokenError.NO_SUBSCRIPTION, TokenError.SUBSCRIPTION_EXPIRED -> "restricted"
-          else -> "unknown"
+          TokenError.TOKEN_FETCH_ERROR -> "unknown"
+          // handleTokenResult() uses UNKNOWN when the intent has no token or error extras.
+          TokenError.UNKNOWN -> "denied"
         }
       return MusicKitAuthOutput(status = status)
     }
 
     val token = result.musicUserToken
     if (token.isNullOrBlank()) {
-      return MusicKitAuthOutput(status = "unknown")
+      // Apple Music cancel can return RESULT_OK with an empty music_user_token extra.
+      return MusicKitAuthOutput(status = "denied")
     }
 
     return MusicKitAuthOutput(status = "authorized", musicUserToken = token)
