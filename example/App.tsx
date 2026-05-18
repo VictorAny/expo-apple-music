@@ -6,7 +6,6 @@ import {
   MusicItem,
   MusicKit,
   Player,
-  usePlaybackState,
 } from "@wwdrew/expo-apple-music";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -17,7 +16,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { PlayerBar } from "./components/PlayerBar";
 
 export default function App() {
   const [authStatus, setAuthStatus] = useState<string>("—");
@@ -25,7 +25,6 @@ export default function App() {
   const [songs, setSongs] = useState<ISong[]>([]);
   const [albums, setAlbums] = useState<IAlbum[]>([]);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
-  const { playbackStatus, playbackTime } = usePlaybackState();
 
   const appendLog = useCallback((message: string) => {
     setLog((prev) => `${message}\n${prev}`.slice(0, 2000));
@@ -86,84 +85,103 @@ export default function App() {
     }
   }
 
+  async function playAlbum(album: IAlbum) {
+    try {
+      await Player.configurePlayer(false);
+      await MusicKit.setPlaybackQueue(album.id, MusicItem.ALBUM);
+      const state = await Player.getCurrentState();
+      appendLog(`playing album: ${album.title} (${state.playbackStatus})`);
+    } catch (error) {
+      appendLog(`play album error: ${String(error)}`);
+    }
+  }
+
   const devToken =
     Platform.OS === "android"
       ? process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN
       : undefined;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.header}>@wwdrew/expo-apple-music</Text>
-        <Text>Auth: {authStatus}</Text>
-        <Text>
-          Playback: {playbackStatus} @ {Math.floor(playbackTime)}s
-        </Text>
-        {Platform.OS === "android" && (
-          <Text style={styles.hint}>
-            See docs/CLI.md: npm run dev-token -- --write-env example/.env.local
-            then restart Metro.
-          </Text>
-        )}
-        <View style={styles.row}>
-          <Button
-            title="Authorize"
-            onPress={() => authorize(devToken)}
-            disabled={Platform.OS === "android" && !devToken}
-          />
-          <Button title="Search Beatles" onPress={search} />
-          <Button title="Resume" onPress={() => Player.play()} />
-          <Button title="Pause" onPress={() => Player.pause()} />
-        </View>
-
-        {songs.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Songs ({songs.length})</Text>
-            <Text style={styles.sectionHint}>Tap a row to queue & play</Text>
-            {songs.map((song) => (
-              <Pressable
-                key={song.id}
-                style={[
-                  styles.resultRow,
-                  selectedSongId === song.id && styles.resultRowSelected,
-                ]}
-                onPress={() => playSong(song)}
-              >
-                <Text style={styles.resultTitle}>{song.title}</Text>
-                <Text style={styles.resultMeta}>{song.artistName}</Text>
-                <Text style={styles.resultId}>id: {song.id}</Text>
-                <Text style={styles.resultMeta}>
-                  duration: {formatDuration(song.duration)}
-                </Text>
-              </Pressable>
-            ))}
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <Text style={styles.header}>@wwdrew/expo-apple-music</Text>
+          <Text>Auth: {authStatus}</Text>
+          {Platform.OS === "android" && (
+            <Text style={styles.hint}>
+              See docs/CLI.md: npm run dev-token -- --write-env
+              example/.env.local then restart Metro.
+            </Text>
+          )}
+          <View style={styles.row}>
+            <Button
+              title="Authorize"
+              onPress={() => authorize(devToken)}
+              disabled={Platform.OS === "android" && !devToken}
+            />
+            <Button title="Search Beatles" onPress={search} />
           </View>
-        )}
 
-        {albums.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Albums ({albums.length})</Text>
-            {albums.map((album) => (
-              <View key={album.id} style={styles.resultRow}>
-                <Text style={styles.resultTitle}>{album.title}</Text>
-                <Text style={styles.resultMeta}>{album.artistName}</Text>
-                <Text style={styles.resultId}>id: {album.id}</Text>
-                <Text style={styles.resultMeta}>
-                  tracks: {album.trackCount}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
+          {songs.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Songs ({songs.length})</Text>
+              <Text style={styles.sectionHint}>Tap a row to queue & play</Text>
+              {songs.map((song) => (
+                <Pressable
+                  key={song.id}
+                  style={[
+                    styles.resultRow,
+                    selectedSongId === song.id && styles.resultRowSelected,
+                  ]}
+                  onPress={() => playSong(song)}
+                >
+                  <Text style={styles.resultTitle}>{song.title}</Text>
+                  <Text style={styles.resultMeta}>{song.artistName}</Text>
+                  <Text style={styles.resultId}>id: {song.id}</Text>
+                  <Text style={styles.resultMeta}>
+                    duration: {formatDuration(song.duration)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
 
-        {log.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Log</Text>
-            <Text style={styles.log}>{log}</Text>
-          </>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          {albums.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Albums ({albums.length})</Text>
+              <Text style={styles.sectionHint}>
+                Tap an album to queue all tracks — skip next/prev works in the
+                player
+              </Text>
+              {albums.map((album) => (
+                <Pressable
+                  key={album.id}
+                  style={styles.resultRow}
+                  onPress={() => playAlbum(album)}
+                >
+                  <Text style={styles.resultTitle}>{album.title}</Text>
+                  <Text style={styles.resultMeta}>{album.artistName}</Text>
+                  <Text style={styles.resultId}>id: {album.id}</Text>
+                  <Text style={styles.resultMeta}>
+                    tracks: {album.trackCount}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {log.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Log</Text>
+              <Text style={styles.log}>{log}</Text>
+            </>
+          )}
+        </ScrollView>
+        <PlayerBar
+          onPlaybackError={(message) => appendLog(`player: ${message}`)}
+        />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -179,7 +197,7 @@ function formatDuration(duration: number | string): string {
 const styles = {
   header: { fontSize: 22, fontWeight: "600" as const, marginBottom: 12 },
   container: { flex: 1, backgroundColor: "#f4f4f4" },
-  scroll: { padding: 16, paddingBottom: 32 },
+  scroll: { padding: 16, paddingBottom: 180 },
   row: { gap: 8, marginVertical: 12 },
   section: { marginTop: 16 },
   sectionTitle: { fontSize: 16, fontWeight: "600" as const, marginBottom: 4 },
@@ -199,7 +217,11 @@ const styles = {
   resultTitle: { fontSize: 15, fontWeight: "600" as const },
   resultMeta: { fontSize: 13, color: "#444", marginTop: 2 },
   resultId: {
-    fontFamily: Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" }),
+    fontFamily: Platform.select({
+      ios: "Menlo",
+      android: "monospace",
+      default: "monospace",
+    }),
     fontSize: 11,
     color: "#888",
     marginTop: 4,
