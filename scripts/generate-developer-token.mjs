@@ -45,26 +45,32 @@ const MAX_EXPIRY_SECONDS = 15_777_000; // ~6 months (Apple Music API limit)
 
 function usage() {
   console.log(`Usage: expo-apple-music-dev-token [options]
+       expo-apple-music-dev-token --verify <jwt> [--storefront us]
 
-Generate a MusicKit developer JWT (ES256) for Android Auth.authorize() testing.
+Generate or verify a MusicKit developer JWT (ES256).
 
-Environment (from shell or .env.music in repo root):
+Generate — environment (shell or .env.music in repo root):
   APPLE_MUSIC_TEAM_ID          Apple Developer Team ID
   APPLE_MUSIC_KEY_ID           MusicKit key ID
   APPLE_MUSIC_PRIVATE_KEY_PATH Path to AuthKey_XXXX.p8
 
-Options:
+Generate options:
   --team-id <id>           Team ID (iss claim)
   --key-id <id>            Key ID (JWT kid header)
   --private-key <path>     Path to .p8 private key file
   --expires-in <duration>  Token lifetime (default: 1d). Suffix: s, m, h, d
   --write-env <path>       Write EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN=… to file
+
+Verify options:
+  --verify <jwt>           Decode JWT and call Apple Music API (no Apple Music app)
+  --storefront <code>      Catalog storefront for verify request (default: us)
+
   -h, --help               Show this help
 
 Examples:
   npm run dev-token
   npm run dev-token -- --write-env example/.env.local
-  APPLE_MUSIC_TEAM_ID=… APPLE_MUSIC_KEY_ID=… APPLE_MUSIC_PRIVATE_KEY_PATH=./AuthKey.p8 npm run dev-token
+  npm run dev-token -- --verify "$(grep EXPO_PUBLIC example/.env.local | cut -d= -f2)"
 `);
 }
 
@@ -83,6 +89,8 @@ function parseArgs(argv) {
   const options = {
     expiresIn: '1d',
     writeEnv: null,
+    verifyToken: null,
+    storefront: 'us',
     teamId: process.env.APPLE_MUSIC_TEAM_ID,
     keyId: process.env.APPLE_MUSIC_KEY_ID,
     privateKeyPath: process.env.APPLE_MUSIC_PRIVATE_KEY_PATH,
@@ -118,12 +126,108 @@ function parseArgs(argv) {
       case '--write-env':
         options.writeEnv = readValue();
         break;
+      case '--verify':
+        options.verifyToken = readValue();
+        break;
+      case '--storefront':
+        options.storefront = readValue();
+        break;
       default:
         throw new Error(`Unknown argument: ${arg}`);
     }
   }
 
   return options;
+}
+
+function decodeJwt(token) {
+  const parts = token.trim().split('.');
+  if (parts.length !== 3) {
+    throw new Error('Not a JWT: expected three dot-separated segments');
+  }
+  const decodePart = (part, label) => {
+    try {
+      return JSON.parse(Buffer.from(part, 'base64url').toString('utf8'));
+    } catch {
+      throw new Error(`Could not decode JWT ${label}`);
+    }
+  };
+  return {
+    header: decodePart(parts[0], 'header'),
+    payload: decodePart(parts[1], 'payload'),
+  };
+}
+
+function formatUnixTime(seconds) {
+  return `${new Date(seconds * 1000).toISOString()} (${seconds})`;
+}
+
+async function verifyDeveloperToken(token, storefront) {
+  let header;
+  let payload;
+  try {
+    ({ header, payload } = decodeJwt(token));
+  } catch (error) {
+    console.error(`✗ ${error.message}`);
+    process.exit(1);
+  }
+
+  console.log('JWT header:', JSON.stringify(header, null, 2));
+  console.log('JWT payload:', JSON.stringify(payload, null, 2));
+
+  const now = Math.floor(Date.now() / 1000);
+  if (typeof payload.exp === 'number') {
+    if (payload.exp <= now) {
+      console.error(`✗ Token expired at ${formatUnixTime(payload.exp)}`);
+    } else {
+      console.log(`✓ Not expired (exp ${formatUnixTime(payload.exp)})`);
+    }
+  } else {
+    console.warn('? No exp claim in payload');
+  }
+
+  if (header.alg !== 'ES256') {
+    console.warn(`? Unexpected alg: ${header.alg} (expected ES256)`);
+  }
+  if (!header.kid) {
+    console.warn('? Missing kid in header');
+  }
+  if (!payload.iss) {
+    console.warn('? Missing iss (Team ID) in payload');
+  }
+
+  const url = new URL(
+    `https://api.music.apple.com/v1/catalog/${encodeURIComponent(storefront)}/search`,
+  );
+  url.searchParams.set('term', 'test');
+  url.searchParams.set('types', 'songs');
+  url.searchParams.set('limit', '1');
+
+  console.log(`\nCalling Apple Music API: ${url.pathname}${url.search}`);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token.trim()}` },
+    });
+  } catch (error) {
+    console.error(`✗ Network error: ${error.message}`);
+    process.exit(1);
+  }
+
+  if (response.ok) {
+    console.log(`✓ Apple Music API accepted token (HTTP ${response.status})`);
+    console.log('  Developer JWT is valid for catalog API calls.');
+    console.log('  Full Auth.authorize() still requires completing the Apple Music app flow.');
+    return;
+  }
+
+  const body = await response.text();
+  console.error(`✗ Apple Music API rejected token (HTTP ${response.status})`);
+  if (body) {
+    console.error(body.slice(0, 500));
+  }
+  process.exit(1);
 }
 
 function base64urlJson(value) {
@@ -159,7 +263,7 @@ function signDeveloperToken({ teamId, keyId, privateKeyPem, expiresInSeconds }) 
   return `${signingInput}.${signature.toString('base64url')}`;
 }
 
-function main() {
+async function main() {
   loadEnvMusic();
 
   let options;
@@ -174,6 +278,11 @@ function main() {
   if (options.help) {
     usage();
     process.exit(0);
+  }
+
+  if (options.verifyToken) {
+    await verifyDeveloperToken(options.verifyToken, options.storefront);
+    return;
   }
 
   const { teamId, keyId, privateKeyPath } = options;
@@ -218,4 +327,7 @@ function main() {
   }
 }
 
-main();
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
