@@ -43,7 +43,7 @@ class ExpoAppleMusicModule : Module() {
       hideStartScreen: Boolean?,
     ->
       val context = requireNotNull(appContext.reactContext) { "React Application Context is null" }
-      val token = AndroidDeveloperToken.resolve(context, developerToken)
+      val token = AndroidDeveloperToken.require(developerToken)
       val message = startScreenMessage?.trim()?.takeIf { it.isNotEmpty() }
       val result =
         authLauncher.launch(

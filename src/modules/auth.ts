@@ -16,8 +16,8 @@ class Auth {
    * `options` arguments are ignored. Requires MusicKit on your App ID and
    * `NSAppleMusicUsageDescription` from the config plugin.
    *
-   * **Android** — Requires a MusicKit **developer JWT** (`developerToken` or config plugin
-   * `androidDeveloperToken`). Opens the MusicKit auth flow (optional upsell → Apple Music app).
+   * **Android** — Requires a MusicKit **developer JWT** as `developerToken`. Opens the MusicKit
+   * auth flow (optional upsell → Apple Music app).
    * Requires the Apple Music app installed and the user signed in with a subscription in most cases.
    *
    * @param developerToken - Android only. Signed JWT from your backend or Apple Developer tooling.
