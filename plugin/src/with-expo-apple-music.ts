@@ -1,16 +1,42 @@
-import { type ConfigPlugin, withInfoPlist } from '@expo/config-plugins';
+import {
+  AndroidConfig,
+  type ConfigPlugin,
+  withInfoPlist,
+  withAndroidManifest,
+} from '@expo/config-plugins';
 
 export const DEFAULT_MUSIC_USAGE = 'Allow $(PRODUCT_NAME) to access Apple Music.';
+
+const ANDROID_DEVELOPER_TOKEN_META = 'expo.modules.applemusic.DEVELOPER_TOKEN';
 
 export type ExpoAppleMusicPluginProps = {
   /**
    * Sets `NSAppleMusicUsageDescription` in the generated iOS Info.plist.
    */
   musicUsageDescription?: string;
+  /**
+   * MusicKit developer JWT for Android auth (dev/example only — prefer fetching from your backend in production).
+   */
+  androidDeveloperToken?: string;
 };
 
 const withExpoAppleMusic: ConfigPlugin<ExpoAppleMusicPluginProps | void> = (config, props) => {
-  const { musicUsageDescription } = props ?? {};
+  const { musicUsageDescription, androidDeveloperToken } = props ?? {};
+
+  config = withAndroidManifest(config, (c) => {
+    const token = androidDeveloperToken?.trim();
+    if (!token) {
+      return c;
+    }
+
+    const application = AndroidConfig.Manifest.getMainApplicationOrThrow(c.modResults);
+    AndroidConfig.Manifest.addMetaDataItemToApplication(
+      application,
+      ANDROID_DEVELOPER_TOKEN_META,
+      token,
+    );
+    return c;
+  });
 
   return withInfoPlist(config, (c) => {
     const current = c.modResults.NSAppleMusicUsageDescription;
