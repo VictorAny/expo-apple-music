@@ -2,6 +2,10 @@
 
 Reference for humans and agents. Use this file to avoid mixing up **catalog** vs **library** and to align Android work with agreed priorities.
 
+## Commits
+
+This repo uses [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): description` (e.g. `fix(android): …`, `feat(ios): …`, `docs: …`). Use an optional scope when the change is platform- or area-specific.
+
 ## Terminology
 
 | Term               | Meaning                                                                                            | **Not** this                                                                    |
