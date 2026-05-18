@@ -11,6 +11,8 @@ import java.io.Serializable
 
 internal data class MusicKitAuthInput(
   val developerToken: String,
+  val startScreenMessage: String? = null,
+  val hideStartScreen: Boolean = false,
 ) : Serializable
 
 internal data class MusicKitAuthOutput(
@@ -23,7 +25,19 @@ internal class MusicKitAuthContract(
 ) : AppContextActivityResultContract<MusicKitAuthInput, MusicKitAuthOutput> {
   override fun createIntent(context: Context, input: MusicKitAuthInput): Intent {
     val manager = AuthenticationFactory.createAuthenticationManager(context)
-    return manager.createIntentBuilder(input.developerToken).build()
+    val builder =
+      manager
+        .createIntentBuilder(input.developerToken)
+        .setHideStartScreen(input.hideStartScreen)
+
+    if (!input.hideStartScreen) {
+      val message = input.startScreenMessage?.trim()
+      if (!message.isNullOrEmpty()) {
+        builder.setStartScreenMessage(message)
+      }
+    }
+
+    return builder.build()
   }
 
   override fun parseResult(

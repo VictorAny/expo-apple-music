@@ -29,13 +29,30 @@ class ExpoAppleMusicModule : Module() {
 
     RegisterActivityContracts {
       authLauncher =
-        registerForActivityResult(MusicKitAuthContract { requireNotNull(appContext.reactContext) })
+        registerForActivityResult(
+          MusicKitAuthContract {
+            // Apple sdk-test-app uses getActivity() for AuthenticationFactory, not Application context.
+            appContext.throwingActivity
+          },
+        )
     }
 
-    AsyncFunction("authorization") Coroutine { developerToken: String? ->
+    AsyncFunction("authorization") Coroutine {
+      developerToken: String?,
+      startScreenMessage: String?,
+      hideStartScreen: Boolean?,
+    ->
       val context = requireNotNull(appContext.reactContext) { "React Application Context is null" }
       val token = AndroidDeveloperToken.resolve(context, developerToken)
-      val result = authLauncher.launch(MusicKitAuthInput(token))
+      val message = startScreenMessage?.trim()?.takeIf { it.isNotEmpty() }
+      val result =
+        authLauncher.launch(
+          MusicKitAuthInput(
+            developerToken = token,
+            startScreenMessage = message,
+            hideStartScreen = hideStartScreen ?: false,
+          ),
+        )
 
       result.musicUserToken?.let { MusicKitAuthStorage.saveMusicUserToken(context, it) }
 

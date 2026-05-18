@@ -10,6 +10,8 @@ export * from './types/album';
 
 export * from './types/auth-status';
 
+export type { AndroidAuthorizeOptions } from './types/android-authorize-options';
+
 export * from './types/check-subscription';
 
 export * from './types/music-item';

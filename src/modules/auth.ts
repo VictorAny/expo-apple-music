@@ -1,22 +1,49 @@
 import type { AuthStatus } from '../types/auth-status';
+import type { AndroidAuthorizeOptions } from '../types/android-authorize-options';
 import type { ICheckSubscription } from '../types/check-subscription';
 import { MusicModule } from '../native-module';
 
+/**
+ * Apple Music authorization and subscription checks.
+ *
+ * @see {@link https://github.com/wwdrew/expo-apple-music/blob/main/docs/AUTH.md} full auth guide (developer token, return values, requirements).
+ */
 class Auth {
   /**
    * Requests authorization to access the user's Apple Music account.
    *
-   * On Android, pass a MusicKit **developer JWT** (see Apple’s Android MusicKit docs).
-   * You can also set `androidDeveloperToken` in the config plugin instead of passing it here.
+   * **iOS** — Shows the system media-library permission dialog. The `developerToken` and
+   * `options` arguments are ignored. Requires MusicKit on your App ID and
+   * `NSAppleMusicUsageDescription` from the config plugin.
+   *
+   * **Android** — Requires a MusicKit **developer JWT** (`developerToken` or config plugin
+   * `androidDeveloperToken`). Opens the MusicKit auth flow (optional upsell → Apple Music app).
+   * Requires the Apple Music app installed and the user signed in with a subscription in most cases.
+   *
+   * @param developerToken - Android only. Signed JWT from your backend or Apple Developer tooling.
+   * @param options - Android only. Upsell screen (`hideStartScreen`, `startScreenMessage`).
+   * @returns {@link AuthStatus} — `authorized` | `denied` | `notDetermined` | `restricted` | `unknown`
+   *
+   * @throws On Android, rejects with `MISSING_DEVELOPER_TOKEN` when no developer JWT is provided.
    */
-  public static async authorize(developerToken?: string): Promise<AuthStatus> {
-    // Same arity on iOS and Android — Android reads developerToken; iOS ignores it.
-    const status = await MusicModule.authorization(developerToken ?? null);
+  public static async authorize(
+    developerToken?: string,
+    options?: AndroidAuthorizeOptions,
+  ): Promise<AuthStatus> {
+    const status = await MusicModule.authorization(
+      developerToken ?? null,
+      options?.startScreenMessage ?? null,
+      options?.hideStartScreen ?? false,
+    );
     return status as AuthStatus;
   }
 
   /**
-   * Checks the user's subscription status for Apple Music via MusicSubscription.current.
+   * Checks subscription capabilities via `MusicSubscription.current`.
+   *
+   * **iOS only** — Android rejects with `UNSUPPORTED_PLATFORM` until implemented.
+   *
+   * Call after `authorize()` returns `authorized` to see if the user can play catalog content.
    */
   public static async checkSubscription(): Promise<ICheckSubscription> {
     return (await MusicModule.checkSubscription()) as ICheckSubscription;
