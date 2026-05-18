@@ -6,14 +6,8 @@ import {
   usePlaybackState,
 } from "@wwdrew/expo-apple-music";
 import { useCallback, useState } from "react";
-import {
-  Button,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Button, Platform, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function App() {
   const [authStatus, setAuthStatus] = useState<string>("—");
@@ -26,7 +20,9 @@ export default function App() {
 
   async function authorize(developerToken?: string) {
     try {
-      const status = await Auth.authorize(developerToken);
+      const status = await Auth.authorize(developerToken, {
+        startScreenMessage: "Start screen message for <b>Expo Example App</b>",
+      });
       setAuthStatus(status);
       appendLog(`authorize: ${status}`);
     } catch (error) {
@@ -58,9 +54,9 @@ export default function App() {
           <Text style={styles.header}>Android auth (Tier 0)</Text>
           <Text>Auth: {authStatus}</Text>
           <Text style={styles.hint}>
-            Set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN to a MusicKit developer
-            JWT, or pass androidDeveloperToken in the config plugin, then
-            rebuild native.
+            From repo root: copy .env.music.example → .env.music, then{" "}
+            npm run dev-token -- --write-env example/.env.local (restart Metro).
+            Or set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN manually.
           </Text>
           <Button
             title="Authorize"
