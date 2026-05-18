@@ -27,6 +27,8 @@ This repo uses [Conventional Commits](https://www.conventionalcommits.org/): `ty
 | `authorize()`         | Auth                | User signs in / grants access                                 |
 | `checkSubscription()` | Auth / subscription | Can they play catalog, become subscriber, cloud library, etc. |
 
+**Auth documentation:** [docs/AUTH.md](./docs/AUTH.md) — developer JWT (Android), `AuthStatus` return values, platform requirements, config plugin, upsell options.
+
 ### Catalog — store (`MusicKit`)
 
 | Method                                 | Domain                     | Purpose                                      |
@@ -100,4 +102,5 @@ These need auth + REST client + JSON mapping to existing TS types.
 ## Related docs
 
 - [README.md](./README.md) — install and usage
+- [docs/AUTH.md](./docs/AUTH.md) — `authorize()`, developer token, `AuthStatus`, Android auth flow
 - [MIGRATION.md](./MIGRATION.md) — Lomray migration notes
