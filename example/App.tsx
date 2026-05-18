@@ -1,22 +1,44 @@
 import {
   Auth,
   CatalogSearchType,
+  type IAlbum,
+  type ISong,
+  MusicItem,
   MusicKit,
   Player,
   usePlaybackState,
 } from "@wwdrew/expo-apple-music";
-import { useCallback, useState } from "react";
-import { Button, Platform, ScrollView, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Button,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function App() {
   const [authStatus, setAuthStatus] = useState<string>("—");
   const [log, setLog] = useState<string>("");
+  const [songs, setSongs] = useState<ISong[]>([]);
+  const [albums, setAlbums] = useState<IAlbum[]>([]);
+  const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const { playbackStatus, playbackTime } = usePlaybackState();
 
   const appendLog = useCallback((message: string) => {
     setLog((prev) => `${message}\n${prev}`.slice(0, 2000));
   }, []);
+
+  useEffect(() => {
+    const sub = Player.addListener("onPlaybackError", (err) => {
+      appendLog(
+        `playback error: ${err.message} (code=${err.code}, op=${err.operation})`,
+      );
+    });
+    return () => sub.remove();
+  }, [appendLog]);
 
   async function authorize(developerToken?: string) {
     try {
@@ -38,6 +60,12 @@ export default function App() {
         [CatalogSearchType.SONGS, CatalogSearchType.ALBUMS],
         { limit: 5 },
       );
+      setSongs(result.songs);
+      setAlbums(result.albums);
+      const first = result.songs[0];
+      if (first) {
+        setSelectedSongId(first.id);
+      }
       appendLog(
         `search: ${result.songs.length} songs, ${result.albums.length} albums`,
       );
@@ -46,28 +74,22 @@ export default function App() {
     }
   }
 
-  if (Platform.OS === "android") {
-    const devToken = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
-
-    return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scroll}>
-          <Text style={styles.header}>Android auth (Tier 0)</Text>
-          <Text>Auth: {authStatus}</Text>
-          <Text style={styles.hint}>
-            See docs/CLI.md: npm run dev-token -- --write-env example/.env.local
-            then restart Metro.
-          </Text>
-          <Button
-            title="Authorize"
-            onPress={() => authorize(devToken)}
-            disabled={!devToken}
-          />
-          <Text style={styles.log}>{log}</Text>
-        </ScrollView>
-      </SafeAreaView>
-    );
+  async function playSong(song: ISong) {
+    setSelectedSongId(song.id);
+    try {
+      await Player.configurePlayer(false);
+      await MusicKit.setPlaybackQueue(song.id, MusicItem.SONG);
+      const state = await Player.getCurrentState();
+      appendLog(`playing: ${song.title} (${state.playbackStatus})`);
+    } catch (error) {
+      appendLog(`play error: ${String(error)}`);
+    }
   }
+
+  const devToken =
+    Platform.OS === "android"
+      ? process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN
+      : undefined;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -77,23 +99,111 @@ export default function App() {
         <Text>
           Playback: {playbackStatus} @ {Math.floor(playbackTime)}s
         </Text>
+        {Platform.OS === "android" && (
+          <Text style={styles.hint}>
+            See docs/CLI.md: npm run dev-token -- --write-env example/.env.local
+            then restart Metro.
+          </Text>
+        )}
         <View style={styles.row}>
-          <Button title="Authorize" onPress={authorize} />
-          <Button title="Search" onPress={search} />
-          <Button title="Play" onPress={() => Player.play()} />
+          <Button
+            title="Authorize"
+            onPress={() => authorize(devToken)}
+            disabled={Platform.OS === "android" && !devToken}
+          />
+          <Button title="Search Beatles" onPress={search} />
+          <Button title="Resume" onPress={() => Player.play()} />
           <Button title="Pause" onPress={() => Player.pause()} />
         </View>
-        <Text style={styles.log}>{log}</Text>
+
+        {songs.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Songs ({songs.length})</Text>
+            <Text style={styles.sectionHint}>Tap a row to queue & play</Text>
+            {songs.map((song) => (
+              <Pressable
+                key={song.id}
+                style={[
+                  styles.resultRow,
+                  selectedSongId === song.id && styles.resultRowSelected,
+                ]}
+                onPress={() => playSong(song)}
+              >
+                <Text style={styles.resultTitle}>{song.title}</Text>
+                <Text style={styles.resultMeta}>{song.artistName}</Text>
+                <Text style={styles.resultId}>id: {song.id}</Text>
+                <Text style={styles.resultMeta}>
+                  duration: {formatDuration(song.duration)}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {albums.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Albums ({albums.length})</Text>
+            {albums.map((album) => (
+              <View key={album.id} style={styles.resultRow}>
+                <Text style={styles.resultTitle}>{album.title}</Text>
+                <Text style={styles.resultMeta}>{album.artistName}</Text>
+                <Text style={styles.resultId}>id: {album.id}</Text>
+                <Text style={styles.resultMeta}>
+                  tracks: {album.trackCount}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {log.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Log</Text>
+            <Text style={styles.log}>{log}</Text>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+function formatDuration(duration: number | string): string {
+  const ms = typeof duration === "string" ? Number(duration) : duration;
+  if (!Number.isFinite(ms) || ms <= 0) return "—";
+  const totalSec = ms > 1000 ? Math.floor(ms / 1000) : Math.floor(ms);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return `${min}:${sec.toString().padStart(2, "0")}`;
+}
+
 const styles = {
   header: { fontSize: 22, fontWeight: "600" as const, marginBottom: 12 },
   container: { flex: 1, backgroundColor: "#f4f4f4" },
-  scroll: { padding: 16 },
+  scroll: { padding: 16, paddingBottom: 32 },
   row: { gap: 8, marginVertical: 12 },
-  log: { fontFamily: "Menlo", fontSize: 12, marginTop: 16 },
+  section: { marginTop: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: "600" as const, marginBottom: 4 },
+  sectionHint: { fontSize: 12, color: "#666", marginBottom: 8 },
+  resultRow: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  resultRowSelected: {
+    borderColor: "#007aff",
+    backgroundColor: "#f0f7ff",
+  },
+  resultTitle: { fontSize: 15, fontWeight: "600" as const },
+  resultMeta: { fontSize: 13, color: "#444", marginTop: 2 },
+  resultId: {
+    fontFamily: Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" }),
+    fontSize: 11,
+    color: "#888",
+    marginTop: 4,
+  },
+  log: { fontFamily: "Menlo", fontSize: 11, color: "#333", marginTop: 4 },
   hint: { fontSize: 12, color: "#555", marginVertical: 8 },
 };

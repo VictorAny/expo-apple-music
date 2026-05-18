@@ -5,3 +5,7 @@ Read [CONTEXT.md](./CONTEXT.md) for **catalog vs library** terminology and **And
 For **auth** (`authorize`, developer token, `AuthStatus`, Android requirements), read [docs/AUTH.md](./docs/AUTH.md).
 
 For **repo CLI** (`npm run dev-token`, verify JWT), read [docs/CLI.md](./docs/CLI.md).
+
+For **Android (full iOS parity)** implementation, read [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md).
+
+For **Web** implementation, read [docs/WEB_IMPLEMENTATION.md](./docs/WEB_IMPLEMENTATION.md) (MusicKit JS; shares REST/mapper contract with Android).

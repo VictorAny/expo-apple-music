@@ -10,7 +10,7 @@ Based on [`@lomray/react-native-apple-music`](https://github.com/Lomray-Software
 npx expo install @wwdrew/expo-apple-music
 ```
 
-**Peer requirements:** Expo SDK 55, iOS 16+ for catalog and library features.
+**Peer requirements:** Expo SDK 55 · iOS 16+ · Android with Apple Music app installed (see [Platform parity](#platform-parity)).
 
 ## Config plugin
 
@@ -53,9 +53,35 @@ if (status === AuthStatus.AUTHORIZED) {
 
 See [MIGRATION.md](./MIGRATION.md) when moving from `@lomray/react-native-apple-music`.
 
-## Android
+## Platform parity
 
-**Tier 0 (in progress):** `Auth.authorize()` via the MusicKit Authentication SDK (Apple Music app, developer JWT). Library/catalog APIs and `checkSubscription()` still reject with `UNSUPPORTED_PLATFORM` until implemented. See [CONTEXT.md](./CONTEXT.md) and [docs/AUTH.md](./docs/AUTH.md).
+The **same TypeScript API** is exposed on iOS and Android. Native implementations differ; a few capabilities are missing or approximate on Android.
+
+| Feature | iOS | Android | Notes |
+| --- | :---: | :---: | --- |
+| `Auth.authorize()` | ✅ | ✅ | Android requires a [developer JWT](./docs/AUTH.md) at runtime. |
+| `Auth.checkSubscription()` | ✅ | ⚠️ | Android infers flags from token + library probe (no `MusicSubscription` API). |
+| `MusicKit.catalogSearch()` | ✅ | ✅ | Android uses Apple Music REST (`/v1/catalog/{storefront}/search`). |
+| `getUserPlaylists` / `getLibrarySongs` / `getPlaylistSongs` | ✅ | ✅ | Android uses REST (`/v1/me/library/...`). |
+| `getTracksFromLibrary()` | ✅ | ✅ | Android uses `GET /v1/me/recent/played` (API max **10** items per request). |
+| `setPlaybackQueue` — song | ✅ | ✅ | |
+| `setPlaybackQueue` — album | ✅ | ✅ | |
+| `setPlaybackQueue` — playlist | ✅ | ✅ | |
+| `setPlaybackQueue` — **station** (catalog) | ✅ | ❌ | Playback AAR queue builder supports songs, albums, and playlists only — no station container type. |
+| `setPlaybackQueue` — **station** (library) | ❌ | ❌ | Not supported on either platform (stations are not library items). |
+| `playLibrarySong` / `playLibraryPlaylist` | ✅ | ✅ | Android resolves library IDs to catalog playback IDs via REST before queueing. |
+| `Player.*` transport + hooks | ✅ | ✅ | Android uses `MediaPlayerController` (playback AAR). Test on a **physical ARM** device (no x86 natives). |
+| `configurePlayer()` | ✅ | ⚠️ | Android returns the same shape; audio-session / focus behavior is not fully mirrored. |
+
+**Legend:** ✅ supported · ⚠️ supported with differences · ❌ not supported
+
+Implementation details: [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md). Terminology (catalog vs library): [CONTEXT.md](./CONTEXT.md).
+
+## Android setup
+
+1. Enable **MusicKit** for your app in the [Apple Developer portal](https://developer.apple.com) and issue a developer JWT (see [docs/CLI.md](./docs/CLI.md)).
+2. Call `Auth.authorize(developerToken)` — opens the Apple Music app via the MusicKit Authentication SDK.
+3. Run on a **physical ARM device** with Apple Music installed and an active subscription.
 
 ## License
 

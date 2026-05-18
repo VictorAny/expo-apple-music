@@ -61,7 +61,7 @@ The module’s Android library manifest declares `<queries>` for `com.apple.andr
 2. The MusicKit Authentication SDK may show a **connect / upsell** screen (unless `hideStartScreen: true`).
 3. The user is sent to the **Apple Music** app to approve access.
 4. Apple Music returns via deeplink; the module maps the SDK result to `AuthStatus`.
-5. On `authorized`, the **music user token** is saved in app-private native storage (for upcoming library REST APIs; not yet exposed to JavaScript).
+5. The **developer JWT** passed to `authorize()` is saved in app-private native storage (for playback and REST). On `authorized`, the **music user token** is saved there too (not yet exposed to JavaScript).
 
 There is **no web-based login** on Android native MusicKit — only the Apple Music app or Play Store install flow.
 

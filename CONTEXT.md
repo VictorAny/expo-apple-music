@@ -104,4 +104,6 @@ These need auth + REST client + JSON mapping to existing TS types.
 - [README.md](./README.md) — install and usage
 - [docs/AUTH.md](./docs/AUTH.md) — `authorize()`, developer token, `AuthStatus`, Android auth flow
 - [docs/CLI.md](./docs/CLI.md) — `npm run dev-token` (generate / verify developer JWT)
+- [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md) — Android full iOS parity (REST + playback AAR; agent handoff)
+- [docs/WEB_IMPLEMENTATION.md](./docs/WEB_IMPLEMENTATION.md) — Web parity (MusicKit JS; same REST contract as Android)
 - [MIGRATION.md](./MIGRATION.md) — Lomray migration notes
