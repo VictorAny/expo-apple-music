@@ -9,6 +9,10 @@
       {
         "name": "musickit-auth",
         "aarFilePath": "android/libs/musickitauth-release-1.1.2.aar"
+      },
+      {
+        "name": "musickit-playback",
+        "aarFilePath": "android/libs/mediaplayback-release-1.1.1.aar"
       }
     ]
   }
