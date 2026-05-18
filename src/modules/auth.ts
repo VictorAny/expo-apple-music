@@ -5,9 +5,13 @@ import { MusicModule } from '../native-module';
 class Auth {
   /**
    * Requests authorization to access the user's Apple Music account.
+   *
+   * On Android, pass a MusicKit **developer JWT** (see Apple’s Android MusicKit docs).
+   * You can also set `androidDeveloperToken` in the config plugin instead of passing it here.
    */
-  public static async authorize(): Promise<AuthStatus> {
-    const status = await MusicModule.authorization();
+  public static async authorize(developerToken?: string): Promise<AuthStatus> {
+    // Same arity on iOS and Android — Android reads developerToken; iOS ignores it.
+    const status = await MusicModule.authorization(developerToken ?? null);
     return status as AuthStatus;
   }
 
