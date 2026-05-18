@@ -55,3 +55,9 @@ yarn-error.log
 
 # Expo
 .expo/*
+
+# Apple SDK libraries
+android/libs/*.aar
+
+# Environment variables
+.env*
