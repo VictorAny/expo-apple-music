@@ -4,6 +4,12 @@
     "modules": ["ExpoAppleMusicModule"]
   },
   "android": {
-    "modules": ["expo.modules.applemusic.ExpoAppleMusicModule"]
+    "modules": ["expo.modules.applemusic.ExpoAppleMusicModule"],
+    "gradleAarProjects": [
+      {
+        "name": "musickit-auth",
+        "aarFilePath": "android/libs/musickitauth-release-1.1.2.aar"
+      }
+    ]
   }
 }

@@ -16,3 +16,8 @@ android {
     abortOnError false
   }
 }
+
+dependencies {
+  implementation project(":${project.name}\$musickit-auth")
+  // implementation project(":${project.name}\$musickit-playback")
+}

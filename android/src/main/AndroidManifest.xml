@@ -1,2 +1,11 @@
-<manifest>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
+
+  <application>
+  <!-- musickitauth AAR targets API 28 and omits android:exported on SDKUriHandlerActivity -->
+    <activity
+      android:name="com.apple.android.sdk.authentication.SDKUriHandlerActivity"
+      android:exported="true"
+      tools:node="merge" />
+  </application>
 </manifest>
