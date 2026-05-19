@@ -1,9 +1,10 @@
 import type { MusicKitInstance, MusicKitStatic } from './musickit-types';
 
 const MUSIC_KIT_SCRIPT = 'https://js-cdn.music.apple.com/musickit/v3/musickit.js';
+const MUSIC_KIT_LOADED_EVENT = 'musickitloaded';
 
 let configurePromise: Promise<MusicKitInstance> | null = null;
-let developerToken: string | null = null;
+let configuredToken: string | null = null;
 
 function assertBrowser(): void {
   if (typeof window === 'undefined') {
@@ -11,72 +12,135 @@ function assertBrowser(): void {
   }
 }
 
+/**
+ * Expo / Metro define `process.env` in the browser but often omit `process.versions`.
+ * MusicKit JS tests `null !== process.versions` (true when `versions` is `undefined`), then
+ * reads `process.versions.node` and throws. Force a null `versions` so it picks `window.Buffer`.
+ */
+function patchProcessForMusicKit(): void {
+  if (typeof process === 'undefined') {
+    return;
+  }
+  if (process.versions == null) {
+    // Intentionally null — see docstring above.
+    Object.assign(process, { versions: null });
+  }
+}
+
+function waitForMusicKitLoaded(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const onLoaded = () => {
+      cleanup();
+      resolve();
+    };
+    const onError = () => {
+      cleanup();
+      reject(new Error('MusicKit JS failed to load'));
+    };
+    const cleanup = () => {
+      document.removeEventListener(MUSIC_KIT_LOADED_EVENT, onLoaded);
+      document.removeEventListener('musickiterror', onError);
+    };
+
+    document.addEventListener(MUSIC_KIT_LOADED_EVENT, onLoaded, { once: true });
+    document.addEventListener('musickiterror', onError, { once: true });
+
+    // Script may have fired the event before we subscribed.
+    if (window.MusicKit?.configure) {
+      cleanup();
+      resolve();
+    }
+  });
+}
+
 async function loadMusicKitScript(): Promise<MusicKitStatic> {
   assertBrowser();
-  if (window.MusicKit) {
+  patchProcessForMusicKit();
+
+  if (window.MusicKit?.configure) {
     return window.MusicKit;
   }
 
-  await new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${MUSIC_KIT_SCRIPT}"]`);
-    if (existing) {
-      existing.addEventListener('load', () => resolve(), { once: true });
-      existing.addEventListener('error', () => reject(new Error('MusicKit JS failed to load')), {
-        once: true,
-      });
-      if (window.MusicKit) {
-        resolve();
-      }
-      return;
-    }
+  const existing = document.querySelector(`script[src="${MUSIC_KIT_SCRIPT}"]`);
+  if (!existing) {
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = MUSIC_KIT_SCRIPT;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('MusicKit JS failed to load'));
+      document.head.appendChild(script);
+    });
+  }
 
-    const script = document.createElement('script');
-    script.src = MUSIC_KIT_SCRIPT;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('MusicKit JS failed to load'));
-    document.head.appendChild(script);
-  });
+  await waitForMusicKitLoaded();
 
-  if (!window.MusicKit) {
+  if (!window.MusicKit?.configure) {
     throw new Error('MusicKit JS is unavailable after script load');
   }
   return window.MusicKit;
 }
 
 export function getStoredDeveloperToken(): string | null {
-  return developerToken;
+  return configuredToken;
 }
 
 export async function configureMusicKit(token: string): Promise<MusicKitInstance> {
   assertBrowser();
-  developerToken = token;
+  const trimmed = token.trim();
+  const tokenChanged = configuredToken !== null && configuredToken !== trimmed;
+  configuredToken = trimmed;
+
+  if (configurePromise && tokenChanged) {
+    configurePromise = null;
+  }
 
   if (!configurePromise) {
     configurePromise = (async () => {
       const MusicKit = await loadMusicKitScript();
       await MusicKit.configure({
-        developerToken: token,
+        developerToken: trimmed,
         app: {
           name: 'Expo Apple Music',
           build: '0.1.0',
         },
       });
-      return MusicKit.getInstance();
+      const instance = MusicKit.getInstance();
+      if (!instance) {
+        throw new Error('MusicKit JS did not return an instance after configure()');
+      }
+      return instance;
     })();
   }
 
   return configurePromise;
 }
 
-export async function getMusic(): Promise<MusicKitInstance> {
+export function isMusicKitConfigured(): boolean {
+  return configurePromise !== null;
+}
+
+/** Returns null when `authorize()` has not configured MusicKit yet (or configure failed). */
+export async function getMusicIfConfigured(): Promise<MusicKitInstance | null> {
   if (!configurePromise) {
+    return null;
+  }
+  try {
+    return await configurePromise;
+  } catch {
+    return null;
+  }
+}
+
+export async function getMusic(): Promise<MusicKitInstance> {
+  const music = await getMusicIfConfigured();
+  if (!music) {
     throw new Error('MusicKit is not configured. Call Auth.authorize(developerToken) first.');
   }
-  return configurePromise;
+  return music;
 }
 
 export function resetMusicKitForTests(): void {
   configurePromise = null;
-  developerToken = null;
+  configuredToken = null;
 }

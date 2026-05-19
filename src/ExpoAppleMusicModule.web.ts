@@ -2,6 +2,7 @@ import { NativeModule, registerWebModule } from 'expo-modules-core';
 
 import { paginationFromMap } from './web/pagination';
 import { configureMusicKit } from './web/MusicKitLoader';
+import { authStatusFromAuthorizeError, authStatusFromMusicKit } from './web/map-auth-status';
 import * as errors from './web/apple-music-errors';
 import { WebAppleMusicApiClient } from './web/WebAppleMusicApiClient';
 import { WebPlaybackController } from './web/WebPlaybackController';
@@ -14,23 +15,6 @@ function requireDeveloperToken(developerToken: string | null | undefined): strin
     throw errors.missingDeveloperToken();
   }
   return developerToken.trim();
-}
-
-function mapAuthStatus(status: string): string {
-  const value = status.toLowerCase();
-  if (value.includes('authorized')) {
-    return 'authorized';
-  }
-  if (value.includes('denied') || value.includes('not_authorized')) {
-    return 'denied';
-  }
-  if (value.includes('restricted')) {
-    return 'restricted';
-  }
-  if (value.includes('not_determined')) {
-    return 'notDetermined';
-  }
-  return 'unknown';
 }
 
 export class ExpoAppleMusicModule extends NativeModule {
@@ -48,15 +32,16 @@ export class ExpoAppleMusicModule extends NativeModule {
     _hideStartScreen: boolean | null,
   ): Promise<string> {
     const token = requireDeveloperToken(developerToken);
+    const music = await configureMusicKit(token);
+    if (music.isAuthorized) {
+      return 'authorized';
+    }
+
     try {
-      const music = await configureMusicKit(token);
-      if (music.isAuthorized) {
-        return 'authorized';
-      }
-      const status = await music.authorize();
-      return mapAuthStatus(String(status));
-    } catch {
-      return 'unknown';
+      const result = await music.authorize();
+      return authStatusFromMusicKit(music, result);
+    } catch (error) {
+      return authStatusFromAuthorizeError(error);
     }
   }
 

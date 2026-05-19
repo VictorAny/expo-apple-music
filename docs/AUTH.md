@@ -69,7 +69,8 @@ There is **no web-based login** on Android native MusicKit — only the Apple Mu
 
 - **MusicKit JS v3** loaded on first `authorize()` (hosted script from Apple)
 - **Developer JWT required** — same as Android; reject with `MISSING_DEVELOPER_TOKEN` if missing
-- User signs in through MusicKit’s browser authorize UI (not `NSAppleMusicUsageDescription`)
+- User signs in through MusicKit’s browser authorize UI (popup to `authorize.music.apple.com`; allow popups for your origin)
+- Success is determined from **`music.isAuthorized`** after `music.authorize()` — the SDK return value is often a user token string, not a status label
 - Configure your App ID for **MusicKit on the Web** in the Apple Developer portal (domain association)
 - `options` (`hideStartScreen`, `startScreenMessage`) are **ignored** on web
 - `checkSubscription()` uses REST inference (library probe), not `MusicSubscription.current`

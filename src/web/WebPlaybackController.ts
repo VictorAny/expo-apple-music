@@ -1,6 +1,13 @@
 import { mapSong } from '../mappers/apple-music-json-mapper';
 import type { MusicKitMediaItem } from './musickit-types';
-import { getMusic } from './MusicKitLoader';
+import { getMusic, getMusicIfConfigured } from './MusicKitLoader';
+
+const IDLE_PLAYBACK_STATE: Record<string, unknown> = {
+  currentSong: undefined,
+  playbackRate: 0,
+  playbackStatus: 'paused',
+  playbackTime: 0,
+};
 
 function mapNowPlaying(item: MusicKitMediaItem | null): Record<string, unknown> | undefined {
   if (!item) {
@@ -33,7 +40,10 @@ export class WebPlaybackController {
   }
 
   async currentState(): Promise<Record<string, unknown>> {
-    const music = await getMusic();
+    const music = await getMusicIfConfigured();
+    if (!music) {
+      return IDLE_PLAYBACK_STATE;
+    }
     const item = music.nowPlayingItem ?? music.player?.nowPlayingItem ?? null;
     const isPlaying = music.isPlaying ?? music.player?.isPlaying ?? false;
     const playbackState = music.player?.playbackState ?? '';

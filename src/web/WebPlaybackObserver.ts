@@ -1,5 +1,5 @@
 import { WebPlaybackController } from './WebPlaybackController';
-import { getMusic } from './MusicKitLoader';
+import { getMusicIfConfigured } from './MusicKitLoader';
 
 const PLAYBACK_EVENTS = [
   'onPlaybackStateChange',
@@ -15,21 +15,36 @@ interface PlaybackEmitter {
 
 export class WebPlaybackObserver {
   private intervalId: ReturnType<typeof setInterval> | null = null;
+  private activeEmitter: PlaybackEmitter | null = null;
+  private musicKitListenersAttached = false;
   private readonly playback = new WebPlaybackController();
   private readonly handlers = {
-    playbackState: () => void this.emitState(),
-    mediaItem: () => void this.emitCurrentSong(),
+    playbackState: () => {
+      const emitter = this.activeEmitter;
+      if (emitter) {
+        void this.emitState(emitter);
+      }
+    },
+    mediaItem: () => {
+      const emitter = this.activeEmitter;
+      if (emitter) {
+        void this.emitCurrentSong(emitter);
+      }
+    },
   };
 
   start(emitter: PlaybackEmitter): void {
     this.stop();
+    this.activeEmitter = emitter;
     void this.attachMusicKitListeners(emitter);
     this.intervalId = setInterval(() => {
-      void this.emitTimeUpdate(emitter);
+      void this.tick();
     }, 1000);
   }
 
   stop(): void {
+    this.activeEmitter = null;
+    this.musicKitListenersAttached = false;
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
@@ -41,42 +56,59 @@ export class WebPlaybackObserver {
     return PLAYBACK_EVENTS.some((event) => emitter.listenerCount(event) > 0);
   }
 
-  private async attachMusicKitListeners(emitter: PlaybackEmitter): Promise<void> {
-    try {
-      const music = await getMusic();
-      music.addEventListener('playbackStateDidChange', this.handlers.playbackState);
-      music.addEventListener('mediaItemDidChange', this.handlers.mediaItem);
-      await this.emitState(emitter);
-      await this.emitCurrentSong(emitter);
-    } catch {
-      // MusicKit not configured yet
+  private async tick(): Promise<void> {
+    const emitter = this.activeEmitter;
+    if (!emitter) {
+      return;
     }
+    if (!this.musicKitListenersAttached) {
+      await this.attachMusicKitListeners(emitter);
+    }
+    await this.emitTimeUpdate(emitter);
+  }
+
+  private async attachMusicKitListeners(emitter: PlaybackEmitter): Promise<void> {
+    if (this.musicKitListenersAttached) {
+      return;
+    }
+    const music = await getMusicIfConfigured();
+    if (!music) {
+      return;
+    }
+    music.addEventListener('playbackStateDidChange', this.handlers.playbackState);
+    music.addEventListener('mediaItemDidChange', this.handlers.mediaItem);
+    this.musicKitListenersAttached = true;
+    await this.emitState(emitter);
+    await this.emitCurrentSong(emitter);
   }
 
   private async detachMusicKitListeners(): Promise<void> {
-    try {
-      const music = await getMusic();
-      music.removeEventListener('playbackStateDidChange', this.handlers.playbackState);
-      music.removeEventListener('mediaItemDidChange', this.handlers.mediaItem);
-    } catch {
-      // ignore
+    if (!this.musicKitListenersAttached) {
+      return;
     }
+    const music = await getMusicIfConfigured();
+    if (!music) {
+      return;
+    }
+    music.removeEventListener('playbackStateDidChange', this.handlers.playbackState);
+    music.removeEventListener('mediaItemDidChange', this.handlers.mediaItem);
+    this.musicKitListenersAttached = false;
   }
 
-  private async emitState(emitter?: PlaybackEmitter): Promise<void> {
-    if (emitter && emitter.listenerCount('onPlaybackStateChange') === 0) {
+  private async emitState(emitter: PlaybackEmitter): Promise<void> {
+    if (emitter.listenerCount('onPlaybackStateChange') === 0) {
       return;
     }
     const state = await this.playback.currentState();
-    emitter?.emit('onPlaybackStateChange', state);
+    emitter.emit('onPlaybackStateChange', state);
   }
 
-  private async emitCurrentSong(emitter?: PlaybackEmitter): Promise<void> {
-    if (emitter && emitter.listenerCount('onCurrentSongChange') === 0) {
+  private async emitCurrentSong(emitter: PlaybackEmitter): Promise<void> {
+    if (emitter.listenerCount('onCurrentSongChange') === 0) {
       return;
     }
     const state = await this.playback.currentState();
-    emitter?.emit('onCurrentSongChange', state.currentSong ?? null);
+    emitter.emit('onCurrentSongChange', state.currentSong ?? null);
   }
 
   private async emitTimeUpdate(emitter: PlaybackEmitter): Promise<void> {

@@ -24,6 +24,11 @@ export interface MusicKitApiResponse {
 
 export interface MusicKitInstance {
   isAuthorized: boolean;
+  /** Set after authorize — country code (e.g. `us`). Prefer over REST when present. */
+  storefrontId?: string;
+  /** Present on MusicKit JS v3 — numeric {@link MusicKitAuthorizationStatus}. */
+  authorizationStatus?: number;
+  isRestricted?: boolean;
   authorize(): Promise<MusicKitAuthorizeStatus>;
   play(): Promise<void>;
   pause(): Promise<void>;
@@ -42,12 +47,12 @@ export interface MusicKitInstance {
   api: {
     music(
       path: string,
+      query?: Record<string, string>,
       options?: {
         method?: string;
-        body?: unknown;
         fetchOptions?: RequestInit;
       },
-    ): Promise<MusicKitApiResponse>;
+    ): Promise<unknown>;
   };
 }
 

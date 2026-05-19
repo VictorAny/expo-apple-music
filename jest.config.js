@@ -1,7 +1,10 @@
 /** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/src/mappers/__tests__/**/*.test.ts'],
+  testMatch: [
+    '<rootDir>/src/mappers/__tests__/**/*.test.ts',
+    '<rootDir>/src/web/__tests__/**/*.test.ts',
+  ],
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',

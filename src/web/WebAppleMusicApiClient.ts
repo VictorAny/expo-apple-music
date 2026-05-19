@@ -14,6 +14,11 @@ import {
 } from '../mappers/apple-music-json-mapper';
 import * as errors from './apple-music-errors';
 import { getMusic } from './MusicKitLoader';
+import {
+  musicKitApiRequest,
+  parseStorefrontId,
+  storefrontIdFromInstance,
+} from './music-kit-api';
 import type { MusicKitApiResponse } from './musickit-types';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -92,14 +97,6 @@ export class WebAppleMusicApiClient {
     }
   }
 
-  private buildPath(path: string, query: Record<string, string>): string {
-    if (Object.keys(query).length === 0) {
-      return path;
-    }
-    const params = new URLSearchParams(query);
-    return `${path}?${params.toString()}`;
-  }
-
   async request(
     method: HttpMethod,
     path: string,
@@ -108,18 +105,8 @@ export class WebAppleMusicApiClient {
   ): Promise<MusicKitApiResponse> {
     await this.requireAuthorized();
     const music = await getMusic();
-    const endpoint = this.buildPath(path, query);
     try {
-      const response = await music.api.music(endpoint, {
-        method,
-        body,
-        fetchOptions: body
-          ? {
-              headers: { 'Content-Type': 'application/json' },
-            }
-          : undefined,
-      });
-      return response;
+      return await musicKitApiRequest(music, method, path, query, body);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (message.includes('403')) {
@@ -140,9 +127,16 @@ export class WebAppleMusicApiClient {
     if (this.cachedStorefront) {
       return this.cachedStorefront;
     }
+
+    const music = await getMusic();
+    const fromInstance = storefrontIdFromInstance(music);
+    if (fromInstance) {
+      this.cachedStorefront = fromInstance;
+      return fromInstance;
+    }
+
     const json = await this.getJson('/v1/me/storefront');
-    const data = Array.isArray(json.data) ? json.data[0] : null;
-    const id = (data as AppleMusicApiResource | null)?.id;
+    const id = parseStorefrontId(json);
     if (!id) {
       throw errors.apiError('Storefront response missing id');
     }
