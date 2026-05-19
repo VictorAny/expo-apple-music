@@ -1,14 +1,13 @@
 import type { CatalogSearchType, ICatalogSearch } from '../types/catalog-search';
 import type { MusicItem } from '../types/music-item';
+import type { IPaginationOptions } from '../types/pagination';
 import type { IPlaylistsResponse, IPlaylistSongsResponse } from '../types/playlist';
 import type { ISong } from '../types/song';
 import type { ITracksFromLibrary } from '../types/tracks-from-library';
 import { MusicModule } from '../native-module';
 
-export interface IEndlessListOptions {
-  offset?: number;
-  limit?: number;
-}
+/** @deprecated Use {@link IPaginationOptions} */
+export type IEndlessListOptions = IPaginationOptions;
 
 export interface ILibrarySongsResponse {
   songs: ISong[];

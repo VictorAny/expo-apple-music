@@ -20,14 +20,27 @@ export * from './types/tracks-from-library';
 
 export * from './types/playlist';
 
+export * from './types/pagination';
+
+export * from './types/artist';
+
+export * from './types/storefront';
+
 import useCurrentSong from './hooks/use-current-song';
 import useIsPlaying from './hooks/use-is-playing';
 import usePlaybackState from './hooks/use-playback-state';
 import Auth from './modules/auth';
+import Catalog from './modules/catalog';
+import History from './modules/history';
+import Library from './modules/library';
 import MusicKit from './modules/music-kit';
 import Player from './modules/player';
 
-export type { IEndlessListOptions, ILibrarySongsResponse } from './modules/music-kit';
+export type { ILibrarySongsResponse } from './modules/library';
+
+export type { IEndlessListOptions } from './modules/music-kit';
+
+export type { IRecentlyPlayedTracksResponse } from './modules/history';
 
 export type { IPlayerConfig, IPlaybackError } from './modules/player';
 
@@ -37,4 +50,14 @@ export { isLibraryItem } from './utils/is-library-item';
 
 export { getErrorMessage } from './utils/get-error-message';
 
-export { useCurrentSong, useIsPlaying, usePlaybackState, Auth, Player, MusicKit };
+export {
+  useCurrentSong,
+  useIsPlaying,
+  usePlaybackState,
+  Auth,
+  Catalog,
+  History,
+  Library,
+  Player,
+  MusicKit,
+};

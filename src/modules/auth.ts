@@ -1,6 +1,7 @@
 import type { AuthStatus } from '../types/auth-status';
 import type { AndroidAuthorizeOptions } from '../types/android-authorize-options';
 import type { ICheckSubscription } from '../types/check-subscription';
+import type { IStorefront } from '../types/storefront';
 import { MusicModule } from '../native-module';
 
 /**
@@ -47,6 +48,11 @@ class Auth {
    */
   public static async checkSubscription(): Promise<ICheckSubscription> {
     return (await MusicModule.checkSubscription()) as ICheckSubscription;
+  }
+
+  /** User's Apple Music storefront country code (e.g. `us`). Requires prior authorization. */
+  public static async getStorefront(): Promise<IStorefront> {
+    return (await MusicModule.getStorefront()) as IStorefront;
   }
 }
 

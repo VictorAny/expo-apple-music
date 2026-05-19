@@ -14,7 +14,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 |------------|--------|-----|---------|-----|
 | Authorize | `Auth.authorize()` | ✅ | ✅ | ⬜ |
 | Subscription check | `Auth.checkSubscription()` | ✅ | ⚠️ inferred | ⬜ |
-| Storefront | `Auth.getStorefront()` | 🚧 | 🚧 | ⬜ |
+| Storefront | `Auth.getStorefront()` | ✅ | ✅ | ⬜ |
 
 ---
 
@@ -37,7 +37,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | List songs | `Library.getSongs()` | ✅ | ✅ | ⬜ |
 | List playlists | `Library.getPlaylists()` | ✅ | ✅ | ⬜ |
 | Playlist tracks | `Library.getPlaylistTracks()` | ✅ | ✅ | ⬜ |
-| List artists | `Library.getArtists()` | 🚧 | 🚧 | ⬜ |
+| List artists | `Library.getArtists()` | ✅ | ✅ | ⬜ |
 | List albums | `Library.getAlbums()` | ⬜ | ⬜ | ⬜ |
 | List music-videos | `Library.getMusicVideos()` | ⬜ | ⬜ | ⬜ |
 | Library search | `Library.search()` | ⬜ | ⬜ | ⬜ |
@@ -49,7 +49,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
 | Recently played resources | `History.getRecentlyPlayedResources()` | ✅ | ✅ | ⬜ |
-| Recently played tracks | `History.getRecentlyPlayedTracks()` | 🚧 | 🚧 | ⬜ |
+| Recently played tracks | `History.getRecentlyPlayedTracks()` | ✅ | ✅ | ⬜ |
 | Recently played stations | `History.getRecentlyPlayedStations()` | ⬜ | ⬜ | ⬜ |
 | Heavy rotation | `History.getHeavyRotation()` | ⬜ | ⬜ | ⬜ |
 | Recently added | `History.getRecentlyAdded()` | ⬜ | ⬜ | ⬜ |

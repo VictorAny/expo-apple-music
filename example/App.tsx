@@ -2,8 +2,12 @@ import {
   Auth,
   AuthStatus,
   CatalogSearchType,
+  History,
+  Library,
   type IAlbum,
+  type IArtist,
   type ISong,
+  type IUserTrack,
   MusicItem,
   MusicKit,
   Player,
@@ -27,6 +31,9 @@ export default function App() {
   const [songs, setSongs] = useState<ISong[]>([]);
   const [albums, setAlbums] = useState<IAlbum[]>([]);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
+  const [libraryArtists, setLibraryArtists] = useState<IArtist[]>([]);
+  const [recentTracks, setRecentTracks] = useState<ISong[]>([]);
+  const [recentResources, setRecentResources] = useState<IUserTrack[]>([]);
 
   const devToken =
     Platform.OS === "android"
@@ -114,6 +121,33 @@ export default function App() {
     }
   }
 
+  async function loadStorefront() {
+    try {
+      const storefront = await Auth.getStorefront();
+      appendLog(`storefront: ${storefront.id}`);
+    } catch (error) {
+      appendLog(`storefront error: ${String(error)}`);
+    }
+  }
+
+  async function loadLibraryAndHistory() {
+    try {
+      const [artists, tracks, resources] = await Promise.all([
+        Library.getArtists({ limit: 10 }),
+        History.getRecentlyPlayedTracks({ limit: 10 }),
+        History.getRecentlyPlayedResources(),
+      ]);
+      setLibraryArtists(artists.artists);
+      setRecentTracks(tracks.songs);
+      setRecentResources(resources.recentlyPlayedItems);
+      appendLog(
+        `library: ${artists.artists.length} artists · history: ${tracks.songs.length} tracks, ${resources.recentlyPlayedItems.length} resources`,
+      );
+    } catch (error) {
+      appendLog(`library/history error: ${String(error)}`);
+    }
+  }
+
   async function playAlbum(album: IAlbum) {
     try {
       await Player.configurePlayer(false);
@@ -150,6 +184,8 @@ export default function App() {
               disabled={Platform.OS === "android" && !devToken}
             />
             <Button title="Search Beatles" onPress={search} />
+            <Button title="Storefront" onPress={loadStorefront} />
+            <Button title="Library & history" onPress={loadLibraryAndHistory} />
           </View>
 
           {songs.length > 0 && (
@@ -172,6 +208,54 @@ export default function App() {
                     duration: {formatDuration(song.duration)}
                   </Text>
                 </Pressable>
+              ))}
+            </View>
+          )}
+
+          {libraryArtists.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Library artists ({libraryArtists.length})
+              </Text>
+              {libraryArtists.map((artist) => (
+                <View key={artist.id} style={styles.resultRow}>
+                  <Text style={styles.resultTitle}>{artist.name}</Text>
+                  <Text style={styles.resultId}>id: {artist.id}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {recentTracks.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Recently played tracks ({recentTracks.length})
+              </Text>
+              {recentTracks.map((song) => (
+                <Pressable
+                  key={song.id}
+                  style={styles.resultRow}
+                  onPress={() => playSong(song)}
+                >
+                  <Text style={styles.resultTitle}>{song.title}</Text>
+                  <Text style={styles.resultMeta}>{song.artistName}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {recentResources.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Recently played resources ({recentResources.length})
+              </Text>
+              {recentResources.map((item) => (
+                <View key={String(item.id)} style={styles.resultRow}>
+                  <Text style={styles.resultTitle}>{item.title}</Text>
+                  <Text style={styles.resultMeta}>
+                    {item.type} · {item.subtitle}
+                  </Text>
+                </View>
               ))}
             </View>
           )}

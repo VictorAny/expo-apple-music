@@ -26,6 +26,7 @@ This repo uses [Conventional Commits](https://www.conventionalcommits.org/): `ty
 | --------------------- | ------------------- | ------------------------------------------------------------- |
 | `authorize()`         | Auth                | User signs in / grants access                                 |
 | `checkSubscription()` | Auth / subscription | Can they play catalog, become subscriber, cloud library, etc. |
+| `getStorefront()`     | Auth                | User’s storefront id (e.g. `us`)                              |
 
 **Auth documentation:** [docs/AUTH.md](./docs/AUTH.md) — developer JWT (Android), `AuthStatus` return values, platform requirements, config plugin, upsell options.
 
@@ -36,16 +37,23 @@ This repo uses [Conventional Commits](https://www.conventionalcommits.org/): `ty
 | `catalogSearch(term, types, options?)` | **Catalog**                | Search Apple Music store (`songs`, `albums`) |
 | `setPlaybackQueue(itemId, type)`       | Catalog playback (usually) | Queue catalog item by store ID               |
 
-### Library — user account (`MusicKit`)
+### Library — user account (`Library` / interim `MusicKit`)
 
-| Method                                         | Domain               | Purpose                                                 |
-| ---------------------------------------------- | -------------------- | ------------------------------------------------------- |
-| `getUserPlaylists(options?)`                   | **Library**          | User’s playlists                                        |
-| `getLibrarySongs(options?)`                    | **Library**          | User’s library songs                                    |
-| `getPlaylistSongs(playlistId, options?)`       | **Library**          | Tracks in one of the user’s playlists                   |
-| `getTracksFromLibrary()`                       | **Library**          | Recently played (and related library containers on iOS) |
-| `playLibrarySong(songId)`                      | **Library playback** | Play a library song (lower priority on Android)         |
-| `playLibraryPlaylist(playlistId, startingAt?)` | **Library playback** | Play a library playlist (lower priority on Android)     |
+| Method                                         | Domain               | Purpose                          |
+| ---------------------------------------------- | -------------------- | -------------------------------- |
+| `Library.getPlaylists(options?)`               | **Library**          | User’s playlists                 |
+| `Library.getSongs(options?)`                   | **Library**          | User’s library songs             |
+| `Library.getPlaylistTracks(playlistId, …)`     | **Library**          | Tracks in a playlist             |
+| `Library.getArtists(options?)`                 | **Library**          | User’s library artists           |
+| `playLibrarySong(songId)`                      | **Library playback** | Play a library song              |
+| `playLibraryPlaylist(playlistId, startingAt?)` | **Library playback** | Play a library playlist          |
+
+### History — listening (`History` / interim `MusicKit`)
+
+| Method | Domain | Purpose |
+| ------ | ------ | ------- |
+| `History.getRecentlyPlayedResources()` | **History** | Recent albums / playlists / stations |
+| `History.getRecentlyPlayedTracks(options?)` | **History** | Recent songs (listening history) |
 
 ### Playback (`Player` + hooks)
 
