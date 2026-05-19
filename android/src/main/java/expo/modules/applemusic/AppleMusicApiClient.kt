@@ -122,6 +122,26 @@ internal class AppleMusicApiClient(
       mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecentlyPlayed(it) }
     }
 
+  suspend fun getRecentlyPlayedTracks(limit: Int): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val json =
+        getJson(
+          "/v1/me/recent/played/tracks",
+          mapOf("limit" to limit.toString()),
+        )
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapSong(it) }
+    }
+
+  suspend fun getLibraryArtists(limit: Int, offset: Int): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val json =
+        getJson(
+          "/v1/me/library/artists",
+          mapOf("limit" to limit.toString(), "offset" to offset.toString()),
+        )
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapArtist(it) }
+    }
+
   /** Lightweight request used by [AndroidSubscriptionService] heuristics. */
   suspend fun probeLibraryAccess(): Boolean =
     withContext(Dispatchers.IO) {

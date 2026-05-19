@@ -29,6 +29,15 @@ internal object AppleMusicJsonMapper {
     )
   }
 
+  fun mapArtist(resource: JSONObject): Map<String, Any?> {
+    val attributes = resource.optJSONObject("attributes") ?: JSONObject()
+    return mapOf(
+      "id" to resource.optString("id", ""),
+      "name" to attributes.optString("name", ""),
+      "artworkUrl" to artworkUrl(attributes.optJSONObject("artwork")),
+    )
+  }
+
   fun mapPlaylist(resource: JSONObject): Map<String, Any?> {
     val attributes = resource.optJSONObject("attributes") ?: JSONObject()
     val trackCount =

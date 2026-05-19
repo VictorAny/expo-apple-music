@@ -20,4 +20,12 @@ internal class AndroidLibraryService(context: Context) {
   }
 
   suspend fun getRecentlyPlayed(): List<Map<String, Any?>> = api.getRecentlyPlayed()
+
+  suspend fun getRecentlyPlayedTracks(options: PaginationOptions): List<Map<String, Any?>> =
+    api.getRecentlyPlayedTracks(options.limit)
+
+  suspend fun getArtists(options: PaginationOptions): List<Map<String, Any?>> =
+    api.getLibraryArtists(options.limit, options.offset)
+
+  suspend fun getStorefrontId(): String = api.getStorefront()
 }

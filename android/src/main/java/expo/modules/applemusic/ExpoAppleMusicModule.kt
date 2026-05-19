@@ -138,9 +138,25 @@ class ExpoAppleMusicModule : Module() {
       }
     }
 
+    AsyncFunction("getStorefront") Coroutine { ->
+      mapOf("id" to libraryService.getStorefrontId())
+    }
+
     AsyncFunction("getTracksFromLibrary") Coroutine { ->
       val tracks = libraryService.getRecentlyPlayed()
       mapOf("recentlyPlayedItems" to tracks)
+    }
+
+    AsyncFunction("getRecentlyPlayedTracks") Coroutine { options: Map<String, Any?> ->
+      val pagination = PaginationOptions.fromMap(options)
+      val songs = libraryService.getRecentlyPlayedTracks(pagination)
+      mapOf("songs" to songs)
+    }
+
+    AsyncFunction("getLibraryArtists") Coroutine { options: Map<String, Any?> ->
+      val pagination = PaginationOptions.fromMap(options)
+      val artists = libraryService.getArtists(pagination)
+      mapOf("artists" to artists)
     }
 
     AsyncFunction("configurePlayer") { mixWithOthers: Boolean ->
