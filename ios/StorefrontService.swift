@@ -20,23 +20,10 @@ enum StorefrontService {
   }
 
   static func getStorefrontId() async throws -> String {
-    guard let url = URL(string: "https://api.music.apple.com/v1/me/storefront") else {
+    let data = try await AppleMusicRestClient.getDataArray(path: "/v1/me/storefront")
+    guard let id = data.first?["id"] as? String else {
       throw StorefrontError.invalidResponse
     }
-
-    let urlRequest = URLRequest(url: url)
-    let dataRequest = MusicDataRequest(urlRequest: urlRequest)
-    let response = try await dataRequest.response()
-
-    guard
-      let json = try JSONSerialization.jsonObject(with: response.data) as? [String: Any],
-      let data = json["data"] as? [[String: Any]],
-      let first = data.first,
-      let id = first["id"] as? String
-    else {
-      throw StorefrontError.invalidResponse
-    }
-
     return id
   }
 }

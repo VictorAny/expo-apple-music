@@ -10,6 +10,7 @@ public class ExpoAppleMusicModule: Module {
     catalogService: catalogService
   )
   private lazy var libraryService = LibraryService()
+  private lazy var historyService = HistoryService()
 
   private var playbackObserver: PlaybackObserver?
 
@@ -92,6 +93,35 @@ public class ExpoAppleMusicModule: Module {
       let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
       let artists = try await self.libraryService.getArtists(options: paginationOptions)
       return ["artists": artists]
+    }
+
+    AsyncFunction("getLibraryAlbums") { (options: [String: Any]) -> [String: Any] in
+      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let albums = try await self.libraryService.getAlbums(options: paginationOptions)
+      return ["albums": albums]
+    }
+
+    AsyncFunction("getHeavyRotation") { (options: [String: Any]) -> [String: Any] in
+      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let items = try await self.historyService.getHeavyRotation(limit: paginationOptions.limit)
+      return ["items": items]
+    }
+
+    AsyncFunction("getRecentlyPlayedStations") { (options: [String: Any]) -> [String: Any] in
+      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let stations = try await self.historyService.getRecentlyPlayedStations(
+        limit: paginationOptions.limit
+      )
+      return ["stations": stations]
+    }
+
+    AsyncFunction("getRecentlyAdded") { (options: [String: Any]) -> [String: Any] in
+      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let items = try await self.historyService.getRecentlyAdded(
+        limit: paginationOptions.limit,
+        offset: paginationOptions.offset
+      )
+      return ["items": items]
     }
 
     AsyncFunction("configurePlayer") { (mixWithOthers: Bool) -> [String: Any] in
