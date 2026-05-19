@@ -21,11 +21,13 @@ class Auth {
    * auth flow (optional upsell → Apple Music app).
    * Requires the Apple Music app installed and the user signed in with a subscription in most cases.
    *
-   * @param developerToken - Android only. Signed JWT from your backend or Apple Developer tooling.
+   * **Web** — Requires a developer JWT (same as Android). Uses MusicKit JS authorize UI in the browser.
+   *
+   * @param developerToken - Android and web. Signed JWT from your backend or Apple Developer tooling.
    * @param options - Android only. Upsell screen (`hideStartScreen`, `startScreenMessage`).
    * @returns {@link AuthStatus} — `authorized` | `denied` | `notDetermined` | `restricted` | `unknown`
    *
-   * @throws On Android, rejects with `MISSING_DEVELOPER_TOKEN` when no developer JWT is provided.
+   * @throws On Android and web, rejects with `MISSING_DEVELOPER_TOKEN` when no developer JWT is provided.
    */
   public static async authorize(
     developerToken?: string,
@@ -42,7 +44,7 @@ class Auth {
   /**
    * Checks subscription capabilities via `MusicSubscription.current`.
    *
-   * **iOS only** — Android rejects with `UNSUPPORTED_PLATFORM` until implemented.
+   * **iOS** — Uses `MusicSubscription.current`. **Android and web** — best-effort inference from library access.
    *
    * Call after `authorize()` returns `authorized` to see if the user can play catalog content.
    */

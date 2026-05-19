@@ -51,7 +51,7 @@ export default function App() {
   const [recentlyAdded, setRecentlyAdded] = useState<RecentResource[]>([]);
 
   const devToken =
-    Platform.OS === "android"
+    Platform.OS === "android" || Platform.OS === "web"
       ? process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN
       : undefined;
 

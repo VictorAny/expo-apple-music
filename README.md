@@ -26,7 +26,7 @@ export default {
 };
 ```
 
-Sets `NSAppleMusicUsageDescription` on iOS. On Android, pass a MusicKit developer JWT to `Auth.authorize(token)` at runtime (see [docs/AUTH.md](./docs/AUTH.md)).
+Sets `NSAppleMusicUsageDescription` on iOS. On **Android** and **web**, pass a MusicKit developer JWT to `Auth.authorize(token)` at runtime (see [docs/AUTH.md](./docs/AUTH.md)).
 
 Android **package visibility** for the Apple Music app comes from this module’s library manifest (merged at build time). The plugin does **not** add MusicKit entitlements on iOS — enable **MusicKit** on your App ID in the [Apple Developer portal](https://developer.apple.com) manually. See [Lomray issue #14](https://github.com/Lomray-Software/react-native-apple-music/issues/14).
 
@@ -38,7 +38,7 @@ import { Auth, AuthStatus, Catalog, CatalogSearchType, Player } from '@wwdrew/ex
 // iOS — developerToken is ignored
 const status = await Auth.authorize();
 
-// Android — requires a MusicKit developer JWT
+// Android / web — requires a MusicKit developer JWT
 const status = await Auth.authorize(developerToken);
 
 if (status === AuthStatus.AUTHORIZED) {

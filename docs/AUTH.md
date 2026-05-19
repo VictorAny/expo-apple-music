@@ -1,6 +1,6 @@
 # Authentication (`Auth`)
 
-How `Auth.authorize()` and `Auth.checkSubscription()` work on **iOS** and **Android**, including developer tokens, return values, and device requirements.
+How `Auth.authorize()` and `Auth.checkSubscription()` work on **iOS**, **Android**, and **web**, including developer tokens, return values, and device requirements.
 
 ## Quick start
 
@@ -10,14 +10,14 @@ import { Auth, AuthStatus } from '@wwdrew/expo-apple-music';
 // iOS — developer token argument is ignored
 const status = await Auth.authorize();
 
-// Android — pass a MusicKit developer JWT from your backend or dev tooling
+// Android / web — pass a MusicKit developer JWT from your backend or dev tooling
 const status = await Auth.authorize(developerToken, {
   hideStartScreen: false,
   startScreenMessage: '<b>My App</b> wants to connect to Apple Music.',
 });
 
 if (status === AuthStatus.AUTHORIZED) {
-  const sub = await Auth.checkSubscription(); // iOS only today
+  const sub = await Auth.checkSubscription();
 }
 ```
 
@@ -27,10 +27,10 @@ if (status === AuthStatus.AUTHORIZED) {
 
 Requests access to the user’s Apple Music account.
 
-| Argument | iOS | Android |
-| -------- | --- | ------- |
-| `developerToken` | Optional — when provided, stored for REST (`Music-User-Token` is fetched and persisted) | **Required** — pass a MusicKit developer JWT |
-| `options` | Ignored | Optional upsell / deeplink behavior |
+| Argument | iOS | Android | Web |
+| -------- | --- | ------- | --- |
+| `developerToken` | Optional — when provided, stored for REST (`Music-User-Token` is fetched and persisted) | **Required** — pass a MusicKit developer JWT | **Required** — same as Android |
+| `options` | Ignored | Optional upsell / deeplink behavior | Ignored |
 
 Returns `Promise<AuthStatus>` — same string union on both platforms.
 
@@ -64,6 +64,17 @@ The module’s Android library manifest declares `<queries>` for `com.apple.andr
 5. The **developer JWT** passed to `authorize()` is saved in app-private native storage (for playback and REST). On `authorized`, the **music user token** is saved there too (not yet exposed to JavaScript).
 
 There is **no web-based login** on Android native MusicKit — only the Apple Music app or Play Store install flow.
+
+### Web
+
+- **MusicKit JS v3** loaded on first `authorize()` (hosted script from Apple)
+- **Developer JWT required** — same as Android; reject with `MISSING_DEVELOPER_TOKEN` if missing
+- User signs in through MusicKit’s browser authorize UI (not `NSAppleMusicUsageDescription`)
+- Configure your App ID for **MusicKit on the Web** in the Apple Developer portal (domain association)
+- `options` (`hideStartScreen`, `startScreenMessage`) are **ignored** on web
+- `checkSubscription()` uses REST inference (library probe), not `MusicSubscription.current`
+
+See [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md).
 
 ### Android-only options
 
@@ -181,7 +192,7 @@ switch (status) {
 
 ## `Auth.checkSubscription()`
 
-**iOS only** today. Calls `MusicSubscription.current` and returns:
+**iOS** calls `MusicSubscription.current` and returns:
 
 | Field | Meaning |
 | ----- | ------- |
@@ -190,9 +201,9 @@ switch (status) {
 | `hasCloudLibraryEnabled` | Cloud library modifications allowed |
 | `isMusicCatalogSubscriptionEligible` | Same as `canBecomeSubscriber` (compat) |
 
-On **Android**, the call rejects with `UNSUPPORTED_PLATFORM` until tier 1.
+On **Android and web**, the call returns best-effort flags inferred from authorization + library access (see [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md#checksubscription-on-web)).
 
-Typical flow after auth on iOS:
+Typical flow after auth:
 
 ```ts
 if (status !== AuthStatus.AUTHORIZED) return;

@@ -12,9 +12,9 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Authorize | `Auth.authorize()` | ✅ | ✅ | ⬜ |
-| Subscription check | `Auth.checkSubscription()` | ✅ | ⚠️ inferred | ⬜ |
-| Storefront | `Auth.getStorefront()` | ✅ | ✅ | ⬜ |
+| Authorize | `Auth.authorize()` | ✅ | ✅ | ✅ |
+| Subscription check | `Auth.checkSubscription()` | ✅ | ⚠️ inferred | ⚠️ inferred |
+| Storefront | `Auth.getStorefront()` | ✅ | ✅ | ✅ |
 
 ---
 
@@ -22,13 +22,13 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Search (songs, albums) | `Catalog.search()` | ✅ | ✅ | ⬜ |
-| Search (artists, playlists, stations, music-videos) | `Catalog.search()` | ✅ | ✅ | ⬜ |
-| Get resource by ID | `Catalog.getSong` / `getAlbum` / `getArtist` / `getPlaylist` / `getStation` / `getMusicVideo` | ✅ | ✅ | ⬜ |
-| Album → tracks | `Catalog.getAlbumTracks()` | ✅ | ✅ | ⬜ |
-| Artist → albums | `Catalog.getArtistAlbums()` | ✅ | ✅ | ⬜ |
-| Playlist → tracks | `Catalog.getPlaylistTracks()` | ✅ | ✅ | ⬜ |
-| Charts | `Catalog.getCharts()` | ✅ | ✅ | ⬜ |
+| Search (songs, albums) | `Catalog.search()` | ✅ | ✅ | ✅ |
+| Search (artists, playlists, stations, music-videos) | `Catalog.search()` | ✅ | ✅ | ✅ |
+| Get resource by ID | `Catalog.getSong` / `getAlbum` / `getArtist` / `getPlaylist` / `getStation` / `getMusicVideo` | ✅ | ✅ | ✅ |
+| Album → tracks | `Catalog.getAlbumTracks()` | ✅ | ✅ | ✅ |
+| Artist → albums | `Catalog.getArtistAlbums()` | ✅ | ✅ | ✅ |
+| Playlist → tracks | `Catalog.getPlaylistTracks()` | ✅ | ✅ | ✅ |
+| Charts | `Catalog.getCharts()` | ✅ | ✅ | ✅ |
 
 ---
 
@@ -36,11 +36,11 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| List songs | `Library.getSongs()` | ✅ | ✅ | ⬜ |
-| List playlists | `Library.getPlaylists()` | ✅ | ✅ | ⬜ |
-| Playlist tracks | `Library.getPlaylistTracks()` | ✅ | ✅ | ⬜ |
-| List artists | `Library.getArtists()` | ✅ | ✅ | ⬜ |
-| List albums | `Library.getAlbums()` | ✅ | ✅ | ⬜ |
+| List songs | `Library.getSongs()` | ✅ | ✅ | ✅ |
+| List playlists | `Library.getPlaylists()` | ✅ | ✅ | ✅ |
+| Playlist tracks | `Library.getPlaylistTracks()` | ✅ | ✅ | ✅ |
+| List artists | `Library.getArtists()` | ✅ | ✅ | ✅ |
+| List albums | `Library.getAlbums()` | ✅ | ✅ | ✅ |
 | List music-videos | `Library.getMusicVideos()` | ⬜ | ⬜ | ⬜ |
 | Library search | `Library.search()` | ⬜ | ⬜ | ⬜ |
 
@@ -50,11 +50,11 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Recently played resources | `History.getRecentlyPlayedResources()` | ✅ | ✅ | ⬜ |
-| Recently played tracks | `History.getRecentlyPlayedTracks()` | ✅ | ✅ | ⬜ |
-| Recently played stations | `History.getRecentlyPlayedStations()` | ✅ | ✅ | ⬜ |
-| Heavy rotation | `History.getHeavyRotation()` | ✅ | ✅ | ⬜ |
-| Recently added | `History.getRecentlyAdded()` | ✅ | ✅ | ⬜ |
+| Recently played resources | `History.getRecentlyPlayedResources()` | ✅ | ✅ | ✅ |
+| Recently played tracks | `History.getRecentlyPlayedTracks()` | ✅ | ✅ | ✅ |
+| Recently played stations | `History.getRecentlyPlayedStations()` | ✅ | ✅ | ✅ |
+| Heavy rotation | `History.getHeavyRotation()` | ✅ | ✅ | ✅ |
+| Recently added | `History.getRecentlyAdded()` | ✅ | ✅ | ✅ |
 
 ---
 
@@ -62,11 +62,11 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Get / set / clear rating | `Ratings.getRating`, `setRating`, `clearRating` | ✅ | ✅ | ⬜ |
-| Favorites add / remove | `Ratings.addToFavorites`, `removeFromFavorites` | ✅ | ✅ | ⬜ |
-| Create library playlist | `LibraryMutations.createPlaylist` | ✅ | ✅ | ⬜ |
-| Add tracks to library playlist | `LibraryMutations.addTracksToPlaylist` | ✅ | ✅ | ⬜ |
-| Add catalog resource to library | `LibraryMutations.addToLibrary` | ✅ | ✅ | ⬜ |
+| Get / set / clear rating | `Ratings.getRating`, `setRating`, `clearRating` | ✅ | ✅ | ✅ |
+| Favorites add / remove | `Ratings.addToFavorites`, `removeFromFavorites` | ✅ | ✅ | ✅ |
+| Create library playlist | `LibraryMutations.createPlaylist` | ✅ | ✅ | ✅ |
+| Add tracks to library playlist | `LibraryMutations.addTracksToPlaylist` | ✅ | ✅ | ✅ |
+| Add catalog resource to library | `LibraryMutations.addToLibrary` | ✅ | ✅ | ✅ |
 
 ---
 
@@ -74,9 +74,9 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Personal recommendations | `Recommendations.get()` | ✅ native (+ REST if `ids`) | ✅ REST | ⬜ |
-| Replay summaries | `Recommendations.getReplay()` | ✅ REST | ✅ REST | ⬜ |
-| Heavy rotation | `History.getHeavyRotation()` | ✅ | ✅ | ⬜ |
+| Personal recommendations | `Recommendations.get()` | ✅ native (+ REST if `ids`) | ✅ REST | ✅ REST |
+| Replay summaries | `Recommendations.getReplay()` | ✅ REST | ✅ REST | ✅ REST |
+| Heavy rotation | `History.getHeavyRotation()` | ✅ | ✅ | ✅ |
 
 See [RECOMMENDATIONS.md](./RECOMMENDATIONS.md). Heavy rotation is under History, not Recommendations.
 
@@ -86,9 +86,9 @@ See [RECOMMENDATIONS.md](./RECOMMENDATIONS.md). Heavy rotation is under History,
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Queue catalog / library | `Player.setQueue()` | ✅ | ✅ | ⬜ |
-| Transport + state + hooks | `Player.*` | ✅ | ✅ | ⬜ |
-| Catalog station queue | | ✅ | ➖ | ⬜ |
+| Queue catalog / library | `Player.setQueue()` | ✅ | ✅ | ⚠️ |
+| Transport + state + hooks | `Player.*` | ✅ | ✅ | ⚠️ |
+| Catalog station queue | | ✅ | ➖ | ⚠️ |
 
 ---
 
