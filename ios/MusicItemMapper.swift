@@ -30,6 +30,16 @@ enum MusicItemMapper {
     ]
   }
 
+  // MARK: - Artist
+
+  static func map(_ artist: Artist) -> [String: Any] {
+    [
+      "id": String(describing: artist.id),
+      "name": artist.name,
+      "artworkUrl": extractArtworkURL(artist.artwork),
+    ]
+  }
+
   // MARK: - Playlist
 
   static func map(_ playlist: Playlist) -> [String: Any] {

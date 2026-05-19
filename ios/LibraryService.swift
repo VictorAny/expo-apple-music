@@ -27,6 +27,21 @@ final class LibraryService {
     return response.items.map(MusicItemMapper.map)
   }
 
+  func getRecentlyPlayedTracks(options: PaginationOptions) async throws -> [[String: Any]] {
+    var request = MusicRecentlyPlayedRequest<Song>()
+    request.limit = options.limit
+    let response = try await request.response()
+    return response.items.map(MusicItemMapper.map)
+  }
+
+  func getArtists(options: PaginationOptions) async throws -> [[String: Any]] {
+    var request = MusicLibraryRequest<Artist>()
+    request.limit = options.limit
+    request.offset = options.offset
+    let response = try await request.response()
+    return response.items.map(MusicItemMapper.map)
+  }
+
   // MARK: - Playlists
 
   func getPlaylists(options: PaginationOptions) async throws -> [[String: Any]] {

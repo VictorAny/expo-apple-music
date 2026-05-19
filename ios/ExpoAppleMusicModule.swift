@@ -72,9 +72,26 @@ public class ExpoAppleMusicModule: Module {
       return "Track(s) added to queue"
     }
 
+    AsyncFunction("getStorefront") { () -> [String: Any] in
+      let id = try await StorefrontService.getStorefrontId()
+      return ["id": id]
+    }
+
     AsyncFunction("getTracksFromLibrary") { () -> [String: Any] in
       let tracks = try await self.libraryService.getRecentlyPlayed()
       return ["recentlyPlayedItems": tracks]
+    }
+
+    AsyncFunction("getRecentlyPlayedTracks") { (options: [String: Any]) -> [String: Any] in
+      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let songs = try await self.libraryService.getRecentlyPlayedTracks(options: paginationOptions)
+      return ["songs": songs]
+    }
+
+    AsyncFunction("getLibraryArtists") { (options: [String: Any]) -> [String: Any] in
+      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let artists = try await self.libraryService.getArtists(options: paginationOptions)
+      return ["artists": artists]
     }
 
     AsyncFunction("configurePlayer") { (mixWithOthers: Bool) -> [String: Any] in
