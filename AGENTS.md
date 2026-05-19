@@ -14,4 +14,6 @@ For **v1 scope and phases** (full Apple Music API before 1.0.0), read [docs/V1_P
 
 For **iOS native vs REST per method** and mapper parity rules, read [docs/PLATFORM_IMPLEMENTATION.md](./docs/PLATFORM_IMPLEMENTATION.md) and [docs/RESOURCE_IDS.md](./docs/RESOURCE_IDS.md).
 
+For **recommendations vs history** (heavy rotation), read [docs/RECOMMENDATIONS.md](./docs/RECOMMENDATIONS.md) and [docs/HISTORY.md](./docs/HISTORY.md).
+
 For **TypeScript type naming** (no `I`/`T` prefixes), read [docs/TYPES.md](./docs/TYPES.md).

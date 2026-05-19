@@ -13,6 +13,7 @@ public class ExpoAppleMusicModule: Module {
   private lazy var historyService = HistoryService()
   private lazy var ratingsService = RatingsService()
   private lazy var libraryMutationsService = LibraryMutationsService()
+  private lazy var recommendationsService = RecommendationsService()
 
   private var playbackObserver: PlaybackObserver?
 
@@ -364,6 +365,16 @@ public class ExpoAppleMusicModule: Module {
         playlistId: playlistId,
         tracks: tracks
       )
+    }
+
+    AsyncFunction("getRecommendations") { (ids: [String]?) -> [String: Any] in
+      let recommendations = try await self.recommendationsService.getRecommendations(ids: ids)
+      return ["recommendations": recommendations]
+    }
+
+    AsyncFunction("getReplay") { (year: Int?) -> [String: Any] in
+      let summaries = try await self.recommendationsService.getReplay(year: year)
+      return ["summaries": summaries]
     }
   }
 

@@ -75,6 +75,15 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 
 Use `RatingResourceType` path segments (`songs`, `library-songs`, …) matching the Apple Music API.
 
+### Recommendations (`Recommendations`)
+
+| Method | Domain | Purpose |
+| ------ | ------ | ------- |
+| `Recommendations.get(options?)` | **Recommendations** | Made for You mixes / personal recommendations |
+| `Recommendations.getReplay(options?)` | **Recommendations** | Replay year summaries |
+
+Heavy rotation lives under **`History.getHeavyRotation()`** — [docs/RECOMMENDATIONS.md](./docs/RECOMMENDATIONS.md).
+
 ### Library mutations (`LibraryMutations`)
 
 | Method | Domain | Purpose |

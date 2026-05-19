@@ -319,13 +319,15 @@ Phases are ordered for **vertical slices** (testable on device) and **dependency
 
 **Exit:** Example app mutation buttons; see [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md) ratings/mutations rows.
 
-### Phase 4 — Recommendations & personalization
+### Phase 4 — Recommendations & personalization ✅
 
 | Task | Deliverable |
 |------|-------------|
-| `Recommendations.get` | |
-| Replay data (if feasible) | or document 🔜 with reason |
-| Heavy rotation already in History | cross-link docs |
+| `Recommendations.get` | `Recommendations.get({ ids? })` — MusicKit on iOS, REST on Android |
+| Replay data (if feasible) | `Recommendations.getReplay({ year? })` via `GET /v1/me/music-summaries` |
+| Heavy rotation already in History | [RECOMMENDATIONS.md](./RECOMMENDATIONS.md) → [HISTORY.md](./HISTORY.md) |
+
+**Exit:** Example “Recommendations” button; matrix rows updated.
 
 ### Phase 5 — Web platform
 

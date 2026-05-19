@@ -42,6 +42,8 @@ export * from './types/rating';
 
 export * from './types/library-mutations';
 
+export * from './types/recommendation';
+
 import useCurrentSong from './hooks/use-current-song';
 import useIsPlaying from './hooks/use-is-playing';
 import usePlaybackState from './hooks/use-playback-state';
@@ -52,6 +54,7 @@ import Library from './modules/library';
 import LibraryMutations from './modules/library-mutations';
 import Player from './modules/player';
 import Ratings from './modules/ratings';
+import Recommendations from './modules/recommendations';
 
 export type { LibrarySongsResponse } from './modules/library';
 
@@ -76,4 +79,5 @@ export {
   LibraryMutations,
   Player,
   Ratings,
+  Recommendations,
 };

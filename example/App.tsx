@@ -9,6 +9,7 @@ import {
   LibraryMutations,
   LibraryResourceType,
   Ratings,
+  Recommendations,
   RatingResourceType,
   RatingValue,
   PlaylistTrackType,
@@ -256,6 +257,20 @@ export default function App() {
     }
   }
 
+  async function loadRecommendations() {
+    try {
+      const result = await Recommendations.get();
+      const first = result.recommendations[0];
+      const mixCount = first?.playlists.length ?? 0;
+      appendLog(
+        `recommendations: ${result.recommendations.length} group(s)` +
+          (first ? ` — "${first.title}" with ${mixCount} playlist(s)` : ""),
+      );
+    } catch (error) {
+      appendLog(`recommendations error: ${String(error)}`);
+    }
+  }
+
   async function createTestPlaylist() {
     const song = songs.find((s) => s.id === selectedSongId);
     try {
@@ -316,6 +331,7 @@ export default function App() {
             <Button title="Like song" onPress={likeSelectedSong} />
             <Button title="Add to library" onPress={addSelectedSongToLibrary} />
             <Button title="New playlist" onPress={createTestPlaylist} />
+            <Button title="Recommendations" onPress={loadRecommendations} />
           </View>
 
           {songs.length > 0 && (

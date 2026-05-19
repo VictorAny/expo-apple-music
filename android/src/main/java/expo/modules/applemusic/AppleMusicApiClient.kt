@@ -561,6 +561,30 @@ internal class AppleMusicApiClient(
       )
     }
 
+  suspend fun getRecommendations(ids: List<String>?): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val query =
+        if (!ids.isNullOrEmpty()) {
+          mapOf("ids" to ids.joinToString(","))
+        } else {
+          emptyMap()
+        }
+      val json = getJson("/v1/me/recommendations", query)
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecommendation(it) }
+    }
+
+  suspend fun getReplay(year: Int?): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val query =
+        if (year != null) {
+          mapOf("filter[year]" to year.toString())
+        } else {
+          emptyMap()
+        }
+      val json = getJson("/v1/me/music-summaries", query)
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapReplaySummary(it) }
+    }
+
   suspend fun request(
     method: AppleMusicHttpMethod,
     path: String,

@@ -161,6 +161,82 @@ enum RestJsonMapper {
     ]
   }
 
+  static func mapRecommendation(_ resource: [String: Any]) -> [String: Any] {
+    let attributes = resource["attributes"] as? [String: Any] ?? [:]
+    let titleDict = attributes["title"] as? [String: Any]
+    let title = titleDict?["stringForDisplay"] as? String ?? ""
+    let resourceTypes = attributes["resourceTypes"] as? [String] ?? []
+    let contents = mapRecommendationContents(resource)
+    return [
+      "id": resource["id"] as? String ?? "",
+      "title": title,
+      "resourceTypes": resourceTypes,
+      "playlists": contents.playlists,
+      "albums": contents.albums,
+      "stations": contents.stations,
+    ]
+  }
+
+  static func mapReplaySummary(_ resource: [String: Any]) -> [String: Any] {
+    let attributes = resource["attributes"] as? [String: Any] ?? [:]
+    let year = attributes["year"] as? Int ?? (attributes["year"] as? Double).map { Int($0) }
+    var result: [String: Any] = [
+      "id": resource["id"] as? String ?? "",
+      "type": resource["type"] as? String ?? "",
+      "name": attributes["name"] as? String ?? "",
+      "topSongs": mapRelationshipResources(resource, key: "top-songs", mapper: mapSong),
+      "topAlbums": mapRelationshipResources(resource, key: "top-albums", mapper: mapAlbum),
+      "topArtists": mapRelationshipResources(resource, key: "top-artists", mapper: mapArtist),
+    ]
+    if let year {
+      result["year"] = year
+    }
+    return result
+  }
+
+  private struct RecommendationContents {
+    let playlists: [[String: Any]]
+    let albums: [[String: Any]]
+    let stations: [[String: Any]]
+  }
+
+  private static func mapRecommendationContents(_ resource: [String: Any]) -> RecommendationContents {
+    var playlists: [[String: Any]] = []
+    var albums: [[String: Any]] = []
+    var stations: [[String: Any]] = []
+    guard let relationships = resource["relationships"] as? [String: Any],
+      let contents = relationships["contents"] as? [String: Any],
+      let data = contents["data"] as? [[String: Any]]
+    else {
+      return RecommendationContents(playlists: playlists, albums: albums, stations: stations)
+    }
+    for item in data {
+      let type = item["type"] as? String ?? ""
+      if type.contains("playlist") {
+        playlists.append(mapPlaylist(item))
+      } else if type.contains("album") {
+        albums.append(mapAlbum(item))
+      } else if type.contains("station") {
+        stations.append(mapStation(item))
+      }
+    }
+    return RecommendationContents(playlists: playlists, albums: albums, stations: stations)
+  }
+
+  private static func mapRelationshipResources(
+    _ resource: [String: Any],
+    key: String,
+    mapper: ([String: Any]) -> [String: Any]
+  ) -> [[String: Any]] {
+    guard let relationships = resource["relationships"] as? [String: Any],
+      let relation = relationships[key] as? [String: Any],
+      let data = relation["data"] as? [[String: Any]]
+    else {
+      return []
+    }
+    return data.map(mapper)
+  }
+
   static func buildIdsQuery(_ resourceIds: [String: [String]]) -> [String: String] {
     var query: [String: String] = [:]
     for (type, ids) in resourceIds {

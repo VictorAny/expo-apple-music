@@ -62,6 +62,18 @@ How each **public JS method** is implemented on iOS vs Android. The TypeScript A
 
 ---
 
+## Recommendations
+
+| JS API | iOS | Android |
+|--------|-----|---------|
+| `Recommendations.get()` (no ids) | **Native** `MusicPersonalRecommendationsRequest` | REST `GET /v1/me/recommendations` |
+| `Recommendations.get({ ids })` | REST | REST |
+| `Recommendations.getReplay()` | REST `GET /v1/me/music-summaries` | REST |
+
+Heavy rotation: `History.getHeavyRotation()` — not this module ([RECOMMENDATIONS.md](./RECOMMENDATIONS.md)).
+
+---
+
 ## Ratings & library mutations
 
 | JS API | iOS | Android |

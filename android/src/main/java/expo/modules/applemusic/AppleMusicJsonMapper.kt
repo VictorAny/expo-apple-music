@@ -112,6 +112,95 @@ internal object AppleMusicJsonMapper {
       "duration" to (item.duration / 1000).toString(),
     )
 
+  fun mapRecommendation(resource: JSONObject): Map<String, Any?> {
+    val attributes = resource.optJSONObject("attributes") ?: JSONObject()
+    val title =
+      attributes.optJSONObject("title")?.optString("stringForDisplay", "").orEmpty()
+    val resourceTypes = mutableListOf<String>()
+    attributes.optJSONArray("resourceTypes")?.let { array ->
+      for (i in 0 until array.length()) {
+        resourceTypes.add(array.optString(i))
+      }
+    }
+    val contents = mapRecommendationContents(resource)
+    return mapOf(
+      "id" to resource.optString("id", ""),
+      "title" to title,
+      "resourceTypes" to resourceTypes,
+      "playlists" to contents.playlists,
+      "albums" to contents.albums,
+      "stations" to contents.stations,
+    )
+  }
+
+  fun mapReplaySummary(resource: JSONObject): Map<String, Any?> {
+    val attributes = resource.optJSONObject("attributes") ?: JSONObject()
+    val topSongs = mapRelationshipResources(resource, "top-songs", ::mapSong)
+    val topAlbums = mapRelationshipResources(resource, "top-albums", ::mapAlbum)
+    val topArtists = mapRelationshipResources(resource, "top-artists", ::mapArtist)
+    val result =
+      mutableMapOf<String, Any?>(
+        "id" to resource.optString("id", ""),
+        "type" to resource.optString("type", ""),
+        "name" to attributes.optString("name", ""),
+        "topSongs" to topSongs,
+        "topAlbums" to topAlbums,
+        "topArtists" to topArtists,
+      )
+    if (attributes.has("year")) {
+      result["year"] = attributes.optInt("year")
+    }
+    return result
+  }
+
+  private data class RecommendationContents(
+    val playlists: List<Map<String, Any?>>,
+    val albums: List<Map<String, Any?>>,
+    val stations: List<Map<String, Any?>>,
+  )
+
+  private fun mapRecommendationContents(resource: JSONObject): RecommendationContents {
+    val playlists = mutableListOf<Map<String, Any?>>()
+    val albums = mutableListOf<Map<String, Any?>>()
+    val stations = mutableListOf<Map<String, Any?>>()
+    val data =
+      resource
+        .optJSONObject("relationships")
+        ?.optJSONObject("contents")
+        ?.optJSONArray("data")
+    if (data == null) {
+      return RecommendationContents(playlists, albums, stations)
+    }
+    for (i in 0 until data.length()) {
+      val item = data.getJSONObject(i)
+      val type = item.optString("type", "")
+      when {
+        type.contains("playlist") -> playlists.add(mapPlaylist(item))
+        type.contains("album") -> albums.add(mapAlbum(item))
+        type.contains("station") -> stations.add(mapStation(item))
+      }
+    }
+    return RecommendationContents(playlists, albums, stations)
+  }
+
+  private fun mapRelationshipResources(
+    resource: JSONObject,
+    relationshipKey: String,
+    mapper: (JSONObject) -> Map<String, Any?>,
+  ): List<Map<String, Any?>> {
+    val data =
+      resource
+        .optJSONObject("relationships")
+        ?.optJSONObject(relationshipKey)
+        ?.optJSONArray("data")
+        ?: return emptyList()
+    val result = ArrayList<Map<String, Any?>>(data.length())
+    for (i in 0 until data.length()) {
+      result.add(mapper(data.getJSONObject(i)))
+    }
+    return result
+  }
+
   fun describePlaybackStatus(state: Int): String =
     when (state) {
       com.apple.android.music.playback.model.PlaybackState.PLAYING -> "playing"

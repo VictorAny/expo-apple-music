@@ -74,8 +74,11 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Recommendations | `Recommendations.get()` | ⬜ | ⬜ | ⬜ |
-| Replay | `Recommendations.getReplay()` | ⬜ | ⬜ | ⬜ |
+| Personal recommendations | `Recommendations.get()` | ✅ native (+ REST if `ids`) | ✅ REST | ⬜ |
+| Replay summaries | `Recommendations.getReplay()` | ✅ REST | ✅ REST | ⬜ |
+| Heavy rotation | `History.getHeavyRotation()` | ✅ | ✅ | ⬜ |
+
+See [RECOMMENDATIONS.md](./RECOMMENDATIONS.md). Heavy rotation is under History, not Recommendations.
 
 ---
 
@@ -115,5 +118,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Add to library | `POST /v1/me/library?ids[{type}]=…` |
 | Create playlist | `POST /v1/me/library/playlists` |
 | Add playlist tracks | `POST /v1/me/library/playlists/{id}/tracks` |
+| Personal recommendations | `GET /v1/me/recommendations` |
+| Replay | `GET /v1/me/music-summaries` |
 
 Confirm exact heavy-rotation path against Apple docs when implementing.

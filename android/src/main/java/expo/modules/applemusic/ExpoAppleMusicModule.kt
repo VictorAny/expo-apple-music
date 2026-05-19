@@ -48,6 +48,9 @@ class ExpoAppleMusicModule : Module() {
   private val libraryMutationsService: AndroidLibraryMutationsService
     get() = AndroidLibraryMutationsService(reactContext)
 
+  private val recommendationsService: AndroidRecommendationsService
+    get() = AndroidRecommendationsService(reactContext)
+
   override fun definition() = ModuleDefinition {
     Name("ExpoAppleMusic")
 
@@ -324,6 +327,16 @@ class ExpoAppleMusicModule : Module() {
       tracks: List<Map<String, String>>,
     ->
       libraryMutationsService.addTracksToPlaylist(playlistId, tracks)
+    }
+
+    AsyncFunction("getRecommendations") Coroutine { ids: List<String>? ->
+      val recommendations = recommendationsService.getRecommendations(ids)
+      mapOf("recommendations" to recommendations)
+    }
+
+    AsyncFunction("getReplay") Coroutine { year: Int? ->
+      val summaries = recommendationsService.getReplay(year)
+      mapOf("summaries" to summaries)
     }
 
     Function("play") {
