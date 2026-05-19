@@ -12,4 +12,6 @@ For **Web** implementation, read [docs/WEB_IMPLEMENTATION.md](./docs/WEB_IMPLEME
 
 For **v1 scope and phases** (full Apple Music API before 1.0.0), read [docs/V1_PLAN.md](./docs/V1_PLAN.md). No Lomray or third-party API compatibility — [ATTRIBUTION.md](./ATTRIBUTION.md).
 
+For **iOS native vs REST per method** and mapper parity rules, read [docs/PLATFORM_IMPLEMENTATION.md](./docs/PLATFORM_IMPLEMENTATION.md) and [docs/RESOURCE_IDS.md](./docs/RESOURCE_IDS.md).
+
 For **TypeScript type naming** (no `I`/`T` prefixes), read [docs/TYPES.md](./docs/TYPES.md).

@@ -78,7 +78,7 @@ The **same TypeScript API** is exposed on iOS and Android. Native implementation
 
 **Legend:** ✅ supported · ⚠️ supported with differences · ❌ not supported
 
-Implementation details: [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md). Terminology (catalog vs library): [CONTEXT.md](./CONTEXT.md).
+Implementation details: [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md). **iOS native vs REST matrix:** [docs/PLATFORM_IMPLEMENTATION.md](./docs/PLATFORM_IMPLEMENTATION.md). Terminology (catalog vs library): [CONTEXT.md](./CONTEXT.md).
 
 ## Android setup
 

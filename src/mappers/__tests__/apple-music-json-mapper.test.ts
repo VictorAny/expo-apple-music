@@ -19,7 +19,7 @@ describe('apple-music-json-mapper', () => {
       title: 'Yesterday',
       artistName: 'The Beatles',
       artworkUrl: 'https://is1-ssl.mzstatic.com/image/thumb/Music/200x200bb.jpg',
-      duration: '125000',
+      duration: 125000,
     });
   });
 
@@ -29,7 +29,7 @@ describe('apple-music-json-mapper', () => {
       title: 'Help!',
       artistName: 'The Beatles',
       artworkUrl: 'https://is1-ssl.mzstatic.com/image/thumb/Music/200x200bb.jpg',
-      trackCount: '14',
+      trackCount: 14,
     });
   });
 

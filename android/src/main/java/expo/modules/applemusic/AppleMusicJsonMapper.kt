@@ -14,7 +14,7 @@ internal object AppleMusicJsonMapper {
       "title" to attributes.optString("name", ""),
       "artistName" to attributes.optString("artistName", ""),
       "artworkUrl" to artworkUrl(attributes.optJSONObject("artwork")),
-      "duration" to durationString(attributes),
+      "duration" to durationMillis(attributes),
     )
   }
 
@@ -25,7 +25,7 @@ internal object AppleMusicJsonMapper {
       "title" to attributes.optString("name", ""),
       "artistName" to attributes.optString("artistName", ""),
       "artworkUrl" to artworkUrl(attributes.optJSONObject("artwork")),
-      "trackCount" to (attributes.optInt("trackCount", 0)).toString(),
+      "trackCount" to attributes.optInt("trackCount", 0),
     )
   }
 
@@ -94,13 +94,12 @@ internal object AppleMusicJsonMapper {
   fun mapMusicVideo(resource: JSONObject): Map<String, Any?> {
     val attributes = resource.optJSONObject("attributes") ?: JSONObject()
     val id = catalogPlaybackId(resource) ?: resource.optString("id", "")
-    val durationMs = durationString(attributes).toLongOrNull() ?: 0L
     return mapOf<String, Any?>(
       "id" to id,
       "title" to attributes.optString("name", ""),
       "artistName" to attributes.optString("artistName", ""),
       "artworkUrl" to artworkUrl(attributes.optJSONObject("artwork")),
-      "duration" to durationMs,
+      "duration" to durationMillis(attributes),
     )
   }
 
@@ -121,14 +120,12 @@ internal object AppleMusicJsonMapper {
       else -> "unknown"
     }
 
-  private fun durationString(attributes: JSONObject): String {
-    val millis =
-      when {
-        attributes.has("durationInMillis") -> attributes.optLong("durationInMillis", 0)
-        attributes.has("duration") -> (attributes.optDouble("duration", 0.0) * 1000).toLong()
-        else -> 0L
-      }
-    return millis.toString()
+  private fun durationMillis(attributes: JSONObject): Long {
+    return when {
+      attributes.has("durationInMillis") -> attributes.optLong("durationInMillis", 0)
+      attributes.has("duration") -> (attributes.optDouble("duration", 0.0) * 1000).toLong()
+      else -> 0L
+    }
   }
 
   /** Catalog song id for [CatalogPlaybackQueueItemProvider] (playParams when present). */

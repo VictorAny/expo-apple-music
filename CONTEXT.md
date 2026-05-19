@@ -89,15 +89,19 @@ Transport controls and events — used after something is queued; not “search�
 
 ## Platform implementation (high level)
 
+**iOS:** MusicKit native when possible; REST only for gaps (writes, charts, some history). **Android:** REST for data; MusicKit AAR for auth/playback.
+
+Full per-method matrix: **[docs/PLATFORM_IMPLEMENTATION.md](./docs/PLATFORM_IMPLEMENTATION.md)**. Resource ID rules: **[docs/RESOURCE_IDS.md](./docs/RESOURCE_IDS.md)**.
+
 | Capability            | iOS (current)                         | Android (target)                                                   |
 | --------------------- | ------------------------------------- | ------------------------------------------------------------------ |
 | Auth                  | `SKCloudServiceController` + MusicKit | MusicKit **Authentication** SDK (intent → Apple Music app)         |
 | **Library** read APIs | Native MusicKit requests              | **Apple Music REST API** (`/v1/me/library/...`) + music user token |
 | **Catalog** search    | Native `MusicCatalogSearchRequest`    | **Apple Music REST API** (`/v1/catalog/{storefront}/search`)       |
 | Catalog playback      | Native player                         | `MediaPlayerController` + `CatalogPlaybackQueueItemProvider`       |
-| Library playback      | Native player queue                   | TBD / spike; **deprioritized**                                     |
+| Library playback      | Native player queue                   | REST ID resolve + playback AAR                                     |
 
-Android also requires a **developer token** (typically from your backend) in addition to the user token. iOS does not use that pattern in this module today.
+Android requires a **developer token** at `authorize()`; iOS needs it for REST writes and gap-fill reads (stored with music user token after authorize).
 
 Errors should be normalized to `AppleMusicError` (`code`, `message`, optional `operation`) at the native boundary where possible.
 

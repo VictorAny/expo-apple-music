@@ -33,7 +33,15 @@ interface RecentlyPlayedTracksResponse {
 
 ## Alignment with native mappers
 
-JSON from the Apple Music API is mapped in Kotlin (`AppleMusicJsonMapper`) and Swift (`MusicItemMapper` / `RestJsonMapper`) to plain objects that match these TypeScript types. When adding a field, update **all three** layers.
+JSON from the Apple Music API is mapped in Kotlin (`AppleMusicJsonMapper`) and Swift (`MusicItemMapper` for MusicKit, `RestJsonMapper` for REST) to plain objects that match these TypeScript types. When adding a field, update **all** mapper layers.
+
+**Bridge contract highlights:**
+
+- `Song.duration` / `MusicVideo.duration` — **milliseconds** (number)
+- `Album.trackCount` / `Playlist.trackCount` — **number**
+- `Song.id` — catalog playback id when `playParams` provides one (see [RESOURCE_IDS.md](./RESOURCE_IDS.md))
+
+Per-method native vs REST on iOS: [PLATFORM_IMPLEMENTATION.md](./PLATFORM_IMPLEMENTATION.md).
 
 Reference mapper and fixtures for tests: `src/mappers/apple-music-json-mapper.ts`, `fixtures/*.json` (mirrored under `android/src/test/resources/fixtures/`).
 

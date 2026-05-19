@@ -20,7 +20,7 @@ class AppleMusicJsonMapperTest {
     assertEquals("1441164424", song["id"])
     assertEquals("Yesterday", song["title"])
     assertEquals("The Beatles", song["artistName"])
-    assertEquals("125000", song["duration"])
+    assertEquals(125000L, song["duration"])
     assertEquals(
       "https://is1-ssl.mzstatic.com/image/thumb/Music/200x200bb.jpg",
       song["artworkUrl"],
@@ -34,7 +34,7 @@ class AppleMusicJsonMapperTest {
     assertEquals("1441164425", album["id"])
     assertEquals("Help!", album["title"])
     assertEquals("The Beatles", album["artistName"])
-    assertEquals("14", album["trackCount"])
+    assertEquals(14, album["trackCount"])
   }
 
   @Test

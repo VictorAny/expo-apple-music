@@ -1,4 +1,5 @@
 // MusicItemMapper.swift
+// Maps MusicKit types to bridge dictionaries (must match RestJsonMapper / AppleMusicJsonMapper).
 
 import Foundation
 import MusicKit
@@ -10,11 +11,11 @@ enum MusicItemMapper {
 
   static func map(_ song: Song) -> [String: Any] {
     [
-      "id": String(describing: song.id),
+      "id": catalogPlaybackId(from: song),
       "title": song.title,
       "artistName": song.artistName,
       "artworkUrl": extractArtworkURL(song.artwork),
-      "duration": String(song.duration ?? 0),
+      "duration": durationMillis(song.duration),
     ]
   }
 
@@ -22,11 +23,11 @@ enum MusicItemMapper {
 
   static func map(_ album: Album) -> [String: Any] {
     [
-      "id": String(describing: album.id),
+      "id": musicItemId(album.id),
       "title": album.title,
       "artistName": album.artistName,
       "artworkUrl": extractArtworkURL(album.artwork),
-      "trackCount": String(album.trackCount),
+      "trackCount": album.trackCount,
     ]
   }
 
@@ -34,7 +35,7 @@ enum MusicItemMapper {
 
   static func map(_ artist: Artist) -> [String: Any] {
     [
-      "id": String(describing: artist.id),
+      "id": musicItemId(artist.id),
       "name": artist.name,
       "artworkUrl": extractArtworkURL(artist.artwork),
     ]
@@ -44,11 +45,11 @@ enum MusicItemMapper {
 
   static func map(_ playlist: Playlist) -> [String: Any] {
     [
-      "id": String(describing: playlist.id),
+      "id": musicItemId(playlist.id),
       "name": playlist.name,
       "description": playlist.standardDescription ?? "",
       "artworkUrl": extractArtworkURL(playlist.artwork),
-      "trackCount": playlist.tracks?.count ?? 0,
+      "trackCount": playlistTrackCount(playlist),
     ]
   }
 
@@ -56,31 +57,31 @@ enum MusicItemMapper {
 
   static func map(_ station: Station) -> [String: Any] {
     [
-      "id": String(describing: station.id),
+      "id": musicItemId(station.id),
       "name": station.name,
       "artworkUrl": extractArtworkURL(station.artwork),
     ]
   }
 
-  // MARK: - Music Video (iOS 16+)
+  // MARK: - Music Video
 
   @available(iOS 16.0, *)
   static func map(_ musicVideo: MusicVideo) -> [String: Any] {
     [
-      "id": String(describing: musicVideo.id),
+      "id": catalogPlaybackId(from: musicVideo),
       "title": musicVideo.title,
       "artistName": musicVideo.artistName,
       "artworkUrl": extractArtworkURL(musicVideo.artwork),
-      "duration": musicVideo.duration ?? 0,
+      "duration": durationMillis(musicVideo.duration),
     ]
   }
 
-  // MARK: - Recently Played Items (iOS 16+)
+  // MARK: - Recently Played Items
 
   @available(iOS 16.0, *)
   static func map(_ item: RecentlyPlayedMusicItem) -> [String: Any] {
     var result: [String: Any] = [
-      "id": String(describing: item.id),
+      "id": musicItemId(item.id),
       "title": item.title,
       "subtitle": String(describing: item.subtitle ?? ""),
     ]
@@ -111,6 +112,39 @@ enum MusicItemMapper {
     case .seekingBackward: return "seekingBackward"
     @unknown default: return "unknown"
     }
+  }
+
+  // MARK: - ID & duration helpers (parity with RestJsonMapper / Android)
+
+  static func musicItemId(_ id: MusicItemID) -> String {
+    id.rawValue
+  }
+
+  static func catalogPlaybackId(from song: Song) -> String {
+    if let playId = song.playParameters?.id {
+      return musicItemId(playId)
+    }
+    return musicItemId(song.id)
+  }
+
+  static func catalogPlaybackId(from musicVideo: MusicVideo) -> String {
+    if let playId = musicVideo.playParameters?.id {
+      return musicItemId(playId)
+    }
+    return musicItemId(musicVideo.id)
+  }
+
+  /// MusicKit `duration` is seconds; bridge uses milliseconds (matches `durationInMillis` from REST).
+  static func durationMillis(_ seconds: TimeInterval?) -> Int {
+    Int((seconds ?? 0) * 1000)
+  }
+
+  private static func playlistTrackCount(_ playlist: Playlist) -> Int {
+    let reported = playlist.trackCount
+    if reported > 0 {
+      return reported
+    }
+    return playlist.tracks?.count ?? 0
   }
 
   // MARK: - Private Helpers

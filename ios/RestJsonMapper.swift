@@ -8,13 +8,13 @@ enum RestJsonMapper {
 
   static func mapAlbum(_ resource: [String: Any]) -> [String: Any] {
     let attributes = resource["attributes"] as? [String: Any] ?? [:]
-    let trackCount: String
+    let trackCount: Int
     if let count = attributes["trackCount"] as? Int {
-      trackCount = String(count)
+      trackCount = count
     } else if let count = attributes["trackCount"] as? Double {
-      trackCount = String(Int(count))
+      trackCount = Int(count)
     } else {
-      trackCount = "0"
+      trackCount = 0
     }
     return [
       "id": resource["id"] as? String ?? "",
@@ -33,7 +33,16 @@ enum RestJsonMapper {
       "title": attributes["name"] as? String ?? "",
       "artistName": attributes["artistName"] as? String ?? "",
       "artworkUrl": artworkUrl(attributes["artwork"] as? [String: Any]),
-      "duration": durationString(attributes),
+      "duration": durationMillis(attributes),
+    ]
+  }
+
+  static func mapArtist(_ resource: [String: Any]) -> [String: Any] {
+    let attributes = resource["attributes"] as? [String: Any] ?? [:]
+    return [
+      "id": resource["id"] as? String ?? "",
+      "name": attributes["name"] as? String ?? "",
+      "artworkUrl": artworkUrl(attributes["artwork"] as? [String: Any]),
     ]
   }
 
@@ -91,13 +100,12 @@ enum RestJsonMapper {
   static func mapMusicVideo(_ resource: [String: Any]) -> [String: Any] {
     let attributes = resource["attributes"] as? [String: Any] ?? [:]
     let id = catalogPlaybackId(resource) ?? (resource["id"] as? String ?? "")
-    let durationMs = Int(durationString(attributes)) ?? 0
     return [
       "id": id,
       "title": attributes["name"] as? String ?? "",
       "artistName": attributes["artistName"] as? String ?? "",
       "artworkUrl": artworkUrl(attributes["artwork"] as? [String: Any]),
-      "duration": durationMs,
+      "duration": durationMillis(attributes),
     ]
   }
 
@@ -118,17 +126,17 @@ enum RestJsonMapper {
     return nil
   }
 
-  private static func durationString(_ attributes: [String: Any]) -> String {
+  private static func durationMillis(_ attributes: [String: Any]) -> Int {
     if let millis = attributes["durationInMillis"] as? Int {
-      return String(millis)
+      return millis
     }
     if let millis = attributes["durationInMillis"] as? Double {
-      return String(Int(millis))
+      return Int(millis)
     }
     if let duration = attributes["duration"] as? Double {
-      return String(Int(duration * 1000))
+      return Int(duration * 1000)
     }
-    return "0"
+    return 0
   }
 
   private static func artworkUrl(_ artwork: [String: Any]?, width: Int = 200, height: Int = 200) -> String {

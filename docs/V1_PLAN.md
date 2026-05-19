@@ -86,17 +86,26 @@ Plan for completing `@wwdrew/expo-apple-music` before a **1.0.0** release. The p
 
 ### iOS strategy (decision)
 
-**For v1, use REST for all `/v1/me/*`, `/v1/me/recent/*`, recommendations, ratings, and catalog GET-by-id** on iOS via an internal `AppleMusicApiClient` (Swift), sharing response shapes with Android.
+**Use MusicKit natively when it can do the job.** Use REST only to **fill gaps** (no MusicKit API, or write endpoints). Every path must return the **same bridge shapes** as Android (`AppleMusicJsonMapper` / `fixtures`).
 
-**Keep native MusicKit for:**
+**Native MusicKit (preferred on iOS):**
 
-- `Auth` / `MusicSubscription` where strictly better than inference
+- `Auth` / subscription (where better than inference)
 - **Playback** (queue, transport, now playing, events)
-- **Optional:** `MusicCatalogSearchRequest` for catalog search (performance); must return identical TS types as REST
+- **Catalog** search and get-by-id
+- **Library** reads (playlists, songs, artists, albums, playlist tracks)
+- **History:** recently played resources and tracks
 
-**Rationale:** Full API parity with one mapper and one set of fixture tests beats maintaining 80+ Swift request types.
+**REST on iOS (gap-fill):**
 
-**Requirement:** iOS must obtain/store **music user token** for REST (today only Android persists it). v1 auth work includes exposing or internally using the user token on iOS (MusicKit can provide this after authorize).
+- Ratings, favorites, library mutations (writes)
+- History: heavy rotation, recent stations, recently added
+- Catalog: relationships (album tracks, …), charts
+- `Auth.getStorefront()` and any call with no MusicKit equivalent
+
+**Requirement:** Persist **music user token** (+ developer JWT when provided) for REST writes and gap-fill reads. See [PLATFORM_IMPLEMENTATION.md](./PLATFORM_IMPLEMENTATION.md) for the per-method matrix.
+
+**Rationale:** Avoid reimplementing 80+ Swift request types while keeping one TS contract; maintain `MusicItemMapper` and `RestJsonMapper` in lockstep with Kotlin/TS mappers.
 
 ---
 

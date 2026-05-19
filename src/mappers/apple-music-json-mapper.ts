@@ -17,14 +17,14 @@ function artworkUrl(artwork: Record<string, unknown> | undefined, width = 200, h
   return template.replace('{w}', String(width)).replace('{h}', String(height));
 }
 
-function durationString(attributes: Record<string, unknown>): string {
+function durationMillis(attributes: Record<string, unknown>): number {
   if (typeof attributes.durationInMillis === 'number') {
-    return String(attributes.durationInMillis);
+    return attributes.durationInMillis;
   }
   if (typeof attributes.duration === 'number') {
-    return String(Math.floor(attributes.duration * 1000));
+    return Math.floor(attributes.duration * 1000);
   }
-  return '0';
+  return 0;
 }
 
 function catalogPlaybackId(resource: AppleMusicApiResource): string | undefined {
@@ -49,7 +49,7 @@ export function mapSong(resource: AppleMusicApiResource) {
     title: String(attributes.name ?? ''),
     artistName: String(attributes.artistName ?? ''),
     artworkUrl: artworkUrl(attributes.artwork as Record<string, unknown> | undefined),
-    duration: durationString(attributes),
+    duration: durationMillis(attributes),
   };
 }
 
@@ -60,7 +60,7 @@ export function mapAlbum(resource: AppleMusicApiResource) {
     title: String(attributes.name ?? ''),
     artistName: String(attributes.artistName ?? ''),
     artworkUrl: artworkUrl(attributes.artwork as Record<string, unknown> | undefined),
-    trackCount: String(attributes.trackCount ?? 0),
+    trackCount: Number(attributes.trackCount ?? 0),
   };
 }
 
