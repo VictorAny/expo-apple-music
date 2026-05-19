@@ -1,6 +1,7 @@
 import type { Album } from '../types/album';
 import type { AlbumsResponse } from '../types/albums-response';
 import type { CatalogAlbumTracksResponse } from '../types/catalog-album-tracks';
+import type { CatalogCharts, CatalogChartType, CatalogChartsOptions } from '../types/catalog-charts';
 import type { CatalogSearch, CatalogSearchType } from '../types/catalog-search';
 import type { Artist } from '../types/artist';
 import type { MusicVideo } from '../types/music-video';
@@ -65,6 +66,13 @@ class Catalog {
       playlistId,
       options ?? {},
     )) as CatalogAlbumTracksResponse;
+  }
+
+  public static async getCharts(
+    types: CatalogChartType[],
+    options?: CatalogChartsOptions,
+  ): Promise<CatalogCharts> {
+    return (await MusicModule.getCatalogCharts(types, options ?? {})) as CatalogCharts;
   }
 }
 

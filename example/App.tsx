@@ -2,6 +2,7 @@ import {
   Auth,
   AuthStatus,
   Catalog,
+  CatalogChartType,
   CatalogSearchType,
   History,
   Library,
@@ -164,6 +165,22 @@ export default function App() {
     }
   }
 
+  async function loadCharts() {
+    try {
+      const charts = await Catalog.getCharts(
+        [CatalogChartType.SONGS, CatalogChartType.ALBUMS],
+        { limit: 10 },
+      );
+      setSongs(charts.songs);
+      setAlbums(charts.albums);
+      appendLog(
+        `charts: ${charts.songs.length} songs, ${charts.albums.length} albums`,
+      );
+    } catch (error) {
+      appendLog(`charts error: ${String(error)}`);
+    }
+  }
+
   async function loadStorefront() {
     try {
       const storefront = await Auth.getStorefront();
@@ -236,6 +253,7 @@ export default function App() {
               disabled={Platform.OS === "android" && !devToken}
             />
             <Button title="Search Beatles" onPress={search} />
+            <Button title="Charts" onPress={loadCharts} />
             <Button title="Storefront" onPress={loadStorefront} />
             <Button title="Library & history" onPress={loadLibraryAndHistory} />
           </View>

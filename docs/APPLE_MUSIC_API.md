@@ -28,7 +28,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Album → tracks | `Catalog.getAlbumTracks()` | ✅ | ✅ | ⬜ |
 | Artist → albums | `Catalog.getArtistAlbums()` | ✅ | ✅ | ⬜ |
 | Playlist → tracks | `Catalog.getPlaylistTracks()` | ✅ | ✅ | ⬜ |
-| Charts | `Catalog.getCharts()` | ⬜ | ⬜ | ⬜ |
+| Charts | `Catalog.getCharts()` | ✅ | ✅ | ⬜ |
 
 ---
 
@@ -97,6 +97,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Catalog album tracks | `GET /v1/catalog/{storefront}/albums/{id}/tracks` |
 | Catalog artist albums | `GET /v1/catalog/{storefront}/artists/{id}/albums` |
 | Catalog playlist tracks | `GET /v1/catalog/{storefront}/playlists/{id}/tracks` |
+| Catalog charts | `GET /v1/catalog/{storefront}/charts` |
 | Library songs | `GET /v1/me/library/songs` |
 | Library artists | `GET /v1/me/library/artists` |
 | Library playlists | `GET /v1/me/library/playlists` |

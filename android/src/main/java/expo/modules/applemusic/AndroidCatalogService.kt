@@ -56,4 +56,26 @@ internal class AndroidCatalogService(context: Context) {
     playlistId: String,
     options: PaginationOptions,
   ): List<Map<String, Any?>> = api.getCatalogPlaylistTracks(playlistId, options.limit, options.offset)
+
+  data class ChartsResult(
+    val songs: List<Map<String, Any?>>,
+    val albums: List<Map<String, Any?>>,
+    val playlists: List<Map<String, Any?>>,
+    val musicVideos: List<Map<String, Any?>>,
+  )
+
+  suspend fun getCharts(
+    types: List<String>,
+    options: PaginationOptions,
+    genre: String?,
+    chart: String?,
+  ): ChartsResult {
+    val result = api.getCatalogCharts(types, options.limit, options.offset, genre, chart)
+    return ChartsResult(
+      songs = result.songs,
+      albums = result.albums,
+      playlists = result.playlists,
+      musicVideos = result.musicVideos,
+    )
+  }
 }

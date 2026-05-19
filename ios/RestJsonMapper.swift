@@ -67,6 +67,40 @@ enum RestJsonMapper {
     ]
   }
 
+  static func mapPlaylist(_ resource: [String: Any]) -> [String: Any] {
+    let attributes = resource["attributes"] as? [String: Any] ?? [:]
+    var trackCount = 0
+    if let count = attributes["trackCount"] as? Int {
+      trackCount = count
+    } else if let count = attributes["trackCount"] as? Double {
+      trackCount = Int(count)
+    }
+    var description = attributes["description"] as? String ?? ""
+    if description.isEmpty, let desc = attributes["description"] as? [String: Any] {
+      description = desc["standard"] as? String ?? ""
+    }
+    return [
+      "id": resource["id"] as? String ?? "",
+      "name": attributes["name"] as? String ?? "",
+      "description": description,
+      "artworkUrl": artworkUrl(attributes["artwork"] as? [String: Any]),
+      "trackCount": trackCount,
+    ]
+  }
+
+  static func mapMusicVideo(_ resource: [String: Any]) -> [String: Any] {
+    let attributes = resource["attributes"] as? [String: Any] ?? [:]
+    let id = catalogPlaybackId(resource) ?? (resource["id"] as? String ?? "")
+    let durationMs = Int(durationString(attributes)) ?? 0
+    return [
+      "id": id,
+      "title": attributes["name"] as? String ?? "",
+      "artistName": attributes["artistName"] as? String ?? "",
+      "artworkUrl": artworkUrl(attributes["artwork"] as? [String: Any]),
+      "duration": durationMs,
+    ]
+  }
+
   static func mapStation(_ resource: [String: Any]) -> [String: Any] {
     let attributes = resource["attributes"] as? [String: Any] ?? [:]
     return [

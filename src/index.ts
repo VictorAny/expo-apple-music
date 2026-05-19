@@ -36,6 +36,8 @@ export * from './types/albums-response';
 
 export * from './types/catalog-album-tracks';
 
+export * from './types/catalog-charts';
+
 import useCurrentSong from './hooks/use-current-song';
 import useIsPlaying from './hooks/use-is-playing';
 import usePlaybackState from './hooks/use-playback-state';

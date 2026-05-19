@@ -189,6 +189,79 @@ internal class AppleMusicApiClient(
       items
     }
 
+  data class CatalogChartsResult(
+    val songs: List<Map<String, Any?>>,
+    val albums: List<Map<String, Any?>>,
+    val playlists: List<Map<String, Any?>>,
+    val musicVideos: List<Map<String, Any?>>,
+  )
+
+  suspend fun getCatalogCharts(
+    types: List<String>,
+    limit: Int,
+    offset: Int,
+    genre: String?,
+    chart: String?,
+  ): CatalogChartsResult =
+    withContext(Dispatchers.IO) {
+      val storefront = getStorefront()
+      val typeParam =
+        types
+          .mapNotNull { catalogChartTypeParam(it) }
+          .distinct()
+          .joinToString(",")
+          .ifEmpty { "songs,albums" }
+
+      val query =
+        mutableMapOf(
+          "types" to typeParam,
+          "limit" to limit.toString(),
+          "offset" to offset.toString(),
+        )
+      genre?.takeIf { it.isNotBlank() }?.let { query["genre"] = it }
+      chart?.takeIf { it.isNotBlank() }?.let { query["chart"] = it }
+
+      val json = getJson("/v1/catalog/$storefront/charts", query)
+      val results = json.optJSONObject("results") ?: JSONObject()
+      CatalogChartsResult(
+        songs = parseChartsEntries(results, "songs", "song", AppleMusicJsonMapper::mapSong),
+        albums = parseChartsEntries(results, "albums", "album", AppleMusicJsonMapper::mapAlbum),
+        playlists = parseChartsEntries(results, "playlists", "playlist", AppleMusicJsonMapper::mapPlaylist),
+        musicVideos =
+          parseChartsEntries(results, "music-videos", "music-video", AppleMusicJsonMapper::mapMusicVideo),
+      )
+    }
+
+  private fun parseChartsEntries(
+    results: JSONObject,
+    resultsKey: String,
+    typeContains: String,
+    mapper: (JSONObject) -> Map<String, Any?>,
+  ): List<Map<String, Any?>> {
+    val charts = results.optJSONArray(resultsKey) ?: return emptyList()
+    val items = mutableListOf<Map<String, Any?>>()
+    for (i in 0 until charts.length()) {
+      val chart = charts.optJSONObject(i) ?: continue
+      val data = chart.optJSONArray("data") ?: continue
+      for (j in 0 until data.length()) {
+        val resource = data.getJSONObject(j)
+        if (resource.optString("type", "").contains(typeContains)) {
+          items.add(mapper(resource))
+        }
+      }
+    }
+    return items
+  }
+
+  private fun catalogChartTypeParam(type: String): String? =
+    when (type) {
+      "songs" -> "songs"
+      "albums" -> "albums"
+      "playlists" -> "playlists"
+      "music-videos" -> "music-videos"
+      else -> null
+    }
+
   private suspend fun getCatalogResource(
     pathSuffix: String,
     mapper: (JSONObject) -> Map<String, Any?>,

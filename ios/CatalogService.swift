@@ -139,6 +139,63 @@ final class CatalogService {
     )
   }
 
+  struct ChartsResult {
+    let songs: [[String: Any]]
+    let albums: [[String: Any]]
+    let playlists: [[String: Any]]
+    let musicVideos: [[String: Any]]
+  }
+
+  func getCharts(
+    types: [String],
+    options: SearchOptions,
+    genre: String?,
+    chart: String?
+  ) async throws -> ChartsResult {
+    let storefront = try await StorefrontService.getStorefrontId()
+    var query: [String: String] = [
+      "types": types.isEmpty ? "songs,albums" : types.joined(separator: ","),
+      "limit": "\(options.limit)",
+      "offset": "\(options.offset)",
+    ]
+    if let genre, !genre.isEmpty { query["genre"] = genre }
+    if let chart, !chart.isEmpty { query["chart"] = chart }
+
+    let json = try await AppleMusicRestClient.get(
+      path: "/v1/catalog/\(storefront)/charts",
+      query: query
+    )
+    let results = json["results"] as? [String: Any] ?? [:]
+
+    return ChartsResult(
+      songs: parseChartsEntries(results, key: "songs", typeContains: "song", mapper: RestJsonMapper.mapSong),
+      albums: parseChartsEntries(results, key: "albums", typeContains: "album", mapper: RestJsonMapper.mapAlbum),
+      playlists: parseChartsEntries(
+        results, key: "playlists", typeContains: "playlist", mapper: RestJsonMapper.mapPlaylist),
+      musicVideos: parseChartsEntries(
+        results, key: "music-videos", typeContains: "music-video", mapper: RestJsonMapper.mapMusicVideo)
+    )
+  }
+
+  private func parseChartsEntries(
+    results: [String: Any],
+    key: String,
+    typeContains: String,
+    mapper: ([String: Any]) -> [String: Any]
+  ) -> [[String: Any]] {
+    guard let charts = results[key] as? [[String: Any]] else { return [] }
+    var items: [[String: Any]] = []
+    for chart in charts {
+      guard let data = chart["data"] as? [[String: Any]] else { continue }
+      for resource in data {
+        let type = resource["type"] as? String ?? ""
+        guard type.contains(typeContains) else { continue }
+        items.append(mapper(resource))
+      }
+    }
+    return items
+  }
+
   private func getCatalogRelationship(
     path: String,
     options: SearchOptions,
