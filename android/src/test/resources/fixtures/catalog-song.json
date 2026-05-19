@@ -1,0 +1,16 @@
+{
+  "id": "1441164424",
+  "type": "songs",
+  "attributes": {
+    "name": "Yesterday",
+    "artistName": "The Beatles",
+    "durationInMillis": 125000,
+    "artwork": {
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Music/{w}x{h}bb.jpg"
+    },
+    "playParams": {
+      "id": "1441164424",
+      "kind": "song"
+    }
+  }
+}

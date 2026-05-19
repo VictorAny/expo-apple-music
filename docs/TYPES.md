@@ -35,6 +35,8 @@ interface RecentlyPlayedTracksResponse {
 
 JSON from the Apple Music API is mapped in Kotlin (`AppleMusicJsonMapper`) and Swift (`MusicItemMapper` / `RestJsonMapper`) to plain objects that match these TypeScript types. When adding a field, update **all three** layers.
 
+Reference mapper and fixtures for tests: `src/mappers/apple-music-json-mapper.ts`, `fixtures/*.json` (mirrored under `android/src/test/resources/fixtures/`).
+
 ## Pagination
 
 Use `PaginationOptions` (`limit`, `offset`) for list calls. Defaults match native (typically `limit: 25`, `offset: 0`).
