@@ -4,7 +4,6 @@ import type { Song } from '../types/song';
 import type { StationsResponse } from '../types/station';
 import type { TracksFromLibrary } from '../types/tracks-from-library';
 import { MusicModule } from '../native-module';
-import MusicKit from './music-kit';
 
 export interface RecentlyPlayedTracksResponse {
   songs: Song[];
@@ -13,7 +12,7 @@ export interface RecentlyPlayedTracksResponse {
 class History {
   /** Recently played albums, playlists, and stations (mixed containers). */
   public static async getRecentlyPlayedResources(): Promise<TracksFromLibrary> {
-    return MusicKit.getTracksFromLibrary();
+    return (await MusicModule.getTracksFromLibrary()) as TracksFromLibrary;
   }
 
   /** Recently played songs — use for listening history / artist inference. */

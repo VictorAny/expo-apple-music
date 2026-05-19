@@ -82,7 +82,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Queue catalog / library | `Player.setQueue()` / interim `MusicKit.setPlaybackQueue` | ✅ | ✅ | ⬜ |
+| Queue catalog / library | `Player.setQueue()` | ✅ | ✅ | ⬜ |
 | Transport + state + hooks | `Player.*` | ✅ | ✅ | ⬜ |
 | Catalog station queue | | ✅ | ➖ | ⬜ |
 

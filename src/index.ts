@@ -45,12 +45,9 @@ import Auth from './modules/auth';
 import Catalog from './modules/catalog';
 import History from './modules/history';
 import Library from './modules/library';
-import MusicKit from './modules/music-kit';
 import Player from './modules/player';
 
 export type { LibrarySongsResponse } from './modules/library';
-
-export type { EndlessListOptions } from './modules/music-kit';
 
 export type { RecentlyPlayedTracksResponse } from './modules/history';
 
@@ -71,5 +68,4 @@ export {
   History,
   Library,
   Player,
-  MusicKit,
 };

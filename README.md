@@ -33,7 +33,7 @@ Android **package visibility** for the Apple Music app comes from this module’
 ## Usage
 
 ```ts
-import { Auth, AuthStatus, Player, MusicKit } from '@wwdrew/expo-apple-music';
+import { Auth, AuthStatus, Catalog, CatalogSearchType, Player } from '@wwdrew/expo-apple-music';
 
 // iOS — developerToken is ignored
 const status = await Auth.authorize();
@@ -42,7 +42,7 @@ const status = await Auth.authorize();
 const status = await Auth.authorize(developerToken);
 
 if (status === AuthStatus.AUTHORIZED) {
-  await MusicKit.catalogSearch('Beatles', ['songs', 'albums']);
+  await Catalog.search('Beatles', [CatalogSearchType.SONGS, CatalogSearchType.ALBUMS]);
   Player.play();
 }
 ```
@@ -63,7 +63,7 @@ The **same TypeScript API** is exposed on iOS and Android. Native implementation
 | `Auth.checkSubscription()` | ✅ | ⚠️ | Android infers flags from token + library probe (no `MusicSubscription` API). |
 | `Catalog.search()` | ✅ | ✅ | All search types on both platforms; iOS uses native MusicKit search. |
 | `Catalog.get*` / relationship helpers / `getCharts()` | ✅ | ✅ | Catalog by ID, relationships, and charts via REST. |
-| `MusicKit.catalogSearch()` | ✅ | ✅ | Deprecated interim alias — use `Catalog.search()`. |
+| `Player.setQueue()` / `playLibrary*` | ✅ | ✅ | Native playback queue (replaces interim `MusicKit` helpers). |
 | `getUserPlaylists` / `getLibrarySongs` / `getPlaylistSongs` | ✅ | ✅ | Android uses REST (`/v1/me/library/...`). |
 | `getTracksFromLibrary()` | ✅ | ✅ | Android uses `GET /v1/me/recent/played` (API max **10** items per request). |
 | `setPlaybackQueue` — song | ✅ | ✅ | |

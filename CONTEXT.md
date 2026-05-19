@@ -16,11 +16,11 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | ------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | **Catalog**        | Apple Music’s global store — all artists, albums, songs available on the service                   | The signed-in user’s personal collection                                        |
 | **Library**        | The authenticated user’s Apple Music account data — their songs, playlists, recently played, etc.  | Public/store search                                                             |
-| **Catalog search** | `MusicKit.catalogSearch()` — search the **store** (e.g. `"Beatles"` → songs/albums in Apple Music) | Searching “my playlists” or “my library” for an artist                          |
+| **Catalog search** | `Catalog.search()` — search the **store** (e.g. `"Beatles"` → songs/albums in Apple Music) | Searching “my playlists” or “my library” for an artist                          |
 | **Library APIs**   | `getUserPlaylists`, `getLibrarySongs`, `getPlaylistSongs`, `getTracksFromLibrary`                  | Catalog search                                                                  |
 | **Auth**           | Sign the user into Apple Music and obtain permission/tokens to access **their** data               | Catalog browse without a user (developer token alone is not “auth” for library) |
 
-**Rule of thumb:** If it’s under `MusicKit` and the method name contains **Library** or **Playlist** (user-owned), it’s **library**. If the method is **catalogSearch**, it’s **catalog** (store).
+**Rule of thumb:** **Library** and **History** methods refer to the user’s account. **Catalog** methods refer to the Apple Music store.
 
 ## JS API map (by domain)
 
@@ -34,7 +34,7 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 
 **Auth documentation:** [docs/AUTH.md](./docs/AUTH.md) — developer JWT (Android), `AuthStatus` return values, platform requirements, config plugin, upsell options.
 
-### Catalog — store (`MusicKit`)
+### Catalog — store (`Catalog`)
 
 | Method                                 | Domain                     | Purpose                                      |
 | -------------------------------------- | -------------------------- | -------------------------------------------- |
@@ -43,7 +43,7 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | `Catalog.getAlbumTracks` / `getArtistAlbums` / `getPlaylistTracks` | **Catalog** | Catalog relationship endpoints |
 | `setPlaybackQueue(itemId, type)`       | Catalog playback (usually) | Queue catalog item by store ID               |
 
-### Library — user account (`Library` / interim `MusicKit`)
+### Library — user account (`Library`)
 
 | Method                                         | Domain               | Purpose                          |
 | ---------------------------------------------- | -------------------- | -------------------------------- |
@@ -54,7 +54,7 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | `playLibrarySong(songId)`                      | **Library playback** | Play a library song              |
 | `playLibraryPlaylist(playlistId, startingAt?)` | **Library playback** | Play a library playlist          |
 
-### History — listening (`History` / interim `MusicKit`)
+### History — listening (`History`)
 
 | Method | Domain | Purpose |
 | ------ | ------ | ------- |
@@ -100,7 +100,7 @@ These need auth + REST client + JSON mapping to existing TS types.
 
 ### Tier 1 — important, after tier 0
 
-- `MusicKit.catalogSearch()` — **store** search (not “my playlists”)
+- `Catalog.search()` — **store** search (not “my playlists”)
 - `Auth.checkSubscription()` — approximate mapping from auth/API
 - Catalog playback: `setPlaybackQueue` + `Player.*` + playback events/hooks
 

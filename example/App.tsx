@@ -13,7 +13,6 @@ import {
   type Station,
   type UserTrack,
   MusicItem,
-  MusicKit,
   Player,
 } from "@wwdrew/expo-apple-music";
 import { useCallback, useEffect, useState } from "react";
@@ -157,7 +156,7 @@ export default function App() {
     setSelectedSongId(song.id);
     try {
       await Player.configurePlayer(false);
-      await MusicKit.setPlaybackQueue(song.id, MusicItem.SONG);
+      await Player.setQueue(song.id, MusicItem.SONG);
       const state = await Player.getCurrentState();
       appendLog(`playing: ${song.title} (${state.playbackStatus})`);
     } catch (error) {
@@ -220,7 +219,7 @@ export default function App() {
   async function playAlbum(album: Album) {
     try {
       await Player.configurePlayer(false);
-      await MusicKit.setPlaybackQueue(album.id, MusicItem.ALBUM);
+      await Player.setQueue(album.id, MusicItem.ALBUM);
       const state = await Player.getCurrentState();
       appendLog(`playing album: ${album.title} (${state.playbackStatus})`);
     } catch (error) {

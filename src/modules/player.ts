@@ -1,4 +1,5 @@
 import type { EventSubscription } from 'expo-modules-core';
+import type { MusicItem } from '../types/music-item';
 import type { PlaybackState } from '../types/playback-state';
 import type { Song } from '../types/song';
 import { MusicModule, musicEventEmitter } from '../native-module';
@@ -26,6 +27,18 @@ interface PlayerEvents {
 }
 
 class Player {
+  public static async setQueue(itemId: string, type: MusicItem): Promise<void> {
+    await MusicModule.setPlaybackQueue(itemId, type);
+  }
+
+  public static async playLibrarySong(songId: string): Promise<void> {
+    await MusicModule.playLibrarySong(songId);
+  }
+
+  public static async playLibraryPlaylist(playlistId: string, startingAt = -1): Promise<void> {
+    await MusicModule.playLibraryPlaylist(playlistId, startingAt);
+  }
+
   public static skipToNextEntry(): void {
     MusicModule.skipToNextEntry();
   }

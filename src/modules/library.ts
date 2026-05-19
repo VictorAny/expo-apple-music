@@ -4,7 +4,6 @@ import type { PaginationOptions } from '../types/pagination';
 import type { PlaylistSongsResponse, PlaylistsResponse } from '../types/playlist';
 import type { Song } from '../types/song';
 import { MusicModule } from '../native-module';
-import MusicKit from './music-kit';
 
 export interface LibrarySongsResponse {
   songs: Song[];
@@ -12,18 +11,18 @@ export interface LibrarySongsResponse {
 
 class Library {
   public static async getPlaylists(options?: PaginationOptions): Promise<PlaylistsResponse> {
-    return MusicKit.getUserPlaylists(options);
+    return (await MusicModule.getUserPlaylists(options ?? {})) as PlaylistsResponse;
   }
 
   public static async getSongs(options?: PaginationOptions): Promise<LibrarySongsResponse> {
-    return MusicKit.getLibrarySongs(options);
+    return (await MusicModule.getLibrarySongs(options ?? {})) as LibrarySongsResponse;
   }
 
   public static async getPlaylistTracks(
     playlistId: string,
     options?: PaginationOptions,
   ): Promise<PlaylistSongsResponse> {
-    return MusicKit.getPlaylistSongs(playlistId, options);
+    return (await MusicModule.getPlaylistSongs(playlistId, options ?? {})) as PlaylistSongsResponse;
   }
 
   public static async getArtists(options?: PaginationOptions): Promise<ArtistsResponse> {
