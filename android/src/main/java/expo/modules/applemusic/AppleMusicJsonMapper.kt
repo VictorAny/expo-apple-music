@@ -94,12 +94,13 @@ internal object AppleMusicJsonMapper {
   fun mapMusicVideo(resource: JSONObject): Map<String, Any?> {
     val attributes = resource.optJSONObject("attributes") ?: JSONObject()
     val id = catalogPlaybackId(resource) ?: resource.optString("id", "")
-    return mapOf(
+    val durationMs = durationString(attributes).toLongOrNull() ?: 0L
+    return mapOf<String, Any?>(
       "id" to id,
       "title" to attributes.optString("name", ""),
       "artistName" to attributes.optString("artistName", ""),
       "artworkUrl" to artworkUrl(attributes.optJSONObject("artwork")),
-      "duration" to durationString(attributes).toLongOrNull() ?: 0L,
+      "duration" to durationMs,
     )
   }
 
