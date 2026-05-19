@@ -38,6 +38,10 @@ export * from './types/catalog-album-tracks';
 
 export * from './types/catalog-charts';
 
+export * from './types/rating';
+
+export * from './types/library-mutations';
+
 import useCurrentSong from './hooks/use-current-song';
 import useIsPlaying from './hooks/use-is-playing';
 import usePlaybackState from './hooks/use-playback-state';
@@ -45,7 +49,9 @@ import Auth from './modules/auth';
 import Catalog from './modules/catalog';
 import History from './modules/history';
 import Library from './modules/library';
+import LibraryMutations from './modules/library-mutations';
 import Player from './modules/player';
+import Ratings from './modules/ratings';
 
 export type { LibrarySongsResponse } from './modules/library';
 
@@ -67,5 +73,7 @@ export {
   Catalog,
   History,
   Library,
+  LibraryMutations,
   Player,
+  Ratings,
 };

@@ -6,6 +6,12 @@ import {
   CatalogSearchType,
   History,
   Library,
+  LibraryMutations,
+  LibraryResourceType,
+  Ratings,
+  RatingResourceType,
+  RatingValue,
+  PlaylistTrackType,
   type Album,
   type Artist,
   type RecentResource,
@@ -216,6 +222,56 @@ export default function App() {
     }
   }
 
+  async function likeSelectedSong() {
+    const song = songs.find((s) => s.id === selectedSongId);
+    if (!song) {
+      appendLog("like: search first and select a song");
+      return;
+    }
+    try {
+      const rating = await Ratings.setRating(
+        RatingResourceType.SONG,
+        song.id,
+        RatingValue.LIKE,
+      );
+      appendLog(`like: ${song.title} → rating ${rating.value}`);
+    } catch (error) {
+      appendLog(`like error: ${String(error)}`);
+    }
+  }
+
+  async function addSelectedSongToLibrary() {
+    const song = songs.find((s) => s.id === selectedSongId);
+    if (!song) {
+      appendLog("add to library: search first and select a song");
+      return;
+    }
+    try {
+      await LibraryMutations.addToLibrary({
+        [LibraryResourceType.SONGS]: [song.id],
+      });
+      appendLog(`add to library: ${song.title} (202 — may take a moment to appear)`);
+    } catch (error) {
+      appendLog(`add to library error: ${String(error)}`);
+    }
+  }
+
+  async function createTestPlaylist() {
+    const song = songs.find((s) => s.id === selectedSongId);
+    try {
+      const playlist = await LibraryMutations.createPlaylist({
+        name: `Expo test ${new Date().toISOString().slice(11, 19)}`,
+        description: "Created from expo-apple-music example",
+        tracks: song
+          ? [{ id: song.id, type: PlaylistTrackType.SONG }]
+          : undefined,
+      });
+      appendLog(`create playlist: ${playlist.name} (${playlist.id})`);
+    } catch (error) {
+      appendLog(`create playlist error: ${String(error)}`);
+    }
+  }
+
   async function playAlbum(album: Album) {
     try {
       await Player.configurePlayer(false);
@@ -255,6 +311,11 @@ export default function App() {
             <Button title="Charts" onPress={loadCharts} />
             <Button title="Storefront" onPress={loadStorefront} />
             <Button title="Library & history" onPress={loadLibraryAndHistory} />
+          </View>
+          <View style={styles.row}>
+            <Button title="Like song" onPress={likeSelectedSong} />
+            <Button title="Add to library" onPress={addSelectedSongToLibrary} />
+            <Button title="New playlist" onPress={createTestPlaylist} />
           </View>
 
           {songs.length > 0 && (

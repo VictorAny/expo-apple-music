@@ -64,6 +64,7 @@ The **same TypeScript API** is exposed on iOS and Android. Native implementation
 | `Catalog.search()` | ✅ | ✅ | All search types on both platforms; iOS uses native MusicKit search. |
 | `Catalog.get*` / relationship helpers / `getCharts()` | ✅ | ✅ | Catalog by ID, relationships, and charts via REST. |
 | `Player.setQueue()` / `playLibrary*` | ✅ | ✅ | Native playback queue (replaces interim `MusicKit` helpers). |
+| `Ratings.*` / `LibraryMutations.*` | ✅ | ✅ | REST write paths (ratings, favorites, add to library, playlists). Requires music user token; iOS needs developer JWT for REST mutations. |
 | `getUserPlaylists` / `getLibrarySongs` / `getPlaylistSongs` | ✅ | ✅ | Android uses REST (`/v1/me/library/...`). |
 | `getTracksFromLibrary()` | ✅ | ✅ | Android uses `GET /v1/me/recent/played` (API max **10** items per request). |
 | `setPlaybackQueue` — song | ✅ | ✅ | |

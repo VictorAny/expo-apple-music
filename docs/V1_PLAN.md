@@ -296,19 +296,19 @@ Phases are ordered for **vertical slices** (testable on device) and **dependency
 
 **Exit:** Catalog browse parity with Apple Music API docs for core resources.
 
-### Phase 3 — Mutations (ratings, playlists, library adds)
+### Phase 3 — Mutations (ratings, playlists, library adds) ✅
 
 **Goal:** Write paths Apple documents for user libraries.
 
 | Task | Deliverable |
 |------|-------------|
-| Ratings GET/SET | per resource type |
-| Favorites add/remove | |
-| Create playlist + add tracks | |
-| Add catalog resource to library | |
-| Error handling for 403 / subscription | |
+| Ratings GET/SET | `Ratings.getRating`, `setRating`, `clearRating` (catalog + library resource types) |
+| Favorites add/remove | `Ratings.addToFavorites`, `removeFromFavorites` |
+| Create playlist + add tracks | `LibraryMutations.createPlaylist`, `addTracksToPlaylist` |
+| Add catalog resource to library | `LibraryMutations.addToLibrary` |
+| Error handling for 403 / subscription | REST clients map HTTP 403 → `permissionDenied` |
 
-**Exit:** Integration tests or manual test script for write operations.
+**Exit:** Example app mutation buttons; see [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md) ratings/mutations rows.
 
 ### Phase 4 — Recommendations & personalization
 

@@ -62,10 +62,11 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
-| Ratings | `Ratings.*` | ⬜ | ⬜ | ⬜ |
-| Favorites | `Ratings.*` | ⬜ | ⬜ | ⬜ |
-| Create / edit playlists | `LibraryMutations.*` | ⬜ | ⬜ | ⬜ |
-| Add to library | `LibraryMutations.addToLibrary()` | ⬜ | ⬜ | ⬜ |
+| Get / set / clear rating | `Ratings.getRating`, `setRating`, `clearRating` | ✅ | ✅ | ⬜ |
+| Favorites add / remove | `Ratings.addToFavorites`, `removeFromFavorites` | ✅ | ✅ | ⬜ |
+| Create library playlist | `LibraryMutations.createPlaylist` | ✅ | ✅ | ⬜ |
+| Add tracks to library playlist | `LibraryMutations.addTracksToPlaylist` | ✅ | ✅ | ⬜ |
+| Add catalog resource to library | `LibraryMutations.addToLibrary` | ✅ | ✅ | ⬜ |
 
 ---
 
@@ -109,5 +110,10 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Recently added | `GET /v1/me/library/recently-added` |
 | Recent stations | `GET /v1/me/recent/played/stations` |
 | Library albums | `GET /v1/me/library/albums` |
+| Personal rating | `GET/PUT/DELETE /v1/me/ratings/{type}/{id}` |
+| Favorites | `POST/DELETE /v1/me/favorites?ids[{type}]=…` |
+| Add to library | `POST /v1/me/library?ids[{type}]=…` |
+| Create playlist | `POST /v1/me/library/playlists` |
+| Add playlist tracks | `POST /v1/me/library/playlists/{id}/tracks` |
 
 Confirm exact heavy-rotation path against Apple docs when implementing.

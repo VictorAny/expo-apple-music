@@ -11,6 +11,8 @@ public class ExpoAppleMusicModule: Module {
   )
   private lazy var libraryService = LibraryService()
   private lazy var historyService = HistoryService()
+  private lazy var ratingsService = RatingsService()
+  private lazy var libraryMutationsService = LibraryMutationsService()
 
   private var playbackObserver: PlaybackObserver?
 
@@ -315,6 +317,53 @@ public class ExpoAppleMusicModule: Module {
         startingAt: startingAt
       )
       return "Library playlist added to queue"
+    }
+
+    AsyncFunction("getRating") { (resourceType: String, id: String) -> [String: Any]? in
+      try await self.ratingsService.getRating(resourceType: resourceType, id: id)
+    }
+
+    AsyncFunction("setRating") {
+      (resourceType: String, id: String, value: Int) -> [String: Any] in
+      try await self.ratingsService.setRating(resourceType: resourceType, id: id, value: value)
+    }
+
+    AsyncFunction("clearRating") { (resourceType: String, id: String) -> Void in
+      try await self.ratingsService.clearRating(resourceType: resourceType, id: id)
+    }
+
+    AsyncFunction("addToFavorites") { (resourceIds: [String: [String]]) -> Void in
+      try await self.ratingsService.addToFavorites(resourceIds: resourceIds)
+    }
+
+    AsyncFunction("removeFromFavorites") { (resourceIds: [String: [String]]) -> Void in
+      try await self.ratingsService.removeFromFavorites(resourceIds: resourceIds)
+    }
+
+    AsyncFunction("addToLibrary") { (resourceIds: [String: [String]]) -> Void in
+      try await self.libraryMutationsService.addToLibrary(resourceIds: resourceIds)
+    }
+
+    AsyncFunction("createLibraryPlaylist") {
+      (options: [String: Any]) -> [String: Any] in
+      let name = options["name"] as? String ?? ""
+      let description = options["description"] as? String
+      let isPublic = options["isPublic"] as? Bool ?? false
+      let tracks = options["tracks"] as? [[String: String]]
+      return try await self.libraryMutationsService.createPlaylist(
+        name: name,
+        description: description,
+        isPublic: isPublic,
+        tracks: tracks
+      )
+    }
+
+    AsyncFunction("addTracksToLibraryPlaylist") {
+      (playlistId: String, tracks: [[String: String]]) -> Void in
+      try await self.libraryMutationsService.addTracksToPlaylist(
+        playlistId: playlistId,
+        tracks: tracks
+      )
     }
   }
 

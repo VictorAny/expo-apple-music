@@ -428,6 +428,139 @@ internal class AppleMusicApiClient(
       ids
     }
 
+  suspend fun getRating(resourceType: String, id: String): Map<String, Any?>? =
+    withContext(Dispatchers.IO) {
+      try {
+        val json = getJson("/v1/me/ratings/$resourceType/$id")
+        mapRating(json)
+      } catch (error: expo.modules.kotlin.exception.CodedException) {
+        if (error.message?.contains("(404)") == true) {
+          return@withContext null
+        }
+        throw error
+      }
+    }
+
+  suspend fun setRating(resourceType: String, id: String, value: Int): Map<String, Any?> =
+    withContext(Dispatchers.IO) {
+      val body =
+        JSONObject()
+          .put("type", "rating")
+          .put(
+            "attributes",
+            JSONObject().put("value", value),
+          )
+      val json =
+        request(
+          AppleMusicHttpMethod.PUT,
+          "/v1/me/ratings/$resourceType/$id",
+          body = body,
+        )
+      mapRating(json)
+    }
+
+  suspend fun clearRating(resourceType: String, id: String): Unit =
+    withContext(Dispatchers.IO) {
+      request(AppleMusicHttpMethod.DELETE, "/v1/me/ratings/$resourceType/$id")
+    }
+
+  suspend fun addToFavorites(resourceIds: Map<String, List<String>>): Unit =
+    withContext(Dispatchers.IO) {
+      request(
+        AppleMusicHttpMethod.POST,
+        "/v1/me/favorites",
+        query = buildIdsQuery(resourceIds),
+      )
+    }
+
+  suspend fun removeFromFavorites(resourceIds: Map<String, List<String>>): Unit =
+    withContext(Dispatchers.IO) {
+      request(
+        AppleMusicHttpMethod.DELETE,
+        "/v1/me/favorites",
+        query = buildIdsQuery(resourceIds),
+      )
+    }
+
+  suspend fun addToLibrary(resourceIds: Map<String, List<String>>): Unit =
+    withContext(Dispatchers.IO) {
+      request(
+        AppleMusicHttpMethod.POST,
+        "/v1/me/library",
+        query = buildIdsQuery(resourceIds),
+      )
+    }
+
+  suspend fun createLibraryPlaylist(
+    name: String,
+    description: String?,
+    isPublic: Boolean,
+    tracks: List<Map<String, String>>?,
+  ): Map<String, Any?> =
+    withContext(Dispatchers.IO) {
+      val attributes =
+        JSONObject()
+          .put("name", name)
+          .put("isPublic", isPublic)
+      if (!description.isNullOrBlank()) {
+        attributes.put(
+          "description",
+          JSONObject().put("standard", description),
+        )
+      }
+
+      val payload = JSONObject().put("attributes", attributes)
+      if (!tracks.isNullOrEmpty()) {
+        val trackData = JSONArray()
+        tracks.forEach { track ->
+          trackData.put(
+            JSONObject()
+              .put("id", track["id"])
+              .put("type", track["type"]),
+          )
+        }
+        payload.put(
+          "relationships",
+          JSONObject().put(
+            "tracks",
+            JSONObject().put("data", trackData),
+          ),
+        )
+      }
+
+      val json =
+        request(
+          AppleMusicHttpMethod.POST,
+          "/v1/me/library/playlists",
+          body = payload,
+        )
+      val data = json.optJSONArray("data") ?: JSONArray()
+      if (data.length() == 0) {
+        throw AppleMusicErrors.apiError("Create playlist returned no data")
+      }
+      AppleMusicJsonMapper.mapPlaylist(data.getJSONObject(0))
+    }
+
+  suspend fun addTracksToLibraryPlaylist(
+    playlistId: String,
+    tracks: List<Map<String, String>>,
+  ): Unit =
+    withContext(Dispatchers.IO) {
+      val trackData = JSONArray()
+      tracks.forEach { track ->
+        trackData.put(
+          JSONObject()
+            .put("id", track["id"])
+            .put("type", track["type"]),
+        )
+      }
+      request(
+        AppleMusicHttpMethod.POST,
+        "/v1/me/library/playlists/$playlistId/tracks",
+        body = JSONObject().put("data", trackData),
+      )
+    }
+
   suspend fun request(
     method: AppleMusicHttpMethod,
     path: String,
@@ -457,6 +590,8 @@ internal class AppleMusicApiClient(
         AppleMusicHttpMethod.GET -> requestBuilder.get()
         AppleMusicHttpMethod.POST ->
           requestBuilder.post(requestBody ?: "{}".toRequestBody(jsonMediaType))
+        AppleMusicHttpMethod.PUT ->
+          requestBuilder.put(requestBody ?: "{}".toRequestBody(jsonMediaType))
         AppleMusicHttpMethod.DELETE ->
           if (requestBody != null) {
             requestBuilder.delete(requestBody)
@@ -468,6 +603,9 @@ internal class AppleMusicApiClient(
       http.newCall(requestBuilder.build()).execute().use { response ->
         val responseBody = response.body?.string().orEmpty()
         if (!response.isSuccessful) {
+          if (response.code == 403) {
+            throw AppleMusicErrors.permissionDenied()
+          }
           val message =
             try {
               JSONObject(responseBody).optJSONArray("errors")?.optJSONObject(0)?.optString("detail")
@@ -501,5 +639,25 @@ internal class AppleMusicApiClient(
   companion object {
     fun isLibraryId(itemId: String): Boolean =
       itemId.startsWith("l.") || itemId.startsWith("i.") || itemId.startsWith("p.")
+
+    private fun buildIdsQuery(resourceIds: Map<String, List<String>>): Map<String, String> {
+      val query = linkedMapOf<String, String>()
+      resourceIds.forEach { (type, ids) ->
+        val filtered = ids.filter { it.isNotBlank() }
+        if (filtered.isNotEmpty()) {
+          query["ids[$type]"] = filtered.joinToString(",")
+        }
+      }
+      return query
+    }
+
+    private fun mapRating(json: JSONObject): Map<String, Any?> {
+      val data = json.getJSONArray("data").getJSONObject(0)
+      val attributes = data.getJSONObject("attributes")
+      return mapOf(
+        "id" to data.getString("id"),
+        "value" to attributes.getInt("value"),
+      )
+    }
   }
 }

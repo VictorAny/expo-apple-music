@@ -8,6 +8,7 @@ import MusicKit
 enum AppleMusicHttpMethod: String {
   case get = "GET"
   case post = "POST"
+  case put = "PUT"
   case delete = "DELETE"
 }
 
@@ -110,6 +111,11 @@ enum AppleMusicRestClient {
 
     let (data, response) = try await URLSession.shared.data(for: urlRequest)
     if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+      if http.statusCode == 403 {
+        throw RestError.apiError(
+          "Apple Music authorization required or subscription needed (403)"
+        )
+      }
       if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
         let errors = json["errors"] as? [[String: Any]],
         let detail = errors.first?["detail"] as? String

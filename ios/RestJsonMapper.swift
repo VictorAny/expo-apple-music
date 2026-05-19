@@ -139,4 +139,28 @@ enum RestJsonMapper {
       .replacingOccurrences(of: "{w}", with: "\(width)")
       .replacingOccurrences(of: "{h}", with: "\(height)")
   }
+
+  static func mapRating(_ json: [String: Any]) -> [String: Any]? {
+    guard let data = json["data"] as? [[String: Any]], let first = data.first else {
+      return nil
+    }
+    let attributes = first["attributes"] as? [String: Any] ?? [:]
+    let value = attributes["value"] as? Int ?? (attributes["value"] as? Double).map { Int($0) }
+    guard let value else { return nil }
+    return [
+      "id": first["id"] as? String ?? "",
+      "value": value,
+    ]
+  }
+
+  static func buildIdsQuery(_ resourceIds: [String: [String]]) -> [String: String] {
+    var query: [String: String] = [:]
+    for (type, ids) in resourceIds {
+      let filtered = ids.filter { !$0.isEmpty }
+      if !filtered.isEmpty {
+        query["ids[\(type)]"] = filtered.joined(separator: ",")
+      }
+    }
+    return query
+  }
 }

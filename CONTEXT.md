@@ -65,6 +65,24 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | `History.getRecentlyAdded(options?)` | **History** | Recently added library items |
 | `Library.getAlbums(options?)` | **Library** | User's library albums |
 
+### Ratings & favorites (`Ratings`)
+
+| Method | Domain | Purpose |
+| ------ | ------ | ------- |
+| `Ratings.getRating(type, id)` | **Ratings** | Like/dislike for catalog or library resource |
+| `Ratings.setRating` / `clearRating` | **Ratings** | Set or remove rating (`1` / `-1`) |
+| `Ratings.addToFavorites` / `removeFromFavorites` | **Ratings** | Favorites via `POST/DELETE /v1/me/favorites` |
+
+Use `RatingResourceType` path segments (`songs`, `library-songs`, …) matching the Apple Music API.
+
+### Library mutations (`LibraryMutations`)
+
+| Method | Domain | Purpose |
+| ------ | ------ | ------- |
+| `LibraryMutations.addToLibrary` | **Library** | Add catalog IDs to the user’s library (`POST /v1/me/library`) |
+| `LibraryMutations.createPlaylist` | **Library** | Create a library playlist (optional initial tracks) |
+| `LibraryMutations.addTracksToPlaylist` | **Library** | Append tracks to a library playlist |
+
 ### Playback (`Player` + hooks)
 
 Transport controls and events — used after something is queued; not “search” or “list library.”

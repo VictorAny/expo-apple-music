@@ -42,6 +42,12 @@ class ExpoAppleMusicModule : Module() {
   private val queueService: AndroidQueueService
     get() = AndroidQueueService(reactContext, playbackController)
 
+  private val ratingsService: AndroidRatingsService
+    get() = AndroidRatingsService(reactContext)
+
+  private val libraryMutationsService: AndroidLibraryMutationsService
+    get() = AndroidLibraryMutationsService(reactContext)
+
   override fun definition() = ModuleDefinition {
     Name("ExpoAppleMusic")
 
@@ -278,6 +284,46 @@ class ExpoAppleMusicModule : Module() {
     AsyncFunction("playLibraryPlaylist") Coroutine { playlistId: String, startingAt: Int ->
       queueService.playLibraryPlaylist(playlistId, startingAt)
       "Library playlist added to queue"
+    }
+
+    AsyncFunction("getRating") Coroutine { resourceType: String, id: String ->
+      ratingsService.getRating(resourceType, id)
+    }
+
+    AsyncFunction("setRating") Coroutine { resourceType: String, id: String, value: Int ->
+      ratingsService.setRating(resourceType, id, value)
+    }
+
+    AsyncFunction("clearRating") Coroutine { resourceType: String, id: String ->
+      ratingsService.clearRating(resourceType, id)
+    }
+
+    AsyncFunction("addToFavorites") Coroutine { resourceIds: Map<String, List<String>> ->
+      ratingsService.addToFavorites(resourceIds)
+    }
+
+    AsyncFunction("removeFromFavorites") Coroutine { resourceIds: Map<String, List<String>> ->
+      ratingsService.removeFromFavorites(resourceIds)
+    }
+
+    AsyncFunction("addToLibrary") Coroutine { resourceIds: Map<String, List<String>> ->
+      libraryMutationsService.addToLibrary(resourceIds)
+    }
+
+    AsyncFunction("createLibraryPlaylist") Coroutine { options: Map<String, Any?> ->
+      val name = options["name"] as? String ?: ""
+      val description = options["description"] as? String
+      val isPublic = options["isPublic"] as? Boolean ?: false
+      @Suppress("UNCHECKED_CAST")
+      val tracks = options["tracks"] as? List<Map<String, String>>
+      libraryMutationsService.createPlaylist(name, description, isPublic, tracks)
+    }
+
+    AsyncFunction("addTracksToLibraryPlaylist") Coroutine {
+      playlistId: String,
+      tracks: List<Map<String, String>>,
+    ->
+      libraryMutationsService.addTracksToPlaylist(playlistId, tracks)
     }
 
     Function("play") {
