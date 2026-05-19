@@ -3,8 +3,16 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "expo-apple-music": ["../src/index"],
-      "expo-apple-music/*": ["../src/*"]
+      "expo-apple-music": [
+        "../src/index"
+      ],
+      "expo-apple-music/*": [
+        "../src/*"
+      ]
     }
-  }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ]
 }

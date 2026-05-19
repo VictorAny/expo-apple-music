@@ -18,7 +18,8 @@
         {
           "musicUsageDescription": "This example app uses Apple Music for testing MusicKit."
         }
-      ]
+      ],
+      "expo-router"
     ],
     "ios": {
       "supportsTablet": true,
@@ -32,6 +33,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "expo.modules.applemusic.example"
     },
+    "scheme": "expo-apple-music-example",
     "web": {
       "favicon": "./assets/favicon.png"
     }

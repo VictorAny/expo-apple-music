@@ -1,7 +1,7 @@
 {
   "name": "expo-apple-music-example",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -11,11 +11,15 @@
   "dependencies": {
     "@wwdrew/expo-apple-music": "file:..",
     "expo": "^55.0.0",
+    "expo-constants": "~55.0.16",
+    "expo-linking": "~55.0.15",
+    "expo-router": "~55.0.15",
     "expo-system-ui": "~55.0.18",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.6",
     "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {

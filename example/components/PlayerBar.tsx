@@ -15,11 +15,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type PlayerBarProps = {
-  onPlaybackError?: (message: string) => void;
-};
+import { useApp } from "../context/AppContext";
 
-export function PlayerBar({ onPlaybackError }: PlayerBarProps) {
+export function PlayerBar() {
+  const { appendLog } = useApp();
+  const onPlaybackError = (message: string) => appendLog(`player: ${message}`);
   const insets = useSafeAreaInsets();
   const { song } = useCurrentSong();
   const { isPlaying } = useIsPlaying();
