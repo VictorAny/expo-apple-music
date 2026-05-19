@@ -10,6 +10,13 @@ internal object AppleMusicErrors {
       null,
     )
 
+  fun permissionDenied(): CodedException =
+    CodedException(
+      "permissionDenied",
+      "Apple Music authorization required or subscription needed (403)",
+      null,
+    )
+
   fun apiError(message: String, code: String = "ERROR"): CodedException =
     CodedException(code, message, null)
 
