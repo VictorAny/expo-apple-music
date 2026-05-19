@@ -91,6 +91,18 @@ internal object AppleMusicJsonMapper {
     )
   }
 
+  fun mapMusicVideo(resource: JSONObject): Map<String, Any?> {
+    val attributes = resource.optJSONObject("attributes") ?: JSONObject()
+    val id = catalogPlaybackId(resource) ?: resource.optString("id", "")
+    return mapOf(
+      "id" to id,
+      "title" to attributes.optString("name", ""),
+      "artistName" to attributes.optString("artistName", ""),
+      "artworkUrl" to artworkUrl(attributes.optJSONObject("artwork")),
+      "duration" to durationString(attributes).toLongOrNull() ?: 0L,
+    )
+  }
+
   fun mapPlayerMediaItem(item: com.apple.android.music.playback.model.PlayerMediaItem): Map<String, Any?> =
     mapOf(
       "id" to item.subscriptionStoreId.orEmpty().ifEmpty { item.a().orEmpty() },

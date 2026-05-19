@@ -38,7 +38,8 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 
 | Method                                 | Domain                     | Purpose                                      |
 | -------------------------------------- | -------------------------- | -------------------------------------------- |
-| `catalogSearch(term, types, options?)` | **Catalog**                | Search Apple Music store (`songs`, `albums`) |
+| `Catalog.search(term, types, options?)` | **Catalog**                | Search Apple Music store (`songs`, `albums`, `artists`, `playlists`, `stations`, `music-videos`) |
+| `Catalog.getSong` / `getAlbum` / … | **Catalog**                | Fetch catalog resource by ID; `getAlbumTracks` for album relationships |
 | `setPlaybackQueue(itemId, type)`       | Catalog playback (usually) | Queue catalog item by store ID               |
 
 ### Library — user account (`Library` / interim `MusicKit`)

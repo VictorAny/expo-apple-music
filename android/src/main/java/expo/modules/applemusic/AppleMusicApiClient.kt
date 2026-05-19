@@ -40,23 +40,26 @@ internal class AppleMusicApiClient(
       id
     }
 
+  data class CatalogSearchResult(
+    val songs: List<Map<String, Any?>>,
+    val albums: List<Map<String, Any?>>,
+    val artists: List<Map<String, Any?>>,
+    val playlists: List<Map<String, Any?>>,
+    val stations: List<Map<String, Any?>>,
+    val musicVideos: List<Map<String, Any?>>,
+  )
+
   suspend fun catalogSearch(
     term: String,
     types: List<String>,
     limit: Int,
     offset: Int,
-  ): Pair<List<Map<String, Any?>>, List<Map<String, Any?>>> =
+  ): CatalogSearchResult =
     withContext(Dispatchers.IO) {
       val storefront = getStorefront()
       val typeParam =
         types
-          .mapNotNull {
-            when (it) {
-              "songs" -> "songs"
-              "albums" -> "albums"
-              else -> null
-            }
-          }
+          .mapNotNull { catalogSearchTypeParam(it) }
           .distinct()
           .joinToString(",")
           .ifEmpty { "songs,albums" }
@@ -73,13 +76,101 @@ internal class AppleMusicApiClient(
         )
 
       val results = json.optJSONObject("results") ?: JSONObject()
-      val songs = mapResourceArray(results.optJSONObject("songs")?.optJSONArray("data")) {
-        AppleMusicJsonMapper.mapSong(it)
+      CatalogSearchResult(
+        songs =
+          mapResourceArray(results.optJSONObject("songs")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapSong(it)
+          },
+        albums =
+          mapResourceArray(results.optJSONObject("albums")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapAlbum(it)
+          },
+        artists =
+          mapResourceArray(results.optJSONObject("artists")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapArtist(it)
+          },
+        playlists =
+          mapResourceArray(results.optJSONObject("playlists")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapPlaylist(it)
+          },
+        stations =
+          mapResourceArray(results.optJSONObject("stations")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapStation(it)
+          },
+        musicVideos =
+          mapResourceArray(results.optJSONObject("music-videos")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapMusicVideo(it)
+          },
+      )
+    }
+
+  suspend fun getCatalogSong(id: String): Map<String, Any?> =
+    getCatalogResource("/songs/$id") { AppleMusicJsonMapper.mapSong(it) }
+
+  suspend fun getCatalogAlbum(id: String): Map<String, Any?> =
+    getCatalogResource("/albums/$id") { AppleMusicJsonMapper.mapAlbum(it) }
+
+  suspend fun getCatalogArtist(id: String): Map<String, Any?> =
+    getCatalogResource("/artists/$id") { AppleMusicJsonMapper.mapArtist(it) }
+
+  suspend fun getCatalogPlaylist(id: String): Map<String, Any?> =
+    getCatalogResource("/playlists/$id") { AppleMusicJsonMapper.mapPlaylist(it) }
+
+  suspend fun getCatalogStation(id: String): Map<String, Any?> =
+    getCatalogResource("/stations/$id") { AppleMusicJsonMapper.mapStation(it) }
+
+  suspend fun getCatalogMusicVideo(id: String): Map<String, Any?> =
+    getCatalogResource("/music-videos/$id") { AppleMusicJsonMapper.mapMusicVideo(it) }
+
+  suspend fun getCatalogAlbumTracks(
+    albumId: String,
+    limit: Int,
+    offset: Int,
+  ): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val storefront = getStorefront()
+      val json =
+        getJson(
+          "/v1/catalog/$storefront/albums/$albumId/tracks",
+          mapOf(
+            "limit" to limit.toString(),
+            "offset" to offset.toString(),
+          ),
+        )
+      val data = json.optJSONArray("data") ?: JSONArray()
+      val songs = mutableListOf<Map<String, Any?>>()
+      for (i in 0 until data.length()) {
+        val resource = data.getJSONObject(i)
+        if (resource.optString("type", "").contains("song")) {
+          songs.add(AppleMusicJsonMapper.mapSong(resource))
+        }
       }
-      val albums = mapResourceArray(results.optJSONObject("albums")?.optJSONArray("data")) {
-        AppleMusicJsonMapper.mapAlbum(it)
+      songs
+    }
+
+  private suspend fun getCatalogResource(
+    pathSuffix: String,
+    mapper: (JSONObject) -> Map<String, Any?>,
+  ): Map<String, Any?> =
+    withContext(Dispatchers.IO) {
+      val storefront = getStorefront()
+      val json = getJson("/v1/catalog/$storefront$pathSuffix")
+      val data = json.optJSONArray("data")
+      if (data == null || data.length() == 0) {
+        throw AppleMusicErrors.itemNotFound("Catalog item", false)
       }
-      songs to albums
+      mapper(data.getJSONObject(0))
+    }
+
+  private fun catalogSearchTypeParam(type: String): String? =
+    when (type) {
+      "songs" -> "songs"
+      "albums" -> "albums"
+      "artists" -> "artists"
+      "playlists" -> "playlists"
+      "stations" -> "stations"
+      "music-videos" -> "music-videos"
+      else -> null
     }
 
   suspend fun getLibraryPlaylists(limit: Int, offset: Int): List<Map<String, Any?>> =

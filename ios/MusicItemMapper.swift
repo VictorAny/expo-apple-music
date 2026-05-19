@@ -52,6 +52,16 @@ enum MusicItemMapper {
     ]
   }
 
+  // MARK: - Station
+
+  static func map(_ station: Station) -> [String: Any] {
+    [
+      "id": String(describing: station.id),
+      "name": station.name,
+      "artworkUrl": extractArtworkURL(station.artwork),
+    ]
+  }
+
   // MARK: - Music Video (iOS 16+)
 
   @available(iOS 16.0, *)

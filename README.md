@@ -61,7 +61,9 @@ The **same TypeScript API** is exposed on iOS and Android. Native implementation
 | --- | :---: | :---: | --- |
 | `Auth.authorize()` | ✅ | ✅ | Android requires a [developer JWT](./docs/AUTH.md) at runtime. |
 | `Auth.checkSubscription()` | ✅ | ⚠️ | Android infers flags from token + library probe (no `MusicSubscription` API). |
-| `MusicKit.catalogSearch()` | ✅ | ✅ | Android uses Apple Music REST (`/v1/catalog/{storefront}/search`). |
+| `Catalog.search()` | ✅ | ✅ | All search types on both platforms; iOS uses native MusicKit search. |
+| `Catalog.get*` / `getAlbumTracks()` | ✅ | ✅ | Catalog resource by ID; album tracks via REST on both platforms. |
+| `MusicKit.catalogSearch()` | ✅ | ✅ | Deprecated interim alias — use `Catalog.search()`. |
 | `getUserPlaylists` / `getLibrarySongs` / `getPlaylistSongs` | ✅ | ✅ | Android uses REST (`/v1/me/library/...`). |
 | `getTracksFromLibrary()` | ✅ | ✅ | Android uses `GET /v1/me/recent/played` (API max **10** items per request). |
 | `setPlaybackQueue` — song | ✅ | ✅ | |

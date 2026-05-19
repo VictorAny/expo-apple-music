@@ -23,9 +23,10 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
 | Search (songs, albums) | `Catalog.search()` | ✅ | ✅ | ⬜ |
-| Search (artists, playlists, stations, music-videos) | `Catalog.search()` | ⬜ | ⬜ | ⬜ |
-| Get resource by ID | `Catalog.get*` | ⬜ | ⬜ | ⬜ |
-| Relationships | `Catalog.get*Relationship` | ⬜ | ⬜ | ⬜ |
+| Search (artists, playlists, stations, music-videos) | `Catalog.search()` | ✅ | ✅ | ⬜ |
+| Get resource by ID | `Catalog.getSong` / `getAlbum` / `getArtist` / `getPlaylist` / `getStation` / `getMusicVideo` | ✅ | ✅ | ⬜ |
+| Album → tracks | `Catalog.getAlbumTracks()` | ✅ | ✅ | ⬜ |
+| Relationships (other) | `Catalog.get*Relationship` | ⬜ | ⬜ | ⬜ |
 | Charts | `Catalog.getCharts()` | ⬜ | ⬜ | ⬜ |
 
 ---

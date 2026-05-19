@@ -30,7 +30,11 @@ export * from './types/recent-resource';
 
 export * from './types/station';
 
+export * from './types/music-video';
+
 export * from './types/albums-response';
+
+export * from './types/catalog-album-tracks';
 
 import useCurrentSong from './hooks/use-current-song';
 import useIsPlaying from './hooks/use-is-playing';

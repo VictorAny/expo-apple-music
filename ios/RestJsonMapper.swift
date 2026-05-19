@@ -6,6 +6,18 @@ import Foundation
 @available(iOS 16.0, *)
 enum RestJsonMapper {
 
+  static func mapSong(_ resource: [String: Any]) -> [String: Any] {
+    let attributes = resource["attributes"] as? [String: Any] ?? [:]
+    let id = catalogPlaybackId(resource) ?? (resource["id"] as? String ?? "")
+    return [
+      "id": id,
+      "title": attributes["name"] as? String ?? "",
+      "artistName": attributes["artistName"] as? String ?? "",
+      "artworkUrl": artworkUrl(attributes["artwork"] as? [String: Any]),
+      "duration": durationString(attributes),
+    ]
+  }
+
   static func mapRecentResource(_ resource: [String: Any]) -> [String: Any] {
     let attributes = resource["attributes"] as? [String: Any] ?? [:]
     let apiType = resource["type"] as? String ?? ""
@@ -43,6 +55,27 @@ enum RestJsonMapper {
       "name": attributes["name"] as? String ?? "",
       "artworkUrl": artworkUrl(attributes["artwork"] as? [String: Any]),
     ]
+  }
+
+  private static func catalogPlaybackId(_ resource: [String: Any]) -> String? {
+    let attributes = resource["attributes"] as? [String: Any] ?? [:]
+    guard let playParams = attributes["playParams"] as? [String: Any] else { return nil }
+    if let id = playParams["id"] as? String, !id.isEmpty { return id }
+    if let catalogId = playParams["catalogId"] as? String, !catalogId.isEmpty { return catalogId }
+    return nil
+  }
+
+  private static func durationString(_ attributes: [String: Any]) -> String {
+    if let millis = attributes["durationInMillis"] as? Int {
+      return String(millis)
+    }
+    if let millis = attributes["durationInMillis"] as? Double {
+      return String(Int(millis))
+    }
+    if let duration = attributes["duration"] as? Double {
+      return String(Int(duration * 1000))
+    }
+    return "0"
   }
 
   private static func artworkUrl(_ artwork: [String: Any]?, width: Int = 200, height: Int = 200) -> String {

@@ -1,6 +1,7 @@
 import {
   Auth,
   AuthStatus,
+  Catalog,
   CatalogSearchType,
   History,
   Library,
@@ -96,9 +97,14 @@ export default function App() {
 
   async function search() {
     try {
-      const result = await MusicKit.catalogSearch(
+      const result = await Catalog.search(
         "Beatles",
-        [CatalogSearchType.SONGS, CatalogSearchType.ALBUMS],
+        [
+          CatalogSearchType.SONGS,
+          CatalogSearchType.ALBUMS,
+          CatalogSearchType.ARTISTS,
+          CatalogSearchType.PLAYLISTS,
+        ],
         { limit: 5 },
       );
       setSongs(result.songs);
@@ -108,10 +114,27 @@ export default function App() {
         setSelectedSongId(first.id);
       }
       appendLog(
-        `search: ${result.songs.length} songs, ${result.albums.length} albums`,
+        `search: ${result.songs.length} songs, ${result.albums.length} albums, ${result.artists.length} artists, ${result.playlists.length} playlists`,
       );
     } catch (error) {
       appendLog(`search error: ${String(error)}`);
+    }
+  }
+
+  async function browseAlbum(album: Album) {
+    try {
+      const detail = await Catalog.getAlbum(album.id);
+      const tracks = await Catalog.getAlbumTracks(album.id, { limit: 25 });
+      appendLog(
+        `album detail: ${detail.title} · ${tracks.songs.length} track(s) from API`,
+      );
+      if (tracks.songs.length > 0) {
+        await playSong(tracks.songs[0]);
+      } else {
+        await playAlbum(album);
+      }
+    } catch (error) {
+      appendLog(`album browse error: ${String(error)}`);
     }
   }
 
@@ -342,14 +365,13 @@ export default function App() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Albums ({albums.length})</Text>
               <Text style={styles.sectionHint}>
-                Tap an album to queue all tracks — skip next/prev works in the
-                player
+                Tap an album to load tracks via Catalog.getAlbumTracks, then play
               </Text>
               {albums.map((album) => (
                 <Pressable
                   key={album.id}
                   style={styles.resultRow}
-                  onPress={() => playAlbum(album)}
+                  onPress={() => browseAlbum(album)}
                 >
                   <Text style={styles.resultTitle}>{album.title}</Text>
                   <Text style={styles.resultMeta}>{album.artistName}</Text>

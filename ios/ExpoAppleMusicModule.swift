@@ -65,7 +65,48 @@ public class ExpoAppleMusicModule: Module {
         types: types,
         options: searchOptions
       )
-      return ["songs": result.songs, "albums": result.albums]
+      return [
+        "songs": result.songs,
+        "albums": result.albums,
+        "artists": result.artists,
+        "playlists": result.playlists,
+        "stations": result.stations,
+        "musicVideos": result.musicVideos,
+      ]
+    }
+
+    AsyncFunction("getCatalogSong") { (id: String) -> [String: Any] in
+      try await self.catalogService.getSong(id: id)
+    }
+
+    AsyncFunction("getCatalogAlbum") { (id: String) -> [String: Any] in
+      try await self.catalogService.getAlbum(id: id)
+    }
+
+    AsyncFunction("getCatalogArtist") { (id: String) -> [String: Any] in
+      try await self.catalogService.getArtist(id: id)
+    }
+
+    AsyncFunction("getCatalogPlaylist") { (id: String) -> [String: Any] in
+      try await self.catalogService.getPlaylist(id: id)
+    }
+
+    AsyncFunction("getCatalogStation") { (id: String) -> [String: Any] in
+      try await self.catalogService.getStation(id: id)
+    }
+
+    AsyncFunction("getCatalogMusicVideo") { (id: String) -> [String: Any] in
+      try await self.catalogService.getMusicVideo(id: id)
+    }
+
+    AsyncFunction("getCatalogAlbumTracks") {
+      (albumId: String, options: [String: Any]) -> [String: Any] in
+      let searchOptions = CatalogService.SearchOptions(from: options as NSDictionary)
+      let songs = try await self.catalogService.getAlbumTracks(
+        albumId: albumId,
+        options: searchOptions
+      )
+      return ["songs": songs]
     }
 
     AsyncFunction("setPlaybackQueue") { (itemId: String, type: String) -> String in
