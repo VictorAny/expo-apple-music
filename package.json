@@ -42,7 +42,7 @@
     "src",
     "LICENSE",
     "NOTICE",
-    "MIGRATION.md",
+    "ATTRIBUTION.md",
     "expo-module.config.json"
   ],
   "expo": {

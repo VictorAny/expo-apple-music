@@ -99,11 +99,16 @@ These need auth + REST client + JSON mapping to existing TS types.
 3. Assuming Android MusicKit equals iOS MusicKit — Android splits auth SDK, playback SDK, and HTTP API.
 4. Expecting **library playback** parity before tier 0/1 library **read** + auth are done.
 
+## v1 direction
+
+Full [Apple Music API](https://developer.apple.com/documentation/AppleMusicAPI) coverage before **1.0.0** — see **[docs/V1_PLAN.md](./docs/V1_PLAN.md)** (phases, domain API shape, coverage matrix, iOS REST strategy). Standalone package; no compatibility with other wrappers — [ATTRIBUTION.md](./ATTRIBUTION.md).
+
 ## Related docs
 
+- [docs/V1_PLAN.md](./docs/V1_PLAN.md) — v1.0 completion plan
 - [README.md](./README.md) — install and usage
 - [docs/AUTH.md](./docs/AUTH.md) — `authorize()`, developer token, `AuthStatus`, Android auth flow
 - [docs/CLI.md](./docs/CLI.md) — `npm run dev-token` (generate / verify developer JWT)
 - [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md) — Android full iOS parity (REST + playback AAR; agent handoff)
 - [docs/WEB_IMPLEMENTATION.md](./docs/WEB_IMPLEMENTATION.md) — Web parity (MusicKit JS; same REST contract as Android)
-- [MIGRATION.md](./MIGRATION.md) — Lomray migration notes
+- [ATTRIBUTION.md](./ATTRIBUTION.md) — inspiration and license; no migration guide

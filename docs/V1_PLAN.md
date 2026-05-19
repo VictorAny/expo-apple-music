@@ -1,0 +1,448 @@
+# v1.0 plan — full Apple Music API coverage
+
+Plan for completing `@wwdrew/expo-apple-music` before a **1.0.0** release. The package is a **standalone cross-platform Apple Music client** (catalog, library, history, personalization, playback). It was [inspired by](../ATTRIBUTION.md) `@lomray/react-native-apple-music` but does **not** preserve that API or any compatibility layer.
+
+**Status:** Living document — update the [coverage matrix](#coverage-matrix) as endpoints land.
+
+**Related:** [CONTEXT.md](../CONTEXT.md) (terminology), [ANDROID_IMPLEMENTATION.md](./ANDROID_IMPLEMENTATION.md), [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md), [AUTH.md](./AUTH.md).
+
+---
+
+## 1. Vision
+
+| Pillar | v1 target |
+|--------|-----------|
+| **Scope** | **Entire [Apple Music API](https://developer.apple.com/documentation/AppleMusicAPI)** read/write surface that makes sense on mobile + web, plus native playback |
+| **Platforms** | iOS, Android, Web (Expo) |
+| **Data path** | **One REST contract** for all user/catalog HTTP; **native SDKs** for auth + playback only |
+| **Errors** | Always `AppleMusicError` rejections — never silent empty data |
+| **Public API** | **Domain modules** (`Auth`, `Catalog`, `Library`, `History`, `Player`, …) named for Apple’s API domains |
+
+**North star:** A developer can build an Apple Music app without reading Apple’s REST docs for every call — types, pagination, and platform notes live in this package.
+
+**Not a goal:** API compatibility with `@lomray/react-native-apple-music`, `MPMediaLibrary`, or any other wrapper. See [ATTRIBUTION.md](../ATTRIBUTION.md).
+
+---
+
+## 2. What exists today (baseline)
+
+### Implemented (~15% of API intent)
+
+| Domain | Methods | iOS | Android | Web |
+|--------|---------|-----|---------|-----|
+| Auth | `authorize`, `checkSubscription` | ✅ | ✅ / ⚠️ | ❌ planned |
+| Catalog | `catalogSearch` (songs, albums) | ✅ | ✅ | ❌ |
+| Library | `getUserPlaylists`, `getLibrarySongs`, `getPlaylistSongs` | ✅ | ✅ | ❌ |
+| History | `getTracksFromLibrary` → recent **containers** only | ✅ | ✅ (max 10) | ❌ |
+| Playback | `setPlaybackQueue`, `playLibrary*`, `Player.*`, hooks | ✅ | ✅ / gaps | ❌ |
+| | | | stations ❌ | |
+
+### Structural debt to fix in v1
+
+1. **History filed under “library”** — `getTracksFromLibrary` is misleading; history is a separate Apple API group.
+2. **Per-method native glue** — `AppleMusicApiClient` grows ad hoc; no generic GET/POST or coverage tracking.
+3. **iOS-only paths for `/me/*`** — Android uses REST; iOS uses `MusicLibraryRequest` — two mappers, two bug surfaces.
+4. **Incomplete types** — no `Artist`, `Station`, `Rating`, pagination metadata, or relationship helpers.
+5. **Interim flat exports** — current `MusicKit` module is a pre-v1 convenience; v1 replaces it with domain modules (section 4).
+
+---
+
+## 3. Target architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TypeScript public API (domain modules only)                 │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│  expo-module bridge (thin AsyncFunctions per domain batch)   │
+└─────────────┬───────────────────────────────┬─────────────────┘
+              │                               │
+   ┌──────────▼──────────┐         ┌──────────▼──────────┐
+   │  iOS                 │         │  Android + Web       │
+   │  Playback: MusicKit  │         │  Playback: AAR / MKJS│
+   │  HTTP: REST client*  │         │  HTTP: REST client   │
+   │  Auth: SKCloud + MK  │         │  Auth: Auth SDK / MKJS│
+   └─────────────────────┘         └─────────────────────┘
+              │                               │
+              └───────────┬───────────────────┘
+                          ▼
+              https://api.music.apple.com/v1/...
+              * iOS may keep native catalog search + playback queue
+                where REST adds no value; all /me/* and /recent/*
+                go through REST for parity.
+```
+
+### Layers
+
+| Layer | Responsibility |
+|-------|----------------|
+| **`src/api/`** | Typed JS methods per Apple API domain; pagination helpers; re-exports |
+| **`src/types/`** | Resource types aligned with Apple JSON (`Song`, `Album`, `Artist`, …) |
+| **`src/mappers/`** | TS reference mapper (port of `AppleMusicJsonMapper.kt` / `MusicItemMapper.swift`) |
+| **Native `ApiClient`** | Generic `request(method, path, query, body)` + domain thin wrappers |
+| **Native playback** | Unchanged split: iOS `PlaybackController`, Android `MediaPlayerController`, Web MK JS |
+| **`docs/APPLE_MUSIC_API.md`** | Endpoint ↔ method ↔ platform matrix (updated per PR) |
+
+### iOS strategy (decision)
+
+**For v1, use REST for all `/v1/me/*`, `/v1/me/recent/*`, recommendations, ratings, and catalog GET-by-id** on iOS via an internal `AppleMusicApiClient` (Swift), sharing response shapes with Android.
+
+**Keep native MusicKit for:**
+
+- `Auth` / `MusicSubscription` where strictly better than inference
+- **Playback** (queue, transport, now playing, events)
+- **Optional:** `MusicCatalogSearchRequest` for catalog search (performance); must return identical TS types as REST
+
+**Rationale:** Full API parity with one mapper and one set of fixture tests beats maintaining 80+ Swift request types.
+
+**Requirement:** iOS must obtain/store **music user token** for REST (today only Android persists it). v1 auth work includes exposing or internally using the user token on iOS (MusicKit can provide this after authorize).
+
+---
+
+## 4. Public API shape (v1)
+
+### Domain modules (v1 public API)
+
+```ts
+import {
+  Auth,
+  Catalog,
+  Library,
+  History,
+  Recommendations,
+  Ratings,
+  Player,
+  // hooks
+} from '@wwdrew/expo-apple-music';
+```
+
+The interim `MusicKit` default export and flat helpers (`catalogSearch`, `getLibrarySongs`, …) are **removed before 1.0.0**, not aliased.
+
+| Module | Apple API area | Example |
+|--------|----------------|---------|
+| `Auth` | Tokens, subscription | `authorize()`, `checkSubscription()`, `getStorefront()` |
+| `Catalog` | `/v1/catalog/{storefront}/...` | `search()`, `getSong()`, `getAlbum()`, `getArtist()`, charts |
+| `Library` | `/v1/me/library/...` | `getSongs()`, `getArtists()`, `getAlbums()`, `getPlaylists()`, `getPlaylistTracks()` |
+| `History` | `/v1/me/recent/...` | `getRecentlyPlayedTracks()`, `getRecentlyPlayedResources()`, `getHeavyRotation()`, `getRecentlyAdded()` |
+| `Recommendations` | recommendations + replay | `getRecommendations()`, `getReplayData(year)` |
+| `Ratings` | ratings + favorites | `getRating()`, `setRating()`, `addToFavorites()`, … |
+| `LibraryMutations` | playlist CRUD, add to library | `createPlaylist()`, `addTracksToPlaylist()`, … |
+| `Player` | Native playback | existing transport + queue |
+
+### API rename map (pre-1.0 cleanup)
+
+| Interim (remove) | v1 |
+|------------------|-----|
+| `MusicKit.catalogSearch` | `Catalog.search` |
+| `MusicKit.getLibrarySongs` | `Library.getSongs` |
+| `MusicKit.getUserPlaylists` | `Library.getPlaylists` |
+| `MusicKit.getPlaylistSongs` | `Library.getPlaylistTracks` |
+| `MusicKit.getTracksFromLibrary` | `History.getRecentlyPlayedResources` |
+| `MusicKit.setPlaybackQueue` | `Player.setQueue` (or `Catalog.play` — pick one name in Phase 6) |
+| `MusicKit.playLibrarySong` / `playLibraryPlaylist` | `Player.playLibrarySong` / `playLibraryPlaylist` |
+
+### Shared types
+
+```ts
+interface PaginatedRequest {
+  limit?: number;   // default 25
+  offset?: number;  // default 0
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  meta?: { total?: number }; // when Apple provides
+}
+```
+
+Resource types should include **library vs catalog ID** rules (`i.`, `l.`, `p.` prefixes) documented in one place.
+
+---
+
+## 5. Coverage matrix
+
+Legend: **✅** v1 required · **⚠️** v1 if low effort / needed for parity · **🔜** post-v1 · **➖** N/A on mobile (document why)
+
+### 5.1 Essentials
+
+| Endpoint / capability | JS method (proposed) | v1 |
+|-----------------------|----------------------|-----|
+| Developer + user tokens | `Auth.*` | ✅ (iOS user token for REST) |
+| `GET /v1/me/storefront` | `Auth.getStorefront()` | ✅ |
+
+### 5.2 Catalog (`/v1/catalog/{storefront}/...`)
+
+| Area | Operations | v1 |
+|------|------------|-----|
+| Search | songs, albums, artists, playlists, stations, music-videos | ✅ (expand types beyond songs/albums) |
+| Get by ID | song, album, artist, playlist, music-video, station | ✅ |
+| Relationships | e.g. album → tracks, artist → albums | ✅ (common set) |
+| Charts | albums, songs, music-videos | ⚠️ |
+| Multiple resources by ID | batch GET | ⚠️ |
+| Curators, activities, record labels | read | 🔜 |
+
+### 5.3 Library (`/v1/me/library/...`)
+
+| Resource | List | Get | Relationships | v1 |
+|----------|------|-----|---------------|-----|
+| Songs | ✅ exists | add | albums, artists | ✅ |
+| Albums | add | add | artists, tracks | ✅ |
+| Artists | add | add | albums, … | ✅ |
+| Playlists | ✅ exists | add | tracks, … | ✅ |
+| Music videos | add | add | — | ⚠️ |
+| Search library | add | — | — | ⚠️ |
+
+### 5.4 History (`/v1/me/recent/...`)
+
+| Endpoint | JS method | v1 |
+|----------|-----------|-----|
+| `GET /v1/me/recent/played` | `History.getRecentlyPlayedResources()` | ✅ (rename from `getTracksFromLibrary`) |
+| `GET /v1/me/recent/played/tracks` | `History.getRecentlyPlayedTracks()` | ✅ |
+| `GET /v1/me/recent/played/stations` | `History.getRecentlyPlayedStations()` | ✅ |
+| Heavy rotation | `History.getHeavyRotation()` | ✅ |
+| Recently added to library | `History.getRecentlyAdded()` | ⚠️ |
+
+Document: **no play timestamps**, **API caps** (e.g. 10 on some calls), not a full play log.
+
+### 5.5 Ratings & favorites
+
+| Operation | v1 |
+|-----------|-----|
+| Get/set ratings (song, album, playlist, …) | ⚠️ |
+| Add/remove favorites | ⚠️ |
+
+### 5.6 Library mutations
+
+| Operation | v1 |
+|-----------|-----|
+| Create playlist | ⚠️ |
+| Add playlist tracks | ⚠️ |
+| Add to library (catalog → library) | ⚠️ |
+
+### 5.7 Recommendations & Replay
+
+| Operation | v1 |
+|-----------|-----|
+| Get recommendations | ⚠️ |
+| Get Replay data | 🔜 (niche; document eligibility) |
+
+### 5.8 Playback (native, not REST)
+
+| Capability | v1 |
+|------------|-----|
+| Queue song / album / playlist (catalog + library) | ✅ |
+| Queue station (catalog) | ⚠️ iOS ✅, Android/Web spike |
+| Transport + state + hooks + errors | ✅ |
+| `configurePlayer` | ✅ (best-effort on Android/Web) |
+
+### 5.9 Web
+
+| Item | v1 |
+|------|-----|
+| MusicKit JS loader + `Auth` + REST reads | ✅ |
+| Playback via MK JS | ✅ |
+| Feature parity table in README | ✅ |
+
+---
+
+## 6. Implementation phases
+
+Phases are ordered for **vertical slices** (testable on device) and **dependency order** (tokens → HTTP client → domains → playback polish).
+
+### Phase 0 — Foundation (blocking)
+
+**Goal:** One HTTP pipeline and coverage tracking.
+
+| Task | Deliverable |
+|------|-------------|
+| Add `docs/APPLE_MUSIC_API.md` | Living matrix (copy section 5; check off per PR) |
+| Generic REST client (Android/Kotlin) | `request(GET/POST/DELETE, path, query, body)` |
+| Port generic client to iOS (Swift) | Same paths, shared error codes |
+| iOS music user token | Persist after authorize; wire into REST headers |
+| TS: `PaginatedResponse`, `AppleMusicError` codes | Document all error codes |
+| TS: domain module scaffolding | `Catalog`, `Library`, `History`, … empty stubs |
+| Fixture tests | JSON fixtures from real API responses; mapper unit tests (TS + Kotlin) |
+
+**Exit:** `Auth.getStorefront()` works on iOS + Android from shared client.
+
+### Phase 1 — History + library completeness
+
+**Goal:** Replace `MPMediaQuery` / listening use cases.
+
+| Task | Deliverable |
+|------|-------------|
+| `History.getRecentlyPlayedTracks` | REST + iOS client; returns `ISong[]` |
+| `History.getRecentlyPlayedResources` | Rename/refactor `getTracksFromLibrary` |
+| `History.getHeavyRotation`, `getRecentlyPlayedStations` | |
+| `Library.getArtists`, `getAlbums` | |
+| Expand `Library.getSongs` / playlists if gaps | pagination meta |
+| Example app: “Library & History” screen | buttons + list UI |
+| Update CONTEXT.md terminology | Library ≠ History |
+
+**Exit:** App can list library artists and recently played tracks on iOS + Android.
+
+### Phase 2 — Catalog depth
+
+**Goal:** Browse and detail screens without raw REST.
+
+| Task | Deliverable |
+|------|-------------|
+| `Catalog.search` — all search types | artists, playlists, stations, music-videos |
+| `Catalog.getSong/Album/Artist/Playlist/...` | by catalog ID |
+| Relationship helpers | `getAlbumTracks`, `getArtistAlbums`, … |
+| Charts (optional) | `Catalog.getCharts` |
+| Remove `MusicKit` export; ship `Catalog.search` only | |
+
+**Exit:** Catalog browse parity with Apple Music API docs for core resources.
+
+### Phase 3 — Mutations (ratings, playlists, library adds)
+
+**Goal:** Write paths Apple documents for user libraries.
+
+| Task | Deliverable |
+|------|-------------|
+| Ratings GET/SET | per resource type |
+| Favorites add/remove | |
+| Create playlist + add tracks | |
+| Add catalog resource to library | |
+| Error handling for 403 / subscription | |
+
+**Exit:** Integration tests or manual test script for write operations.
+
+### Phase 4 — Recommendations & personalization
+
+| Task | Deliverable |
+|------|-------------|
+| `Recommendations.get` | |
+| Replay data (if feasible) | or document 🔜 with reason |
+| Heavy rotation already in History | cross-link docs |
+
+### Phase 5 — Web platform
+
+Follow [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md) with REST client shared via MusicKit JS.
+
+| Task | Deliverable |
+|------|-------------|
+| `native-module.web.ts` + loader | |
+| Domain modules call through MK JS `music.api` | same TS types |
+| Playback + hooks | |
+| README parity row for Web | |
+
+**Exit:** Example app runs in Expo web with auth + history + one catalog call.
+
+### Phase 6 — v1 hardening
+
+| Task | Deliverable |
+|------|-------------|
+| Playback gaps | catalog stations on Android/Web or document ❌ |
+| `checkSubscription` parity | iOS native + Android/Web inference documented |
+| Error normalization audit | every native path → `AppleMusicError` |
+| Performance | storefront cache, reasonable defaults (`limit`) |
+| README + ATTRIBUTION.md aligned with domain API | no third-party migration doc |
+| Remove or gate `plugin/tsconfig.tsbuildinfo` from repo | housekeeping |
+
+---
+
+## 7. Testing strategy
+
+| Level | What |
+|-------|------|
+| **Mapper unit tests** | Kotlin + TS (+ Swift when feasible) against checked-in JSON fixtures |
+| **Contract tests** | Optional nightly job with real tokens (CI secret); not required for every PR |
+| **Example app** | One screen per domain; manual QA checklist in PR template |
+| **Device matrix** | iOS 16+ physical; Android ARM physical + Apple Music installed; Web Chrome + Safari |
+| **Regression** | Example app + mapper fixtures per domain |
+
+---
+
+## 8. Documentation deliverables (v1)
+
+| Doc | Purpose |
+|-----|---------|
+| `docs/APPLE_MUSIC_API.md` | Coverage matrix (source of truth) |
+| `docs/V1_PLAN.md` | This plan |
+| `CONTEXT.md` | Terminology: Catalog / Library / History / Playback |
+| `README.md` | Platform parity table — full grid |
+| [ATTRIBUTION.md](../ATTRIBUTION.md) | Inspiration + license; explicitly no compatibility |
+| `docs/HISTORY.md` | Limits (no timestamps, caps), vs `MPMediaLibrary` |
+| `docs/AUTH.md` | iOS user token + developer token on all platforms |
+
+---
+
+## 9. v1.0 release criteria
+
+All required before tagging **1.0.0**:
+
+- [ ] Coverage matrix: every **✅** row implemented on **iOS + Android**
+- [ ] Web: Auth + Catalog search + Library reads + History + basic playback
+- [ ] Domain public API stable (`Catalog`, `Library`, `History`, …); no `MusicKit` facade
+- [ ] No silent failures (empty data on error)
+- [ ] Example app demonstrates Auth, Catalog, Library, History, Player
+- [ ] `APPLE_MUSIC_API.md` reflects reality (no aspirational ✅)
+- [ ] [ATTRIBUTION.md](../ATTRIBUTION.md) and README state standalone scope (no compatibility claims)
+
+**Semantic versioning after v1:**
+
+- **1.x** — additive endpoints and types only (no removal of public exports without major bump)
+- **2.0** — reserved for intentional breaking API changes, not “cleanup” of withheld compat layers
+
+---
+
+## 10. Non-goals (v1)
+
+| Item | Reason |
+|------|--------|
+| **Apple Music Feed** bulk catalog | Different product ([Apple Music Feed](https://developer.apple.com/documentation/AppleMusicFeed)); not client SDK territory |
+| **Offline downloads** | Not exposed by API for third-party apps |
+| **Full play-by-play analytics** | Apple does not expose complete listening logs |
+| **Replacing Apple Music app UI** | Playback/auth constraints on Android |
+| **MPMediaLibrary / local files** | Out of scope — use MediaPlayer separately if needed |
+
+---
+
+## 11. Risks & mitigations
+
+| Risk | Mitigation |
+|------|------------|
+| iOS music user token access for REST | Spike early in Phase 0; block Phase 1 on success |
+| Apple API behavior differs by storefront | Cache storefront; document in tests |
+| Android station playback unsupported | Parity table ❌; don’t block v1 on stations |
+| Scope creep | Coverage matrix + phase gates; 🔜 explicitly deferred |
+| Maintainer burden of 80+ endpoints | Generic client + codegen-from-matrix (future); hand-write v1 high-value paths first |
+
+---
+
+## 12. Rough effort order-of-magnitude
+
+Indicative for planning (not commitments):
+
+| Phase | Relative size |
+|-------|----------------|
+| 0 Foundation | M |
+| 1 History + library | M |
+| 2 Catalog depth | L |
+| 3 Mutations | M |
+| 4 Recommendations | S |
+| 5 Web | L |
+| 6 Hardening | M |
+
+**Critical path:** Phase 0 → 1 → 2 → 6, with Web (5) parallelizable after 0–1.
+
+---
+
+## 13. Immediate next steps
+
+1. **Approve** REST-on-iOS for `/me/*` and history (section 3).
+2. **Create** `docs/APPLE_MUSIC_API.md` from section 5 matrix (checkboxes empty).
+3. **Phase 0 PR:** generic `AppleMusicApiClient` + iOS user token + `Auth.getStorefront()`.
+4. **Phase 1 PR:** `History.getRecentlyPlayedTracks` + `Library.getArtists` + example screen.
+
+---
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-05-19 | Initial v1 plan |
+| 2026-05-19 | Drop Lomray compatibility; standalone API per ATTRIBUTION.md |

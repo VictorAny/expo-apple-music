@@ -1,8 +1,8 @@
 # @wwdrew/expo-apple-music
 
-Apple MusicKit wrapper for Expo (SDK 55, iOS 16+).
+Cross-platform Apple Music API client for Expo (SDK 55, iOS 16+, Android, Web).
 
-Based on [`@lomray/react-native-apple-music`](https://github.com/Lomray-Software/react-native-apple-music) (Apache-2.0). Not affiliated with Lomray.
+Inspired by [`@lomray/react-native-apple-music`](https://github.com/Lomray-Software/react-native-apple-music) (Apache-2.0) — see [ATTRIBUTION.md](./ATTRIBUTION.md). Not affiliated with Lomray; **not** a drop-in replacement.
 
 ## Install
 
@@ -51,7 +51,7 @@ if (status === AuthStatus.AUTHORIZED) {
 
 **CLI tools** (repo only — generate/verify developer JWTs): **[docs/CLI.md](./docs/CLI.md)**.
 
-See [MIGRATION.md](./MIGRATION.md) when moving from `@lomray/react-native-apple-music`.
+Public API direction before 1.0: [docs/V1_PLAN.md](./docs/V1_PLAN.md). Attribution: [ATTRIBUTION.md](./ATTRIBUTION.md).
 
 ## Platform parity
 

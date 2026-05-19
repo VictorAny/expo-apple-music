@@ -222,4 +222,4 @@ type ExpoAppleMusicPluginProps = {
 
 - [README.md](../README.md) — install
 - [CONTEXT.md](../CONTEXT.md) — catalog vs library, Android tiers
-- [MIGRATION.md](../MIGRATION.md) — Lomray migration
+- [ATTRIBUTION.md](../ATTRIBUTION.md) — inspiration and license (no migration guide)
