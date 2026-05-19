@@ -1,10 +1,10 @@
 import type { MusicItem } from './music-item';
 
 export interface IUserTrack {
-  id: number;
+  id: string;
   title: string;
   subtitle: string;
-  type: MusicItem;
+  type: MusicItem | string;
 }
 
 export interface ITracksFromLibrary {

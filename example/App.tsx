@@ -6,7 +6,9 @@ import {
   Library,
   type IAlbum,
   type IArtist,
+  type IRecentResource,
   type ISong,
+  type IStation,
   type IUserTrack,
   MusicItem,
   MusicKit,
@@ -32,8 +34,12 @@ export default function App() {
   const [albums, setAlbums] = useState<IAlbum[]>([]);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [libraryArtists, setLibraryArtists] = useState<IArtist[]>([]);
+  const [libraryAlbums, setLibraryAlbums] = useState<IAlbum[]>([]);
   const [recentTracks, setRecentTracks] = useState<ISong[]>([]);
   const [recentResources, setRecentResources] = useState<IUserTrack[]>([]);
+  const [heavyRotation, setHeavyRotation] = useState<IRecentResource[]>([]);
+  const [recentStations, setRecentStations] = useState<IStation[]>([]);
+  const [recentlyAdded, setRecentlyAdded] = useState<IRecentResource[]>([]);
 
   const devToken =
     Platform.OS === "android"
@@ -132,16 +138,25 @@ export default function App() {
 
   async function loadLibraryAndHistory() {
     try {
-      const [artists, tracks, resources] = await Promise.all([
-        Library.getArtists({ limit: 10 }),
-        History.getRecentlyPlayedTracks({ limit: 10 }),
-        History.getRecentlyPlayedResources(),
-      ]);
+      const [artists, albums, tracks, resources, rotation, stations, added] =
+        await Promise.all([
+          Library.getArtists({ limit: 10 }),
+          Library.getAlbums({ limit: 10 }),
+          History.getRecentlyPlayedTracks({ limit: 10 }),
+          History.getRecentlyPlayedResources(),
+          History.getHeavyRotation({ limit: 10 }),
+          History.getRecentlyPlayedStations({ limit: 10 }),
+          History.getRecentlyAdded({ limit: 10 }),
+        ]);
       setLibraryArtists(artists.artists);
+      setLibraryAlbums(albums.albums);
       setRecentTracks(tracks.songs);
       setRecentResources(resources.recentlyPlayedItems);
+      setHeavyRotation(rotation.items);
+      setRecentStations(stations.stations);
+      setRecentlyAdded(added.items);
       appendLog(
-        `library: ${artists.artists.length} artists · history: ${tracks.songs.length} tracks, ${resources.recentlyPlayedItems.length} resources`,
+        `library: ${artists.artists.length} artists, ${albums.albums.length} albums · history: ${tracks.songs.length} tracks, ${rotation.items.length} heavy, ${stations.stations.length} stations, ${added.items.length} added`,
       );
     } catch (error) {
       appendLog(`library/history error: ${String(error)}`);
@@ -212,6 +227,24 @@ export default function App() {
             </View>
           )}
 
+          {libraryAlbums.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Library albums ({libraryAlbums.length})
+              </Text>
+              {libraryAlbums.map((album) => (
+                <Pressable
+                  key={album.id}
+                  style={styles.resultRow}
+                  onPress={() => playAlbum(album)}
+                >
+                  <Text style={styles.resultTitle}>{album.title}</Text>
+                  <Text style={styles.resultMeta}>{album.artistName}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
           {libraryArtists.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
@@ -240,6 +273,51 @@ export default function App() {
                   <Text style={styles.resultTitle}>{song.title}</Text>
                   <Text style={styles.resultMeta}>{song.artistName}</Text>
                 </Pressable>
+              ))}
+            </View>
+          )}
+
+          {heavyRotation.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Heavy rotation ({heavyRotation.length})
+              </Text>
+              {heavyRotation.map((item) => (
+                <View key={item.id} style={styles.resultRow}>
+                  <Text style={styles.resultTitle}>{item.title}</Text>
+                  <Text style={styles.resultMeta}>
+                    {item.type} · {item.subtitle}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {recentStations.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Recent stations ({recentStations.length})
+              </Text>
+              {recentStations.map((station) => (
+                <View key={station.id} style={styles.resultRow}>
+                  <Text style={styles.resultTitle}>{station.name}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {recentlyAdded.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Recently added ({recentlyAdded.length})
+              </Text>
+              {recentlyAdded.map((item) => (
+                <View key={item.id} style={styles.resultRow}>
+                  <Text style={styles.resultTitle}>{item.title}</Text>
+                  <Text style={styles.resultMeta}>
+                    {item.type} · {item.subtitle}
+                  </Text>
+                </View>
               ))}
             </View>
           )}

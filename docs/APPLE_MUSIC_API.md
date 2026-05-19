@@ -38,7 +38,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | List playlists | `Library.getPlaylists()` | ✅ | ✅ | ⬜ |
 | Playlist tracks | `Library.getPlaylistTracks()` | ✅ | ✅ | ⬜ |
 | List artists | `Library.getArtists()` | ✅ | ✅ | ⬜ |
-| List albums | `Library.getAlbums()` | ⬜ | ⬜ | ⬜ |
+| List albums | `Library.getAlbums()` | ✅ | ✅ | ⬜ |
 | List music-videos | `Library.getMusicVideos()` | ⬜ | ⬜ | ⬜ |
 | Library search | `Library.search()` | ⬜ | ⬜ | ⬜ |
 
@@ -50,9 +50,9 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 |------------|--------|-----|---------|-----|
 | Recently played resources | `History.getRecentlyPlayedResources()` | ✅ | ✅ | ⬜ |
 | Recently played tracks | `History.getRecentlyPlayedTracks()` | ✅ | ✅ | ⬜ |
-| Recently played stations | `History.getRecentlyPlayedStations()` | ⬜ | ⬜ | ⬜ |
-| Heavy rotation | `History.getHeavyRotation()` | ⬜ | ⬜ | ⬜ |
-| Recently added | `History.getRecentlyAdded()` | ⬜ | ⬜ | ⬜ |
+| Recently played stations | `History.getRecentlyPlayedStations()` | ✅ | ✅ | ⬜ |
+| Heavy rotation | `History.getHeavyRotation()` | ✅ | ✅ | ⬜ |
+| Recently added | `History.getRecentlyAdded()` | ✅ | ✅ | ⬜ |
 
 ---
 
@@ -100,5 +100,8 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Recent tracks | `GET /v1/me/recent/played/tracks` |
 | Recent stations | `GET /v1/me/recent/played/stations` |
 | Heavy rotation | `GET /v1/me/history/heavy-rotation` |
+| Recently added | `GET /v1/me/library/recently-added` |
+| Recent stations | `GET /v1/me/recent/played/stations` |
+| Library albums | `GET /v1/me/library/albums` |
 
 Confirm exact heavy-rotation path against Apple docs when implementing.

@@ -26,6 +26,12 @@ export * from './types/artist';
 
 export * from './types/storefront';
 
+export * from './types/recent-resource';
+
+export * from './types/station';
+
+export * from './types/albums-response';
+
 import useCurrentSong from './hooks/use-current-song';
 import useIsPlaying from './hooks/use-is-playing';
 import usePlaybackState from './hooks/use-playback-state';
@@ -41,6 +47,8 @@ export type { ILibrarySongsResponse } from './modules/library';
 export type { IEndlessListOptions } from './modules/music-kit';
 
 export type { IRecentlyPlayedTracksResponse } from './modules/history';
+
+export type { IAlbumsResponse } from './types/albums-response';
 
 export type { IPlayerConfig, IPlaybackError } from './modules/player';
 

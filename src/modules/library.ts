@@ -1,3 +1,4 @@
+import type { IAlbumsResponse } from '../types/albums-response';
 import type { IArtistsResponse } from '../types/artist';
 import type { IPaginationOptions } from '../types/pagination';
 import type { IPlaylistsResponse, IPlaylistSongsResponse } from '../types/playlist';
@@ -27,6 +28,10 @@ class Library {
 
   public static async getArtists(options?: IPaginationOptions): Promise<IArtistsResponse> {
     return (await MusicModule.getLibraryArtists(options ?? {})) as IArtistsResponse;
+  }
+
+  public static async getAlbums(options?: IPaginationOptions): Promise<IAlbumsResponse> {
+    return (await MusicModule.getLibraryAlbums(options ?? {})) as IAlbumsResponse;
   }
 }
 
