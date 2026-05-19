@@ -1,5 +1,5 @@
-import type { IAlbum } from './album';
+import type { Album } from './album';
 
-export interface IAlbumsResponse {
-  albums: IAlbum[];
+export interface AlbumsResponse {
+  albums: Album[];
 }

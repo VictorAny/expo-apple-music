@@ -82,7 +82,7 @@ AppleMusicApiClient.kt          // OkHttp (or Ktor): GET + headers + JSON
   ├── getRecentlyPlayed()      // match getTracksFromLibrary shape
   └── resolveLibraryItem(...)  // used by AndroidQueueService for playback
 
-AppleMusicJsonMapper.kt         // API resources → ISong / IAlbum / IPlaylist dicts
+AppleMusicJsonMapper.kt         // API resources → Song / Album / Playlist dicts (see docs/TYPES.md)
   └── mirror ios/MusicItemMapper.swift field names
 
 AndroidCatalogService.kt        // catalogSearch (mirror CatalogService.swift)
@@ -101,7 +101,7 @@ Add HTTP dependency in `android/build.gradle` (e.g. `okhttp` + coroutines).
 
 ## `checkSubscription` on Android
 
-There is no `MusicSubscription.current` on Android. Return the same **four booleans** (`ICheckSubscription`) using best-effort inference:
+There is no `MusicSubscription.current` on Android. Return the same **four booleans** (`CheckSubscription`) using best-effort inference:
 
 | Field | Suggested source |
 |-------|------------------|

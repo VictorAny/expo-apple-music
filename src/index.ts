@@ -1,4 +1,4 @@
-export type { IPlaybackState } from './types/playback-state';
+export type { PlaybackState } from './types/playback-state';
 
 export * from './types/song';
 
@@ -42,15 +42,13 @@ import Library from './modules/library';
 import MusicKit from './modules/music-kit';
 import Player from './modules/player';
 
-export type { ILibrarySongsResponse } from './modules/library';
+export type { LibrarySongsResponse } from './modules/library';
 
-export type { IEndlessListOptions } from './modules/music-kit';
+export type { EndlessListOptions } from './modules/music-kit';
 
-export type { IRecentlyPlayedTracksResponse } from './modules/history';
+export type { RecentlyPlayedTracksResponse } from './modules/history';
 
-export type { IAlbumsResponse } from './types/albums-response';
-
-export type { IPlayerConfig, IPlaybackError } from './modules/player';
+export type { PlayerConfig, PlaybackError } from './modules/player';
 
 export type { AppleMusicError } from './utils/apple-music-error';
 

@@ -1,13 +1,13 @@
-import type { CatalogSearchType, ICatalogSearch } from '../types/catalog-search';
-import type { IPaginationOptions } from '../types/pagination';
+import type { CatalogSearch, CatalogSearchType } from '../types/catalog-search';
+import type { PaginationOptions } from '../types/pagination';
 import MusicKit from './music-kit';
 
 class Catalog {
   public static async search(
     term: string,
     types: CatalogSearchType[],
-    options?: IPaginationOptions,
-  ): Promise<ICatalogSearch> {
+    options?: PaginationOptions,
+  ): Promise<CatalogSearch> {
     return MusicKit.catalogSearch(term, types, options);
   }
 }

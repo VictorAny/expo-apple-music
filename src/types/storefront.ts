@@ -1,3 +1,3 @@
-export interface IStorefront {
+export interface Storefront {
   id: string;
 }

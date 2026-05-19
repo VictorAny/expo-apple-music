@@ -1,9 +1,9 @@
-export interface IStation {
+export interface Station {
   id: string;
   name: string;
   artworkUrl: string;
 }
 
-export interface IStationsResponse {
-  stations: IStation[];
+export interface StationsResponse {
+  stations: Station[];
 }

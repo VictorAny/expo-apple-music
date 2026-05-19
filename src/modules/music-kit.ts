@@ -1,50 +1,50 @@
-import type { CatalogSearchType, ICatalogSearch } from '../types/catalog-search';
+import type { CatalogSearch, CatalogSearchType } from '../types/catalog-search';
 import type { MusicItem } from '../types/music-item';
-import type { IPaginationOptions } from '../types/pagination';
-import type { IPlaylistsResponse, IPlaylistSongsResponse } from '../types/playlist';
-import type { ISong } from '../types/song';
-import type { ITracksFromLibrary } from '../types/tracks-from-library';
+import type { PaginationOptions } from '../types/pagination';
+import type { PlaylistSongsResponse, PlaylistsResponse } from '../types/playlist';
+import type { Song } from '../types/song';
+import type { TracksFromLibrary } from '../types/tracks-from-library';
 import { MusicModule } from '../native-module';
 
-/** @deprecated Use {@link IPaginationOptions} */
-export type IEndlessListOptions = IPaginationOptions;
+/** @deprecated Use {@link PaginationOptions} */
+export type EndlessListOptions = PaginationOptions;
 
-export interface ILibrarySongsResponse {
-  songs: ISong[];
+export interface LibrarySongsResponse {
+  songs: Song[];
 }
 
 class MusicKit {
   public static async catalogSearch(
     search: string,
     types: CatalogSearchType[],
-    options?: IEndlessListOptions,
-  ): Promise<ICatalogSearch> {
-    return (await MusicModule.catalogSearch(search, types, options ?? {})) as ICatalogSearch;
+    options?: EndlessListOptions,
+  ): Promise<CatalogSearch> {
+    return (await MusicModule.catalogSearch(search, types, options ?? {})) as CatalogSearch;
   }
 
   public static async setPlaybackQueue(itemId: string, type: MusicItem): Promise<void> {
     await MusicModule.setPlaybackQueue(itemId, type);
   }
 
-  public static async getTracksFromLibrary(): Promise<ITracksFromLibrary> {
-    return (await MusicModule.getTracksFromLibrary()) as ITracksFromLibrary;
+  public static async getTracksFromLibrary(): Promise<TracksFromLibrary> {
+    return (await MusicModule.getTracksFromLibrary()) as TracksFromLibrary;
   }
 
-  public static async getUserPlaylists(options?: IEndlessListOptions): Promise<IPlaylistsResponse> {
-    return (await MusicModule.getUserPlaylists(options ?? {})) as IPlaylistsResponse;
+  public static async getUserPlaylists(options?: EndlessListOptions): Promise<PlaylistsResponse> {
+    return (await MusicModule.getUserPlaylists(options ?? {})) as PlaylistsResponse;
   }
 
   public static async getLibrarySongs(
-    options?: IEndlessListOptions,
-  ): Promise<ILibrarySongsResponse> {
-    return (await MusicModule.getLibrarySongs(options ?? {})) as ILibrarySongsResponse;
+    options?: EndlessListOptions,
+  ): Promise<LibrarySongsResponse> {
+    return (await MusicModule.getLibrarySongs(options ?? {})) as LibrarySongsResponse;
   }
 
   public static async getPlaylistSongs(
     playlistId: string,
-    options?: IEndlessListOptions,
-  ): Promise<IPlaylistSongsResponse> {
-    return (await MusicModule.getPlaylistSongs(playlistId, options ?? {})) as IPlaylistSongsResponse;
+    options?: EndlessListOptions,
+  ): Promise<PlaylistSongsResponse> {
+    return (await MusicModule.getPlaylistSongs(playlistId, options ?? {})) as PlaylistSongsResponse;
   }
 
   public static async playLibrarySong(songId: string): Promise<void> {

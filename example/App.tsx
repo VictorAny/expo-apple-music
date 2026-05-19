@@ -4,12 +4,12 @@ import {
   CatalogSearchType,
   History,
   Library,
-  type IAlbum,
-  type IArtist,
-  type IRecentResource,
-  type ISong,
-  type IStation,
-  type IUserTrack,
+  type Album,
+  type Artist,
+  type RecentResource,
+  type Song,
+  type Station,
+  type UserTrack,
   MusicItem,
   MusicKit,
   Player,
@@ -30,16 +30,16 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState<string>("checking…");
   const [hasStoredSession, setHasStoredSession] = useState(false);
   const [log, setLog] = useState<string>("");
-  const [songs, setSongs] = useState<ISong[]>([]);
-  const [albums, setAlbums] = useState<IAlbum[]>([]);
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [albums, setAlbums] = useState<Album[]>([]);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
-  const [libraryArtists, setLibraryArtists] = useState<IArtist[]>([]);
-  const [libraryAlbums, setLibraryAlbums] = useState<IAlbum[]>([]);
-  const [recentTracks, setRecentTracks] = useState<ISong[]>([]);
-  const [recentResources, setRecentResources] = useState<IUserTrack[]>([]);
-  const [heavyRotation, setHeavyRotation] = useState<IRecentResource[]>([]);
-  const [recentStations, setRecentStations] = useState<IStation[]>([]);
-  const [recentlyAdded, setRecentlyAdded] = useState<IRecentResource[]>([]);
+  const [libraryArtists, setLibraryArtists] = useState<Artist[]>([]);
+  const [libraryAlbums, setLibraryAlbums] = useState<Album[]>([]);
+  const [recentTracks, setRecentTracks] = useState<Song[]>([]);
+  const [recentResources, setRecentResources] = useState<UserTrack[]>([]);
+  const [heavyRotation, setHeavyRotation] = useState<RecentResource[]>([]);
+  const [recentStations, setRecentStations] = useState<Station[]>([]);
+  const [recentlyAdded, setRecentlyAdded] = useState<RecentResource[]>([]);
 
   const devToken =
     Platform.OS === "android"
@@ -115,7 +115,7 @@ export default function App() {
     }
   }
 
-  async function playSong(song: ISong) {
+  async function playSong(song: Song) {
     setSelectedSongId(song.id);
     try {
       await Player.configurePlayer(false);
@@ -163,7 +163,7 @@ export default function App() {
     }
   }
 
-  async function playAlbum(album: IAlbum) {
+  async function playAlbum(album: Album) {
     try {
       await Player.configurePlayer(false);
       await MusicKit.setPlaybackQueue(album.id, MusicItem.ALBUM);

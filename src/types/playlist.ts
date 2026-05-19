@@ -1,6 +1,6 @@
-import type { ISong } from './song';
+import type { Song } from './song';
 
-export interface IPlaylist {
+export interface Playlist {
   id: string;
   name: string;
   description: string;
@@ -8,10 +8,10 @@ export interface IPlaylist {
   trackCount: number;
 }
 
-export interface IPlaylistsResponse {
-  playlists: IPlaylist[];
+export interface PlaylistsResponse {
+  playlists: Playlist[];
 }
 
-export interface IPlaylistSongsResponse {
-  songs: ISong[];
+export interface PlaylistSongsResponse {
+  songs: Song[];
 }

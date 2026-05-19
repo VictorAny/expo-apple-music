@@ -1,37 +1,37 @@
-import type { IAlbumsResponse } from '../types/albums-response';
-import type { IArtistsResponse } from '../types/artist';
-import type { IPaginationOptions } from '../types/pagination';
-import type { IPlaylistsResponse, IPlaylistSongsResponse } from '../types/playlist';
-import type { ISong } from '../types/song';
+import type { AlbumsResponse } from '../types/albums-response';
+import type { ArtistsResponse } from '../types/artist';
+import type { PaginationOptions } from '../types/pagination';
+import type { PlaylistSongsResponse, PlaylistsResponse } from '../types/playlist';
+import type { Song } from '../types/song';
 import { MusicModule } from '../native-module';
 import MusicKit from './music-kit';
 
-export interface ILibrarySongsResponse {
-  songs: ISong[];
+export interface LibrarySongsResponse {
+  songs: Song[];
 }
 
 class Library {
-  public static async getPlaylists(options?: IPaginationOptions): Promise<IPlaylistsResponse> {
+  public static async getPlaylists(options?: PaginationOptions): Promise<PlaylistsResponse> {
     return MusicKit.getUserPlaylists(options);
   }
 
-  public static async getSongs(options?: IPaginationOptions): Promise<ILibrarySongsResponse> {
+  public static async getSongs(options?: PaginationOptions): Promise<LibrarySongsResponse> {
     return MusicKit.getLibrarySongs(options);
   }
 
   public static async getPlaylistTracks(
     playlistId: string,
-    options?: IPaginationOptions,
-  ): Promise<IPlaylistSongsResponse> {
+    options?: PaginationOptions,
+  ): Promise<PlaylistSongsResponse> {
     return MusicKit.getPlaylistSongs(playlistId, options);
   }
 
-  public static async getArtists(options?: IPaginationOptions): Promise<IArtistsResponse> {
-    return (await MusicModule.getLibraryArtists(options ?? {})) as IArtistsResponse;
+  public static async getArtists(options?: PaginationOptions): Promise<ArtistsResponse> {
+    return (await MusicModule.getLibraryArtists(options ?? {})) as ArtistsResponse;
   }
 
-  public static async getAlbums(options?: IPaginationOptions): Promise<IAlbumsResponse> {
-    return (await MusicModule.getLibraryAlbums(options ?? {})) as IAlbumsResponse;
+  public static async getAlbums(options?: PaginationOptions): Promise<AlbumsResponse> {
+    return (await MusicModule.getLibraryAlbums(options ?? {})) as AlbumsResponse;
   }
 }
 

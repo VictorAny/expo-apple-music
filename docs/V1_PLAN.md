@@ -78,7 +78,7 @@ Plan for completing `@wwdrew/expo-apple-music` before a **1.0.0** release. The p
 | Layer | Responsibility |
 |-------|----------------|
 | **`src/api/`** | Typed JS methods per Apple API domain; pagination helpers; re-exports |
-| **`src/types/`** | Resource types aligned with Apple JSON (`Song`, `Album`, `Artist`, …) |
+| **`src/types/`** | Resource types aligned with Apple JSON (`Song`, `Album`, `Artist`, …) — no `I`/`T` prefixes ([TYPES.md](./TYPES.md)) |
 | **`src/mappers/`** | TS reference mapper (port of `AppleMusicJsonMapper.kt` / `MusicItemMapper.swift`) |
 | **Native `ApiClient`** | Generic `request(method, path, query, body)` + domain thin wrappers |
 | **Native playback** | Unchanged split: iOS `PlaybackController`, Android `MediaPlayerController`, Web MK JS |
@@ -272,7 +272,7 @@ Phases are ordered for **vertical slices** (testable on device) and **dependency
 
 | Task | Deliverable |
 |------|-------------|
-| `History.getRecentlyPlayedTracks` | REST + iOS client; returns `ISong[]` |
+| `History.getRecentlyPlayedTracks` | REST + iOS client; returns `Song[]` |
 | `History.getRecentlyPlayedResources` | Rename/refactor `getTracksFromLibrary` |
 | `History.getHeavyRotation`, `getRecentlyPlayedStations` | |
 | `Library.getArtists`, `getAlbums` | |

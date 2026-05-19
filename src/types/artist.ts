@@ -1,9 +1,9 @@
-export interface IArtist {
+export interface Artist {
   id: string;
   name: string;
   artworkUrl: string;
 }
 
-export interface IArtistsResponse {
-  artists: IArtist[];
+export interface ArtistsResponse {
+  artists: Artist[];
 }

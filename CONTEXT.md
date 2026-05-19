@@ -6,6 +6,10 @@ Reference for humans and agents. Use this file to avoid mixing up **catalog** vs
 
 This repo uses [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): description` (e.g. `fix(android): …`, `feat(ios): …`, `docs: …`). Use an optional scope when the change is platform- or area-specific.
 
+## TypeScript naming
+
+Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `PaginationOptions`). See **[docs/TYPES.md](./docs/TYPES.md)**.
+
 ## Terminology
 
 | Term               | Meaning                                                                                            | **Not** this                                                                    |
@@ -125,3 +129,4 @@ Full [Apple Music API](https://developer.apple.com/documentation/AppleMusicAPI) 
 - [docs/WEB_IMPLEMENTATION.md](./docs/WEB_IMPLEMENTATION.md) — Web parity (MusicKit JS; same REST contract as Android)
 - [ATTRIBUTION.md](./ATTRIBUTION.md) — inspiration and license; no migration guide
 - [docs/HISTORY.md](./docs/HISTORY.md) — history endpoints and API limits
+- [docs/TYPES.md](./docs/TYPES.md) — TypeScript naming (no `I`/`T` prefixes)

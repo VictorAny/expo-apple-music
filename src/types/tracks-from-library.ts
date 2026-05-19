@@ -1,12 +1,12 @@
 import type { MusicItem } from './music-item';
 
-export interface IUserTrack {
+export interface UserTrack {
   id: string;
   title: string;
   subtitle: string;
   type: MusicItem | string;
 }
 
-export interface ITracksFromLibrary {
-  recentlyPlayedItems: IUserTrack[];
+export interface TracksFromLibrary {
+  recentlyPlayedItems: UserTrack[];
 }

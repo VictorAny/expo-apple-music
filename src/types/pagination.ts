@@ -1,8 +1,8 @@
-export interface IPaginationOptions {
+export interface PaginationOptions {
   limit?: number;
   offset?: number;
 }
 
-export interface IPaginatedResponse<T> {
+export interface PaginatedResponse<T> {
   data: T[];
 }

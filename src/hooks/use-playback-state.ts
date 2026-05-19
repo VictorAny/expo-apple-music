@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Player from '../modules/player';
-import type { IPlaybackState } from '../types/playback-state';
+import type { PlaybackState } from '../types/playback-state';
 import type { PlaybackStatus } from '../types/playback-status';
 
 /**
@@ -18,13 +18,13 @@ const usePlaybackState = (): {
 
   useEffect(() => {
     Player.getCurrentState()
-      .then((state: IPlaybackState) => {
+      .then((state: PlaybackState) => {
         setPlaybackTime(state.playbackTime ?? 0);
         setPlaybackStatus(state.playbackStatus ?? 'stopped');
       })
       .catch(setError);
 
-    const stateListener = Player.addListener('onPlaybackStateChange', (next: IPlaybackState) => {
+    const stateListener = Player.addListener('onPlaybackStateChange', (next: PlaybackState) => {
       setError(undefined);
 
       if (next.playbackTime !== undefined) {

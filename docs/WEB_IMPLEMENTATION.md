@@ -45,7 +45,7 @@ web/
   apple-music-errors.ts         // codes aligned with native
 ```
 
-**Rule:** Map MusicKit JS / API JSON to the **same plain objects** iOS already returns (`ISong`, `IPlaylist`, `IPlaybackState`, etc.). Do not change `src/types/*` unless iOS and Android already agree on a fix.
+**Rule:** Map MusicKit JS / API JSON to the **same plain objects** iOS already returns (`Song`, `Playlist`, `PlaybackState`, etc.). See [TYPES.md](./TYPES.md). Do not change `src/types/*` unless iOS and Android already agree on a fix.
 
 ---
 
@@ -140,7 +140,7 @@ Legend: ✅ supported · ⚠️ supported with differences · ❌ not supported 
 | `playLibrarySong(songId)` | ✅ | Queue library song (`i.*`) — use `playParams` from library resource when required |
 | `playLibraryPlaylist(playlistId, startingAt?)` | ✅ | `startingAt === -1` → `0` |
 | `Player.play` / `pause` / skip / seek / restart / `togglePlayerState` | ✅ | MK player controls |
-| `Player.getCurrentState()` | ⚠️ | Map MK `nowPlayingItem` / playback state to `IPlaybackState`; field timing may differ slightly from native |
+| `Player.getCurrentState()` | ⚠️ | Map MK `nowPlayingItem` / playback state to `PlaybackState`; field timing may differ slightly from native |
 | `Player.configurePlayer(mixWithOthers)` | ⚠️ | Return `{ mixWithOthers }` for API shape; **no** AVAudioSession equivalent on web |
 | Hooks: `usePlaybackState`, `useIsPlaying`, `useCurrentSong` | ✅ | Driven by same events if observer maps correctly |
 
@@ -225,7 +225,7 @@ No separate `cancelled` — user dismissal → `denied` (same rule as [AUTH.md](
 
 ## `checkSubscription` on web
 
-There is no `MusicSubscription.current` in the browser. Return `ICheckSubscription` using the same **best-effort inference** as Android:
+There is no `MusicSubscription.current` in the browser. Return `CheckSubscription` using the same **best-effort inference** as Android:
 
 | Field | Suggested source |
 |-------|------------------|

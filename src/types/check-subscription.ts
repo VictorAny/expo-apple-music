@@ -2,7 +2,7 @@
  * Subscription capabilities from MusicKit
  * @see https://developer.apple.com/documentation/musickit/musicsubscription
  */
-export interface ICheckSubscription {
+export interface CheckSubscription {
   /**
    * A capability that allows your app to play subscription content using a music player.
    */
@@ -26,17 +26,17 @@ export type MusicSubscriptionErrorCode =
   | 'permissionDenied'
   | 'privacyAcknowledgementRequired';
 
-export interface IMusicSubscriptionError extends Error {
+export interface MusicSubscriptionError extends Error {
   code: MusicSubscriptionErrorCode | string;
   message: string;
 }
 
 export const isMusicSubscriptionError = (
   error: unknown,
-): error is IMusicSubscriptionError & { code: MusicSubscriptionErrorCode } =>
+): error is MusicSubscriptionError & { code: MusicSubscriptionErrorCode } =>
   typeof error === 'object' &&
   error !== null &&
   'code' in error &&
   ['unknown', 'permissionDenied', 'privacyAcknowledgementRequired'].includes(
-    (error as IMusicSubscriptionError).code,
+    (error as MusicSubscriptionError).code,
   );

@@ -1,11 +1,11 @@
 /** Album, playlist, or station from history / heavy-rotation / recently-added endpoints. */
-export interface IRecentResource {
+export interface RecentResource {
   id: string;
   title: string;
   subtitle: string;
   type: string;
 }
 
-export interface IRecentResourcesResponse {
-  items: IRecentResource[];
+export interface RecentResourcesResponse {
+  items: RecentResource[];
 }

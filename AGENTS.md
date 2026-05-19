@@ -11,3 +11,5 @@ For **Android (full iOS parity)** implementation, read [docs/ANDROID_IMPLEMENTAT
 For **Web** implementation, read [docs/WEB_IMPLEMENTATION.md](./docs/WEB_IMPLEMENTATION.md) (MusicKit JS; shares REST/mapper contract with Android).
 
 For **v1 scope and phases** (full Apple Music API before 1.0.0), read [docs/V1_PLAN.md](./docs/V1_PLAN.md). No Lomray or third-party API compatibility — [ATTRIBUTION.md](./ATTRIBUTION.md).
+
+For **TypeScript type naming** (no `I`/`T` prefixes), read [docs/TYPES.md](./docs/TYPES.md).

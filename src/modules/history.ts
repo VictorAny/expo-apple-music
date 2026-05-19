@@ -1,46 +1,46 @@
-import type { IPaginationOptions } from '../types/pagination';
-import type { IRecentResourcesResponse } from '../types/recent-resource';
-import type { ISong } from '../types/song';
-import type { IStationsResponse } from '../types/station';
-import type { ITracksFromLibrary } from '../types/tracks-from-library';
+import type { PaginationOptions } from '../types/pagination';
+import type { RecentResourcesResponse } from '../types/recent-resource';
+import type { Song } from '../types/song';
+import type { StationsResponse } from '../types/station';
+import type { TracksFromLibrary } from '../types/tracks-from-library';
 import { MusicModule } from '../native-module';
 import MusicKit from './music-kit';
 
-export interface IRecentlyPlayedTracksResponse {
-  songs: ISong[];
+export interface RecentlyPlayedTracksResponse {
+  songs: Song[];
 }
 
 class History {
   /** Recently played albums, playlists, and stations (mixed containers). */
-  public static async getRecentlyPlayedResources(): Promise<ITracksFromLibrary> {
+  public static async getRecentlyPlayedResources(): Promise<TracksFromLibrary> {
     return MusicKit.getTracksFromLibrary();
   }
 
   /** Recently played songs — use for listening history / artist inference. */
   public static async getRecentlyPlayedTracks(
-    options?: IPaginationOptions,
-  ): Promise<IRecentlyPlayedTracksResponse> {
-    return (await MusicModule.getRecentlyPlayedTracks(options ?? {})) as IRecentlyPlayedTracksResponse;
+    options?: PaginationOptions,
+  ): Promise<RecentlyPlayedTracksResponse> {
+    return (await MusicModule.getRecentlyPlayedTracks(options ?? {})) as RecentlyPlayedTracksResponse;
   }
 
   /** Resources the user plays most often (API may return an empty list). */
   public static async getHeavyRotation(
-    options?: IPaginationOptions,
-  ): Promise<IRecentResourcesResponse> {
-    return (await MusicModule.getHeavyRotation(options ?? {})) as IRecentResourcesResponse;
+    options?: PaginationOptions,
+  ): Promise<RecentResourcesResponse> {
+    return (await MusicModule.getHeavyRotation(options ?? {})) as RecentResourcesResponse;
   }
 
   public static async getRecentlyPlayedStations(
-    options?: IPaginationOptions,
-  ): Promise<IStationsResponse> {
-    return (await MusicModule.getRecentlyPlayedStations(options ?? {})) as IStationsResponse;
+    options?: PaginationOptions,
+  ): Promise<StationsResponse> {
+    return (await MusicModule.getRecentlyPlayedStations(options ?? {})) as StationsResponse;
   }
 
   /** Albums and playlists recently added to the user's library. */
   public static async getRecentlyAdded(
-    options?: IPaginationOptions,
-  ): Promise<IRecentResourcesResponse> {
-    return (await MusicModule.getRecentlyAdded(options ?? {})) as IRecentResourcesResponse;
+    options?: PaginationOptions,
+  ): Promise<RecentResourcesResponse> {
+    return (await MusicModule.getRecentlyAdded(options ?? {})) as RecentResourcesResponse;
   }
 }
 

@@ -1,28 +1,28 @@
 import type { EventSubscription } from 'expo-modules-core';
-import type { IPlaybackState } from '../types/playback-state';
-import type { ISong } from '../types/song';
+import type { PlaybackState } from '../types/playback-state';
+import type { Song } from '../types/song';
 import { MusicModule, musicEventEmitter } from '../native-module';
 
-export interface IPlayerConfig {
+export interface PlayerConfig {
   mixWithOthers: boolean;
 }
 
-interface IPlaybackTimeUpdate {
+interface PlaybackTimeUpdate {
   playbackTime: number;
 }
 
-export interface IPlaybackError {
+export interface PlaybackError {
   message: string;
   code: number;
   domain: string;
   operation: 'play' | 'togglePlayback' | 'skipToNext' | 'skipToPrevious';
 }
 
-interface IPlayerEvents {
-  onPlaybackStateChange: IPlaybackState;
-  onCurrentSongChange: ISong;
-  onPlaybackTimeUpdate: IPlaybackTimeUpdate;
-  onPlaybackError: IPlaybackError;
+interface PlayerEvents {
+  onPlaybackStateChange: PlaybackState;
+  onCurrentSongChange: Song;
+  onPlaybackTimeUpdate: PlaybackTimeUpdate;
+  onPlaybackError: PlaybackError;
 }
 
 class Player {
@@ -54,24 +54,24 @@ class Player {
     MusicModule.pause();
   }
 
-  public static async getCurrentState(): Promise<IPlaybackState> {
-    return (await MusicModule.getCurrentState()) as IPlaybackState;
+  public static async getCurrentState(): Promise<PlaybackState> {
+    return (await MusicModule.getCurrentState()) as PlaybackState;
   }
 
   public static addListener(
-    eventType: keyof IPlayerEvents,
+    eventType: keyof PlayerEvents,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     listener: (eventData: any) => void,
   ): EventSubscription {
     return musicEventEmitter.addListener(eventType, listener);
   }
 
-  public static removeAllListeners(eventType: keyof IPlayerEvents): void {
+  public static removeAllListeners(eventType: keyof PlayerEvents): void {
     musicEventEmitter.removeAllListeners(eventType);
   }
 
-  public static async configurePlayer(mixWithOthers = false): Promise<IPlayerConfig> {
-    return (await MusicModule.configurePlayer(mixWithOthers)) as IPlayerConfig;
+  public static async configurePlayer(mixWithOthers = false): Promise<PlayerConfig> {
+    return (await MusicModule.configurePlayer(mixWithOthers)) as PlayerConfig;
   }
 }
 
