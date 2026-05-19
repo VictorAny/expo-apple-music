@@ -16,7 +16,7 @@ final class HistoryService {
 
   func getRecentlyPlayedStations(limit: Int) async throws -> [[String: Any]] {
     let data = try await AppleMusicRestClient.getDataArray(
-      path: "/v1/me/recent/played/stations",
+      path: "/v1/me/recent/radio-stations",
       query: ["limit": "\(limit)"]
     )
     return data.map(RestJsonMapper.mapStation)

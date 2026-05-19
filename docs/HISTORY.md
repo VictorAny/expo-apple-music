@@ -8,7 +8,7 @@ Listening and personalization endpoints exposed via `History.*`.
 |--------|----------------|---------|
 | `getRecentlyPlayedTracks()` | `GET /v1/me/recent/played/tracks` | Songs with `artistName` — best source for “who they listen to” |
 | `getRecentlyPlayedResources()` | `GET /v1/me/recent/played` (iOS may use native containers) | Mixed albums / playlists / stations |
-| `getRecentlyPlayedStations()` | `GET /v1/me/recent/played/stations` | Radio stations |
+| `getRecentlyPlayedStations()` | `GET /v1/me/recent/radio-stations` | Radio stations |
 | `getHeavyRotation()` | `GET /v1/me/history/heavy-rotation` | Mixed resources in heavy rotation — see also [RECOMMENDATIONS.md](./RECOMMENDATIONS.md) (not the same as `Recommendations.get`) |
 | `getRecentlyAdded()` | `GET /v1/me/library/recently-added` | Albums / playlists recently added to library |
 

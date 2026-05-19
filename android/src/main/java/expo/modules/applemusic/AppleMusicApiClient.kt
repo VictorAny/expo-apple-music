@@ -373,7 +373,7 @@ internal class AppleMusicApiClient(
     withContext(Dispatchers.IO) {
       val json =
         getJson(
-          "/v1/me/recent/played/stations",
+          "/v1/me/recent/radio-stations",
           mapOf("limit" to limit.toString()),
         )
       mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapStation(it) }

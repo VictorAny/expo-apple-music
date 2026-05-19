@@ -108,10 +108,10 @@ See [RECOMMENDATIONS.md](./RECOMMENDATIONS.md). Heavy rotation is under History,
 | Playlist tracks | `GET /v1/me/library/playlists/{id}/tracks` |
 | Recent resources | `GET /v1/me/recent/played` |
 | Recent tracks | `GET /v1/me/recent/played/tracks` |
-| Recent stations | `GET /v1/me/recent/played/stations` |
+| Recent stations | `GET /v1/me/recent/radio-stations` |
 | Heavy rotation | `GET /v1/me/history/heavy-rotation` |
 | Recently added | `GET /v1/me/library/recently-added` |
-| Recent stations | `GET /v1/me/recent/played/stations` |
+| Recent stations | `GET /v1/me/recent/radio-stations` |
 | Library albums | `GET /v1/me/library/albums` |
 | Personal rating | `GET/PUT/DELETE /v1/me/ratings/{type}/{id}` |
 | Favorites | `POST/DELETE /v1/me/favorites?ids[{type}]=…` |
