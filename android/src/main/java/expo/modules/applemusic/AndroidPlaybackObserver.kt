@@ -111,7 +111,13 @@ internal class AndroidPlaybackObserver(
   }
 
   private fun manageTimeUpdates(playing: Boolean) {
-    if (playing) startTimeUpdates() else stopTimeUpdates()
+    if (playing) {
+      startTimeUpdates()
+    } else {
+      stopTimeUpdates()
+      val time = playback.currentState()["playbackTime"] as? Double ?: 0.0
+      delegate?.onPlaybackTimeUpdate(time)
+    }
   }
 
   private fun startTimeUpdates() {

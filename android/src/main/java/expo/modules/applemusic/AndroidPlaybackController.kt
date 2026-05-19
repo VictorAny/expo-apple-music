@@ -246,12 +246,19 @@ internal class AndroidPlaybackController private constructor(
     mainHandler.post { controller.skipToPreviousItem() }
   }
 
-  fun restartCurrentEntry() {
-    mainHandler.post { controller.seekToPosition(0) }
+  fun restartCurrentEntry(onComplete: ((Double) -> Unit)? = null) {
+    mainHandler.post {
+      controller.seekToPosition(0)
+      onComplete?.invoke(0.0)
+    }
   }
 
-  fun seekToTime(seconds: Double) {
-    mainHandler.post { controller.seekToPosition((seconds * 1000).toLong()) }
+  fun seekToTime(seconds: Double, onComplete: ((Double) -> Unit)? = null) {
+    mainHandler.post {
+      controller.seekToPosition((seconds * 1000).toLong())
+      val actual = controller.currentPosition.coerceAtLeast(0) / 1000.0
+      onComplete?.invoke(actual)
+    }
   }
 
   fun buildSongProvider(vararg catalogIds: String, startIndex: Int = 0): PlaybackQueueItemProvider {

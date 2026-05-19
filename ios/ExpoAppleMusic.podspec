@@ -11,8 +11,8 @@ Pod::Spec.new do |s|
   s.author         = package['author']
   s.homepage       = package['homepage']
   s.platforms      = {
-    :ios => '16.0',
-    :tvos => '16.0'
+    :ios => '15.1',
+    :tvos => '15.1'
   }
   s.swift_version  = '5.9'
   s.source         = { git: 'https://github.com/wwdrew/expo-apple-music' }

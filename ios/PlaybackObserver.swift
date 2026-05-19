@@ -124,6 +124,8 @@ final class PlaybackObserver {
             weakSelf?.startTimeUpdates()
           } else {
             weakSelf?.stopTimeUpdates()
+            let time = playbackController.playbackTime
+            weakDelegate?.playbackTimeDidUpdate(time.isNaN ? 0 : time)
           }
         }
       }

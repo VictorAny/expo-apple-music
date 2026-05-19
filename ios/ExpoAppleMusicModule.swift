@@ -117,11 +117,17 @@ public class ExpoAppleMusicModule: Module {
     }
 
     Function("restartCurrentEntry") {
-      self.playbackController.restartCurrentEntry()
+      Task { @MainActor in
+        self.playbackController.restartCurrentEntry()
+        self.playbackTimeDidUpdate(0)
+      }
     }
 
     Function("seekToTime") { (time: Double) in
-      self.playbackController.seek(to: time)
+      Task { @MainActor in
+        self.playbackController.seek(to: time)
+        self.playbackTimeDidUpdate(time)
+      }
     }
 
     Function("togglePlayerState") {

@@ -1,5 +1,6 @@
 import {
   Auth,
+  AuthStatus,
   CatalogSearchType,
   type IAlbum,
   type ISong,
@@ -20,14 +21,33 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { PlayerBar } from "./components/PlayerBar";
 
 export default function App() {
-  const [authStatus, setAuthStatus] = useState<string>("—");
+  const [authStatus, setAuthStatus] = useState<string>("checking…");
+  const [hasStoredSession, setHasStoredSession] = useState(false);
   const [log, setLog] = useState<string>("");
   const [songs, setSongs] = useState<ISong[]>([]);
   const [albums, setAlbums] = useState<IAlbum[]>([]);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
 
+  const devToken =
+    Platform.OS === "android"
+      ? process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN
+      : undefined;
+
   const appendLog = useCallback((message: string) => {
     setLog((prev) => `${message}\n${prev}`.slice(0, 2000));
+  }, []);
+
+  const restoreSession = useCallback(async (): Promise<boolean> => {
+    try {
+      await Auth.checkSubscription();
+      setAuthStatus(AuthStatus.AUTHORIZED);
+      setHasStoredSession(true);
+      return true;
+    } catch {
+      setAuthStatus(AuthStatus.NOT_DETERMINED);
+      setHasStoredSession(false);
+      return false;
+    }
   }, []);
 
   useEffect(() => {
@@ -39,6 +59,14 @@ export default function App() {
     return () => sub.remove();
   }, [appendLog]);
 
+  useEffect(() => {
+    void restoreSession().then((restored) => {
+      if (restored) {
+        appendLog("restored session from native storage (no Apple Music trip)");
+      }
+    });
+  }, [appendLog, restoreSession]);
+
   async function authorize(developerToken?: string) {
     try {
       const status = await Auth.authorize(developerToken, {
@@ -46,6 +74,7 @@ export default function App() {
           "Start screen message for <b>Expo Apple MusicExample App</b>",
       });
       setAuthStatus(status);
+      setHasStoredSession(status === AuthStatus.AUTHORIZED);
       appendLog(`authorize: ${status}`);
     } catch (error) {
       appendLog(`authorize error: ${String(error)}`);
@@ -96,18 +125,19 @@ export default function App() {
     }
   }
 
-  const devToken =
-    Platform.OS === "android"
-      ? process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN
-      : undefined;
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={styles.header}>@wwdrew/expo-apple-music</Text>
           <Text>Auth: {authStatus}</Text>
-          {Platform.OS === "android" && (
+          {hasStoredSession && (
+            <Text style={styles.hint}>
+              Signed in from a previous run — search and play work without
+              opening Apple Music again.
+            </Text>
+          )}
+          {Platform.OS === "android" && !devToken && (
             <Text style={styles.hint}>
               See docs/CLI.md: npm run dev-token -- --write-env
               example/.env.local then restart Metro.
@@ -115,7 +145,7 @@ export default function App() {
           )}
           <View style={styles.row}>
             <Button
-              title="Authorize"
+              title={hasStoredSession ? "Re-authorize" : "Authorize"}
               onPress={() => authorize(devToken)}
               disabled={Platform.OS === "android" && !devToken}
             />

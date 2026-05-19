@@ -121,11 +121,23 @@ function SeekableProgress({
   onScrub: (ratio: number | null) => void;
   onSeek: (ratio: number) => void;
 }) {
+  const trackRef = useRef<View>(null);
   const trackWidth = useRef(0);
+  const trackPageX = useRef(0);
 
-  const ratioFromX = useCallback((x: number) => {
+  const ratioFromPageX = useCallback((pageX: number) => {
     if (trackWidth.current <= 0) return 0;
-    return Math.min(1, Math.max(0, x / trackWidth.current));
+    return Math.min(
+      1,
+      Math.max(0, (pageX - trackPageX.current) / trackWidth.current),
+    );
+  }, []);
+
+  const updateTrackMetrics = useCallback(() => {
+    trackRef.current?.measureInWindow((x, _y, width) => {
+      trackPageX.current = x;
+      trackWidth.current = width;
+    });
   }, []);
 
   const panResponder = useMemo(
@@ -134,26 +146,25 @@ function SeekableProgress({
         onStartShouldSetPanResponder: () => !disabled,
         onMoveShouldSetPanResponder: () => !disabled,
         onPanResponderGrant: (evt) => {
-          onScrub(ratioFromX(evt.nativeEvent.locationX));
+          onScrub(ratioFromPageX(evt.nativeEvent.pageX));
         },
         onPanResponderMove: (evt) => {
-          onScrub(ratioFromX(evt.nativeEvent.locationX));
+          onScrub(ratioFromPageX(evt.nativeEvent.pageX));
         },
         onPanResponderRelease: (evt) => {
-          onSeek(ratioFromX(evt.nativeEvent.locationX));
+          onSeek(ratioFromPageX(evt.nativeEvent.pageX));
         },
         onPanResponderTerminate: () => {
           onScrub(null);
         },
       }),
-    [disabled, onScrub, onSeek, ratioFromX],
+    [disabled, onScrub, onSeek, ratioFromPageX],
   );
 
   return (
     <View
-      onLayout={(e) => {
-        trackWidth.current = e.nativeEvent.layout.width;
-      }}
+      ref={trackRef}
+      onLayout={updateTrackMetrics}
       {...panResponder.panHandlers}
       style={[
         styles.progressHitArea,

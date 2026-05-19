@@ -195,11 +195,15 @@ class ExpoAppleMusicModule : Module() {
     }
 
     Function("restartCurrentEntry") {
-      playbackController.restartCurrentEntry()
+      playbackController.restartCurrentEntry { time ->
+        sendEvent("onPlaybackTimeUpdate", mapOf("playbackTime" to time))
+      }
     }
 
     Function("seekToTime") { time: Double ->
-      playbackController.seekToTime(time)
+      playbackController.seekToTime(time) { actual ->
+        sendEvent("onPlaybackTimeUpdate", mapOf("playbackTime" to actual))
+      }
     }
 
     Function("togglePlayerState") {
