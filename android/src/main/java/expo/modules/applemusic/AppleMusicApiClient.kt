@@ -4,8 +4,10 @@ import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
@@ -426,38 +428,63 @@ internal class AppleMusicApiClient(
       ids
     }
 
-  private fun getJson(path: String, query: Map<String, String> = emptyMap()): JSONObject {
-    val (developerToken, userToken) = requireTokens()
-    val urlBuilder =
-      HttpUrl.Builder()
-        .scheme("https")
-        .host("api.music.apple.com")
-        .encodedPath(path)
+  suspend fun request(
+    method: AppleMusicHttpMethod,
+    path: String,
+    query: Map<String, String> = emptyMap(),
+    body: JSONObject? = null,
+  ): JSONObject =
+    withContext(Dispatchers.IO) {
+      val (developerToken, userToken) = requireTokens()
+      val urlBuilder =
+        HttpUrl.Builder()
+          .scheme("https")
+          .host("api.music.apple.com")
+          .encodedPath(path)
 
-    query.forEach { (key, value) -> urlBuilder.addQueryParameter(key, value) }
+      query.forEach { (key, value) -> urlBuilder.addQueryParameter(key, value) }
 
-    val request =
-      Request.Builder()
-        .url(urlBuilder.build())
-        .header("Authorization", "Bearer $developerToken")
-        .header("Music-User-Token", userToken)
-        .get()
-        .build()
+      val jsonMediaType = "application/json".toMediaType()
+      val requestBody = body?.toString()?.toRequestBody(jsonMediaType)
 
-    http.newCall(request).execute().use { response ->
-      val body = response.body?.string().orEmpty()
-      if (!response.isSuccessful) {
-        val message =
-          try {
-            JSONObject(body).optJSONArray("errors")?.optJSONObject(0)?.optString("detail")
-          } catch (_: Exception) {
-            null
-          } ?: "Apple Music API error (${response.code})"
-        throw AppleMusicErrors.apiError(message)
+      val requestBuilder =
+        Request.Builder()
+          .url(urlBuilder.build())
+          .header("Authorization", "Bearer $developerToken")
+          .header("Music-User-Token", userToken)
+
+      when (method) {
+        AppleMusicHttpMethod.GET -> requestBuilder.get()
+        AppleMusicHttpMethod.POST ->
+          requestBuilder.post(requestBody ?: "{}".toRequestBody(jsonMediaType))
+        AppleMusicHttpMethod.DELETE ->
+          if (requestBody != null) {
+            requestBuilder.delete(requestBody)
+          } else {
+            requestBuilder.delete()
+          }
       }
-      return JSONObject(body)
+
+      http.newCall(requestBuilder.build()).execute().use { response ->
+        val responseBody = response.body?.string().orEmpty()
+        if (!response.isSuccessful) {
+          val message =
+            try {
+              JSONObject(responseBody).optJSONArray("errors")?.optJSONObject(0)?.optString("detail")
+            } catch (_: Exception) {
+              null
+            } ?: "Apple Music API error (${response.code})"
+          throw AppleMusicErrors.apiError(message)
+        }
+        if (responseBody.isEmpty()) {
+          return@withContext JSONObject()
+        }
+        return@withContext JSONObject(responseBody)
+      }
     }
-  }
+
+  private suspend fun getJson(path: String, query: Map<String, String> = emptyMap()): JSONObject =
+    request(AppleMusicHttpMethod.GET, path, query)
 
   private fun mapResourceArray(
     array: JSONArray?,

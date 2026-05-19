@@ -29,7 +29,7 @@ Requests access to the user’s Apple Music account.
 
 | Argument | iOS | Android |
 | -------- | --- | ------- |
-| `developerToken` | Ignored | **Required** — pass a MusicKit developer JWT |
+| `developerToken` | Optional — when provided, stored for REST (`Music-User-Token` is fetched and persisted) | **Required** — pass a MusicKit developer JWT |
 | `options` | Ignored | Optional upsell / deeplink behavior |
 
 Returns `Promise<AuthStatus>` — same string union on both platforms.
