@@ -109,6 +109,26 @@ public class ExpoAppleMusicModule: Module {
       return ["songs": songs]
     }
 
+    AsyncFunction("getCatalogArtistAlbums") {
+      (artistId: String, options: [String: Any]) -> [String: Any] in
+      let searchOptions = CatalogService.SearchOptions(from: options as NSDictionary)
+      let albums = try await self.catalogService.getArtistAlbums(
+        artistId: artistId,
+        options: searchOptions
+      )
+      return ["albums": albums]
+    }
+
+    AsyncFunction("getCatalogPlaylistTracks") {
+      (playlistId: String, options: [String: Any]) -> [String: Any] in
+      let searchOptions = CatalogService.SearchOptions(from: options as NSDictionary)
+      let songs = try await self.catalogService.getPlaylistTracks(
+        playlistId: playlistId,
+        options: searchOptions
+      )
+      return ["songs": songs]
+    }
+
     AsyncFunction("setPlaybackQueue") { (itemId: String, type: String) -> String in
       try await self.queueService.setQueue(itemId: itemId, type: type)
       return "Track(s) added to queue"

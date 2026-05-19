@@ -46,4 +46,14 @@ internal class AndroidCatalogService(context: Context) {
     albumId: String,
     options: PaginationOptions,
   ): List<Map<String, Any?>> = api.getCatalogAlbumTracks(albumId, options.limit, options.offset)
+
+  suspend fun getArtistAlbums(
+    artistId: String,
+    options: PaginationOptions,
+  ): List<Map<String, Any?>> = api.getCatalogArtistAlbums(artistId, options.limit, options.offset)
+
+  suspend fun getPlaylistTracks(
+    playlistId: String,
+    options: PaginationOptions,
+  ): List<Map<String, Any?>> = api.getCatalogPlaylistTracks(playlistId, options.limit, options.offset)
 }

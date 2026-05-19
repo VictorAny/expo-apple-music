@@ -33,6 +33,7 @@ export default function App() {
   const [log, setLog] = useState<string>("");
   const [songs, setSongs] = useState<Song[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [catalogArtists, setCatalogArtists] = useState<Artist[]>([]);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [libraryArtists, setLibraryArtists] = useState<Artist[]>([]);
   const [libraryAlbums, setLibraryAlbums] = useState<Album[]>([]);
@@ -109,6 +110,7 @@ export default function App() {
       );
       setSongs(result.songs);
       setAlbums(result.albums);
+      setCatalogArtists(result.artists);
       const first = result.songs[0];
       if (first) {
         setSelectedSongId(first.id);
@@ -118,6 +120,18 @@ export default function App() {
       );
     } catch (error) {
       appendLog(`search error: ${String(error)}`);
+    }
+  }
+
+  async function browseArtist(artist: Artist) {
+    try {
+      const detail = await Catalog.getArtist(artist.id);
+      const artistAlbums = await Catalog.getArtistAlbums(artist.id, { limit: 10 });
+      appendLog(
+        `artist: ${detail.name} · ${artistAlbums.albums.length} album(s) from API`,
+      );
+    } catch (error) {
+      appendLog(`artist browse error: ${String(error)}`);
     }
   }
 
@@ -245,6 +259,27 @@ export default function App() {
                   <Text style={styles.resultMeta}>
                     duration: {formatDuration(song.duration)}
                   </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {catalogArtists.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Catalog artists ({catalogArtists.length})
+              </Text>
+              <Text style={styles.sectionHint}>
+                Tap to load albums via Catalog.getArtistAlbums
+              </Text>
+              {catalogArtists.map((artist) => (
+                <Pressable
+                  key={artist.id}
+                  style={styles.resultRow}
+                  onPress={() => browseArtist(artist)}
+                >
+                  <Text style={styles.resultTitle}>{artist.name}</Text>
+                  <Text style={styles.resultId}>id: {artist.id}</Text>
                 </Pressable>
               ))}
             </View>

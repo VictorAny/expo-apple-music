@@ -1,4 +1,5 @@
 import type { Album } from '../types/album';
+import type { AlbumsResponse } from '../types/albums-response';
 import type { CatalogAlbumTracksResponse } from '../types/catalog-album-tracks';
 import type { CatalogSearch, CatalogSearchType } from '../types/catalog-search';
 import type { Artist } from '../types/artist';
@@ -47,6 +48,23 @@ class Catalog {
     options?: PaginationOptions,
   ): Promise<CatalogAlbumTracksResponse> {
     return (await MusicModule.getCatalogAlbumTracks(albumId, options ?? {})) as CatalogAlbumTracksResponse;
+  }
+
+  public static async getArtistAlbums(
+    artistId: string,
+    options?: PaginationOptions,
+  ): Promise<AlbumsResponse> {
+    return (await MusicModule.getCatalogArtistAlbums(artistId, options ?? {})) as AlbumsResponse;
+  }
+
+  public static async getPlaylistTracks(
+    playlistId: string,
+    options?: PaginationOptions,
+  ): Promise<CatalogAlbumTracksResponse> {
+    return (await MusicModule.getCatalogPlaylistTracks(
+      playlistId,
+      options ?? {},
+    )) as CatalogAlbumTracksResponse;
   }
 }
 

@@ -127,25 +127,66 @@ internal class AppleMusicApiClient(
     limit: Int,
     offset: Int,
   ): List<Map<String, Any?>> =
+    getCatalogRelationship(
+      pathSuffix = "/albums/$albumId/tracks",
+      limit = limit,
+      offset = offset,
+      typeContains = "song",
+      mapper = AppleMusicJsonMapper::mapSong,
+    )
+
+  suspend fun getCatalogArtistAlbums(
+    artistId: String,
+    limit: Int,
+    offset: Int,
+  ): List<Map<String, Any?>> =
+    getCatalogRelationship(
+      pathSuffix = "/artists/$artistId/albums",
+      limit = limit,
+      offset = offset,
+      typeContains = "album",
+      mapper = AppleMusicJsonMapper::mapAlbum,
+    )
+
+  suspend fun getCatalogPlaylistTracks(
+    playlistId: String,
+    limit: Int,
+    offset: Int,
+  ): List<Map<String, Any?>> =
+    getCatalogRelationship(
+      pathSuffix = "/playlists/$playlistId/tracks",
+      limit = limit,
+      offset = offset,
+      typeContains = "song",
+      mapper = AppleMusicJsonMapper::mapSong,
+    )
+
+  private suspend fun getCatalogRelationship(
+    pathSuffix: String,
+    limit: Int,
+    offset: Int,
+    typeContains: String,
+    mapper: (JSONObject) -> Map<String, Any?>,
+  ): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val storefront = getStorefront()
       val json =
         getJson(
-          "/v1/catalog/$storefront/albums/$albumId/tracks",
+          "/v1/catalog/$storefront$pathSuffix",
           mapOf(
             "limit" to limit.toString(),
             "offset" to offset.toString(),
           ),
         )
       val data = json.optJSONArray("data") ?: JSONArray()
-      val songs = mutableListOf<Map<String, Any?>>()
+      val items = mutableListOf<Map<String, Any?>>()
       for (i in 0 until data.length()) {
         val resource = data.getJSONObject(i)
-        if (resource.optString("type", "").contains("song")) {
-          songs.add(AppleMusicJsonMapper.mapSong(resource))
+        if (resource.optString("type", "").contains(typeContains)) {
+          items.add(mapper(resource))
         }
       }
-      songs
+      items
     }
 
   private suspend fun getCatalogResource(

@@ -166,6 +166,18 @@ class ExpoAppleMusicModule : Module() {
       mapOf("songs" to songs)
     }
 
+    AsyncFunction("getCatalogArtistAlbums") Coroutine { artistId: String, options: Map<String, Any?> ->
+      val pagination = PaginationOptions.fromMap(options)
+      val albums = catalogService.getArtistAlbums(artistId, pagination)
+      mapOf("albums" to albums)
+    }
+
+    AsyncFunction("getCatalogPlaylistTracks") Coroutine { playlistId: String, options: Map<String, Any?> ->
+      val pagination = PaginationOptions.fromMap(options)
+      val songs = catalogService.getPlaylistTracks(playlistId, pagination)
+      mapOf("songs" to songs)
+    }
+
     AsyncFunction("setPlaybackQueue") Coroutine { itemId: String, type: String ->
       try {
         queueService.setQueue(itemId, type)

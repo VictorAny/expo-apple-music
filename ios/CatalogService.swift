@@ -113,17 +113,49 @@ final class CatalogService {
   }
 
   func getAlbumTracks(albumId: String, options: SearchOptions) async throws -> [[String: Any]] {
+    try await getCatalogRelationship(
+      path: "/albums/\(albumId)/tracks",
+      options: options,
+      typeContains: "song",
+      mapper: RestJsonMapper.mapSong
+    )
+  }
+
+  func getArtistAlbums(artistId: String, options: SearchOptions) async throws -> [[String: Any]] {
+    try await getCatalogRelationship(
+      path: "/artists/\(artistId)/albums",
+      options: options,
+      typeContains: "album",
+      mapper: RestJsonMapper.mapAlbum
+    )
+  }
+
+  func getPlaylistTracks(playlistId: String, options: SearchOptions) async throws -> [[String: Any]] {
+    try await getCatalogRelationship(
+      path: "/playlists/\(playlistId)/tracks",
+      options: options,
+      typeContains: "song",
+      mapper: RestJsonMapper.mapSong
+    )
+  }
+
+  private func getCatalogRelationship(
+    path: String,
+    options: SearchOptions,
+    typeContains: String,
+    mapper: ([String: Any]) -> [String: Any]
+  ) async throws -> [[String: Any]] {
     let storefront = try await StorefrontService.getStorefrontId()
-    let path = "/v1/catalog/\(storefront)/albums/\(albumId)/tracks"
+    let fullPath = "/v1/catalog/\(storefront)\(path)"
     let query = [
       "limit": "\(options.limit)",
       "offset": "\(options.offset)",
     ]
-    let data = try await AppleMusicRestClient.getDataArray(path: path, query: query)
+    let data = try await AppleMusicRestClient.getDataArray(path: fullPath, query: query)
     return data.compactMap { resource in
       let type = resource["type"] as? String ?? ""
-      guard type.contains("song") else { return nil }
-      return RestJsonMapper.mapSong(resource)
+      guard type.contains(typeContains) else { return nil }
+      return mapper(resource)
     }
   }
 

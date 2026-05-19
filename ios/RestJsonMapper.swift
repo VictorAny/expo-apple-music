@@ -6,6 +6,25 @@ import Foundation
 @available(iOS 16.0, *)
 enum RestJsonMapper {
 
+  static func mapAlbum(_ resource: [String: Any]) -> [String: Any] {
+    let attributes = resource["attributes"] as? [String: Any] ?? [:]
+    let trackCount: String
+    if let count = attributes["trackCount"] as? Int {
+      trackCount = String(count)
+    } else if let count = attributes["trackCount"] as? Double {
+      trackCount = String(Int(count))
+    } else {
+      trackCount = "0"
+    }
+    return [
+      "id": resource["id"] as? String ?? "",
+      "title": attributes["name"] as? String ?? "",
+      "artistName": attributes["artistName"] as? String ?? "",
+      "artworkUrl": artworkUrl(attributes["artwork"] as? [String: Any]),
+      "trackCount": trackCount,
+    ]
+  }
+
   static func mapSong(_ resource: [String: Any]) -> [String: Any] {
     let attributes = resource["attributes"] as? [String: Any] ?? [:]
     let id = catalogPlaybackId(resource) ?? (resource["id"] as? String ?? "")

@@ -26,7 +26,8 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Search (artists, playlists, stations, music-videos) | `Catalog.search()` | ✅ | ✅ | ⬜ |
 | Get resource by ID | `Catalog.getSong` / `getAlbum` / `getArtist` / `getPlaylist` / `getStation` / `getMusicVideo` | ✅ | ✅ | ⬜ |
 | Album → tracks | `Catalog.getAlbumTracks()` | ✅ | ✅ | ⬜ |
-| Relationships (other) | `Catalog.get*Relationship` | ⬜ | ⬜ | ⬜ |
+| Artist → albums | `Catalog.getArtistAlbums()` | ✅ | ✅ | ⬜ |
+| Playlist → tracks | `Catalog.getPlaylistTracks()` | ✅ | ✅ | ⬜ |
 | Charts | `Catalog.getCharts()` | ⬜ | ⬜ | ⬜ |
 
 ---
@@ -93,6 +94,9 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 |---------|------|
 | Storefront | `GET /v1/me/storefront` |
 | Catalog search | `GET /v1/catalog/{storefront}/search` |
+| Catalog album tracks | `GET /v1/catalog/{storefront}/albums/{id}/tracks` |
+| Catalog artist albums | `GET /v1/catalog/{storefront}/artists/{id}/albums` |
+| Catalog playlist tracks | `GET /v1/catalog/{storefront}/playlists/{id}/tracks` |
 | Library songs | `GET /v1/me/library/songs` |
 | Library artists | `GET /v1/me/library/artists` |
 | Library playlists | `GET /v1/me/library/playlists` |
