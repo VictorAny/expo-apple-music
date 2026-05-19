@@ -159,6 +159,30 @@ class ExpoAppleMusicModule : Module() {
       mapOf("artists" to artists)
     }
 
+    AsyncFunction("getLibraryAlbums") Coroutine { options: Map<String, Any?> ->
+      val pagination = PaginationOptions.fromMap(options)
+      val albums = libraryService.getAlbums(pagination)
+      mapOf("albums" to albums)
+    }
+
+    AsyncFunction("getHeavyRotation") Coroutine { options: Map<String, Any?> ->
+      val pagination = PaginationOptions.fromMap(options)
+      val items = libraryService.getHeavyRotation(pagination)
+      mapOf("items" to items)
+    }
+
+    AsyncFunction("getRecentlyPlayedStations") Coroutine { options: Map<String, Any?> ->
+      val pagination = PaginationOptions.fromMap(options)
+      val stations = libraryService.getRecentlyPlayedStations(pagination)
+      mapOf("stations" to stations)
+    }
+
+    AsyncFunction("getRecentlyAdded") Coroutine { options: Map<String, Any?> ->
+      val pagination = PaginationOptions.fromMap(options)
+      val items = libraryService.getRecentlyAdded(pagination)
+      mapOf("items" to items)
+    }
+
     AsyncFunction("configurePlayer") { mixWithOthers: Boolean ->
       playbackController.configurePlayer(mixWithOthers)
     }

@@ -56,7 +56,7 @@ internal object AppleMusicJsonMapper {
     )
   }
 
-  fun mapRecentlyPlayed(resource: JSONObject): Map<String, Any?> {
+  fun mapRecentResource(resource: JSONObject): Map<String, Any?> {
     val attributes = resource.optJSONObject("attributes") ?: JSONObject()
     val apiType = resource.optString("type", "")
     val itemType =
@@ -68,13 +68,26 @@ internal object AppleMusicJsonMapper {
       }
     val subtitle =
       attributes.optString("artistName", "").ifEmpty {
-        attributes.optString("curatorName", "")
+        attributes.optString("curatorName", "").ifEmpty {
+          attributes.optJSONObject("description")?.optString("standard", "") ?: ""
+        }
       }
     return mapOf(
       "id" to resource.optString("id", ""),
       "title" to attributes.optString("name", ""),
       "subtitle" to subtitle,
       "type" to itemType,
+    )
+  }
+
+  fun mapRecentlyPlayed(resource: JSONObject): Map<String, Any?> = mapRecentResource(resource)
+
+  fun mapStation(resource: JSONObject): Map<String, Any?> {
+    val attributes = resource.optJSONObject("attributes") ?: JSONObject()
+    return mapOf(
+      "id" to resource.optString("id", ""),
+      "name" to attributes.optString("name", ""),
+      "artworkUrl" to artworkUrl(attributes.optJSONObject("artwork")),
     )
   }
 

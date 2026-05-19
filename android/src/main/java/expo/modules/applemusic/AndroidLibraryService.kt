@@ -27,5 +27,17 @@ internal class AndroidLibraryService(context: Context) {
   suspend fun getArtists(options: PaginationOptions): List<Map<String, Any?>> =
     api.getLibraryArtists(options.limit, options.offset)
 
+  suspend fun getAlbums(options: PaginationOptions): List<Map<String, Any?>> =
+    api.getLibraryAlbums(options.limit, options.offset)
+
+  suspend fun getHeavyRotation(options: PaginationOptions): List<Map<String, Any?>> =
+    api.getHeavyRotation(options.limit)
+
+  suspend fun getRecentlyPlayedStations(options: PaginationOptions): List<Map<String, Any?>> =
+    api.getRecentlyPlayedStations(options.limit)
+
+  suspend fun getRecentlyAdded(options: PaginationOptions): List<Map<String, Any?>> =
+    api.getRecentlyAdded(options.limit, options.offset)
+
   suspend fun getStorefrontId(): String = api.getStorefront()
 }

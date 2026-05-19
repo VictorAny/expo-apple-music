@@ -142,6 +142,46 @@ internal class AppleMusicApiClient(
       mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapArtist(it) }
     }
 
+  suspend fun getLibraryAlbums(limit: Int, offset: Int): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val json =
+        getJson(
+          "/v1/me/library/albums",
+          mapOf("limit" to limit.toString(), "offset" to offset.toString()),
+        )
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapAlbum(it) }
+    }
+
+  suspend fun getHeavyRotation(limit: Int): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val json =
+        getJson(
+          "/v1/me/history/heavy-rotation",
+          mapOf("limit" to limit.toString()),
+        )
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecentResource(it) }
+    }
+
+  suspend fun getRecentlyPlayedStations(limit: Int): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val json =
+        getJson(
+          "/v1/me/recent/played/stations",
+          mapOf("limit" to limit.toString()),
+        )
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapStation(it) }
+    }
+
+  suspend fun getRecentlyAdded(limit: Int, offset: Int): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val json =
+        getJson(
+          "/v1/me/library/recently-added",
+          mapOf("limit" to limit.toString(), "offset" to offset.toString()),
+        )
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecentResource(it) }
+    }
+
   /** Lightweight request used by [AndroidSubscriptionService] heuristics. */
   suspend fun probeLibraryAccess(): Boolean =
     withContext(Dispatchers.IO) {
