@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Player from '../modules/player';
 import type { PlaybackState } from '../types/playback-state';
 import type { Song } from '../types/song';
+import { getErrorMessage } from '../utils/get-error-message';
 
 /**
  * Listens for changes from the native music player and updates the currentSong state.
@@ -13,7 +14,7 @@ const useCurrentSong = (): { song?: Song; error?: Error } => {
   useEffect(() => {
     Player.getCurrentState()
       .then((state) => setCurrentSong(state.currentSong))
-      .catch(setError);
+      .catch((err) => setError(new Error(getErrorMessage(err))));
 
     const applySong = (state: PlaybackState) => {
       if (state?.currentSong) {

@@ -1,4 +1,5 @@
 import { Auth } from "@wwdrew/expo-apple-music";
+import { formatApiError } from "../lib/format-error";
 import { Platform } from "react-native";
 import { ApiScreen } from "../components/ApiScreen";
 import { useApp } from "../context/AppContext";
@@ -36,7 +37,7 @@ export function CheckSubscriptionDemo() {
                     `hasCloudLibraryEnabled: ${sub.hasCloudLibraryEnabled}`,
                 ),
               )
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -55,7 +56,7 @@ export function GetStorefrontDemo() {
           onPress={() => {
             void Auth.getStorefront()
               .then((sf) => appendLog(`storefront.id: ${sf.id}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }

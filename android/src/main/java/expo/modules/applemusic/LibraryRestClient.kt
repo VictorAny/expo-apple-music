@@ -3,6 +3,7 @@ package expo.modules.applemusic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 
 /** Library-domain Apple Music REST (user collection reads + playback id resolution). */
 internal class LibraryRestClient(

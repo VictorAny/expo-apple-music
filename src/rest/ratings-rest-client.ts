@@ -1,4 +1,5 @@
 import { mapRating } from '../mappers/apple-music-json-mapper';
+import { getErrorMessage } from '../utils/get-error-message';
 import type { AppleMusicRestTransport } from './apple-music-rest-transport';
 import { buildIdsQuery } from './resource-ids-query';
 
@@ -11,7 +12,7 @@ export class RatingsRestClient {
       const json = await this.transport.getJson(`/v1/me/ratings/${resourceType}/${id}`);
       return mapRating(json as Parameters<typeof mapRating>[0]);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = getErrorMessage(error);
       if (message.includes('404')) {
         return null;
       }

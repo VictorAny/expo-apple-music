@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
 import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
+import { formatApiError } from "../lib/format-error";
 import { RunButton } from "./helpers";
 
 function useSongIdField() {
@@ -38,7 +39,7 @@ export function GetRatingDemo() {
               .then((r) =>
                 appendLog(r ? `rating: ${r.value}` : "no rating set"),
               )
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -65,7 +66,7 @@ export function SetRatingDemo() {
               RatingValue.LIKE,
             )
               .then((r) => appendLog(`liked ${songId.trim()} → ${r.value}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -88,7 +89,7 @@ export function ClearRatingDemo() {
           onPress={() => {
             void Ratings.clearRating(RatingResourceType.SONG, songId.trim())
               .then(() => appendLog(`cleared rating for ${songId.trim()}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -113,7 +114,7 @@ export function AddToFavoritesDemo() {
               [LibraryResourceType.SONGS]: [songId.trim()],
             })
               .then(() => appendLog(`favorited ${songId.trim()}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -138,7 +139,7 @@ export function RemoveFromFavoritesDemo() {
               [LibraryResourceType.SONGS]: [songId.trim()],
             })
               .then(() => appendLog(`removed ${songId.trim()} from favorites`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }

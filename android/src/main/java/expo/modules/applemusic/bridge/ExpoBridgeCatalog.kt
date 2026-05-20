@@ -1,6 +1,7 @@
 package expo.modules.applemusic.bridge
 
 import expo.modules.applemusic.AndroidCatalogService
+import expo.modules.applemusic.AppleMusicErrors
 import expo.modules.applemusic.BridgeResponses
 import expo.modules.applemusic.PaginationOptions
 import expo.modules.kotlin.functions.Coroutine

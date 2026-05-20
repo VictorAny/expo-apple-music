@@ -11,6 +11,7 @@ import { CatalogSearchField } from "../components/CatalogSearchField";
 import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
 import { toDemoItems } from "../lib/demo-list";
+import { formatApiError } from "../lib/format-error";
 import { formatDuration } from "../lib/format";
 import { queueAndPlay } from "../lib/playback";
 import { RunButton } from "./helpers";
@@ -90,7 +91,7 @@ export function GetSongDemo() {
           onPress={() => {
             void Catalog.getSong(songId.trim())
               .then((s) => appendLog(`${s.title} — ${s.artistName}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -117,7 +118,7 @@ export function GetAlbumDemo() {
           onPress={() => {
             void Catalog.getAlbum(albumId.trim())
               .then((a) => appendLog(`${a.title} — ${a.trackCount} tracks`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -146,7 +147,7 @@ export function GetArtistDemo() {
           onPress={() => {
             void Catalog.getArtist(artistId.trim())
               .then((a) => appendLog(`artist: ${a.name}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -175,7 +176,7 @@ export function GetPlaylistDemo() {
           onPress={() => {
             void Catalog.getPlaylist(playlistId.trim())
               .then((p) => appendLog(`playlist: ${p.name}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -199,7 +200,7 @@ export function GetStationDemo() {
           onPress={() => {
             void Catalog.getStation(stationId.trim())
               .then((s) => appendLog(`station: ${s.name}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -223,7 +224,7 @@ export function GetMusicVideoDemo() {
           onPress={() => {
             void Catalog.getMusicVideo(videoId.trim())
               .then((v) => appendLog(`video: ${v.title}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -254,7 +255,7 @@ export function GetAlbumTracksDemo() {
                 setTracks(r.songs.map((s) => ({ id: s.id, title: s.title })));
                 appendLog(`${r.songs.length} track(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -290,7 +291,7 @@ export function GetArtistAlbumsDemo() {
                 setAlbums(r.albums);
                 appendLog(`${r.albums.length} album(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -326,7 +327,7 @@ export function GetPlaylistTracksDemo() {
                 setTracks(r.songs.map((s) => ({ id: s.id, title: s.title })));
                 appendLog(`${r.songs.length} track(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -358,7 +359,7 @@ export function GetChartsDemo() {
                   `${charts.songs.length} songs, ${charts.albums.length} albums`,
                 );
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }

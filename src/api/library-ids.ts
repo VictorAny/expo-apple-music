@@ -1,4 +1,4 @@
-import { invalidLibraryIdError } from './call-native';
+import { throwInvalidLibraryIdError } from './call-native';
 
 /** True when `id` uses an Apple Music library prefix (`i.`, `l.`, `p.`). */
 export function isLibraryId(id: string): boolean {
@@ -7,6 +7,6 @@ export function isLibraryId(id: string): boolean {
 
 export function assertLibraryId(id: string, label: string): void {
   if (!isLibraryId(id)) {
-    throw invalidLibraryIdError(label, id);
+    throwInvalidLibraryIdError(label, id);
   }
 }

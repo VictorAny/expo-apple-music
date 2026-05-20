@@ -7,6 +7,7 @@ import {
 import { useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
 import { useApp } from "../context/AppContext";
+import { formatApiError } from "../lib/format-error";
 import { toDemoItems } from "../lib/demo-list";
 import { RunButton } from "./helpers";
 
@@ -26,7 +27,7 @@ export function GetRecentlyPlayedResourcesDemo() {
                 setItems(r.recentlyPlayedItems);
                 appendLog(`${r.recentlyPlayedItems.length} resource(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -55,7 +56,7 @@ export function GetRecentlyPlayedTracksDemo() {
                 setSongs(r.songs);
                 appendLog(`${r.songs.length} track(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -84,7 +85,7 @@ export function GetHeavyRotationDemo() {
                 setItems(r.items);
                 appendLog(`${r.items.length} resource(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -113,7 +114,7 @@ export function GetRecentlyPlayedStationsDemo() {
                 setStations(r.stations);
                 appendLog(`${r.stations.length} station(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -142,7 +143,7 @@ export function GetRecentlyAddedDemo() {
                 setItems(r.items);
                 appendLog(`${r.items.length} resource(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }

@@ -1,11 +1,11 @@
 import type { AppleMusicError } from '../utils/apple-music-error';
-import { isAppleMusicError } from '../utils/apple-music-error';
+import { asThrownAppleMusicError, isAppleMusicError } from '../utils/apple-music-error';
 
 export async function callNative<T>(operation: string, fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (error) {
-    throw normalizeNativeError(operation, error);
+    throw asThrownAppleMusicError(normalizeNativeError(operation, error));
   }
 }
 
@@ -34,4 +34,8 @@ export function invalidLibraryIdError(label: string, id: string): AppleMusicErro
     code: 'INVALID_LIBRARY_ID',
     message: `Expected a library resource id (i., l., or p. prefix) for ${label}, got "${id}"`,
   };
+}
+
+export function throwInvalidLibraryIdError(label: string, id: string): never {
+  throw asThrownAppleMusicError(invalidLibraryIdError(label, id));
 }

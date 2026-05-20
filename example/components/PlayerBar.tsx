@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "../context/AppContext";
+import { formatApiError } from "../lib/format-error";
 
 export function PlayerBar() {
   const { appendLog } = useApp();
@@ -42,7 +43,7 @@ export function PlayerBar() {
       try {
         action();
       } catch (error) {
-        onPlaybackError?.(String(error));
+        onPlaybackError?.(formatApiError(error));
       }
     },
     [onPlaybackError],

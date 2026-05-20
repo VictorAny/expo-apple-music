@@ -7,6 +7,7 @@ import {
   type Song,
   Player,
 } from "@wwdrew/expo-apple-music";
+import { formatApiError } from "../lib/format-error";
 import {
   createContext,
   useCallback,
@@ -123,7 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         `authorize: ${status}${devToken ? " (developer token saved)" : ""}`,
       );
     } catch (error) {
-      appendLog(`authorize error: ${String(error)}`);
+      appendLog(`authorize error: ${formatApiError(error)}`);
     }
   }, [appendLog, devToken]);
 

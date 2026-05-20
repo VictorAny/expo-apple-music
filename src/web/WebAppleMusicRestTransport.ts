@@ -2,6 +2,7 @@ import type {
   AppleMusicHttpMethod,
   AppleMusicRestTransport,
 } from '../rest/apple-music-rest-transport';
+import { getErrorMessage } from '../utils/get-error-message';
 import { getMusic } from './MusicKitLoader';
 import * as errors from './apple-music-errors';
 import { musicKitApiRequest } from './music-kit-api';
@@ -27,7 +28,7 @@ export class WebAppleMusicRestTransport implements AppleMusicRestTransport {
     try {
       return await musicKitApiRequest(music, method, path, query, body);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = getErrorMessage(error);
       if (message.includes('403')) {
         throw errors.permissionDenied();
       }

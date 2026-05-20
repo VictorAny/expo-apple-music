@@ -4,6 +4,7 @@ import { ApiScreen } from "../components/ApiScreen";
 import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
 import { toDemoItems } from "../lib/demo-list";
+import { formatApiError } from "../lib/format-error";
 import { RunButton } from "./helpers";
 
 export function GetPlaylistsDemo() {
@@ -21,7 +22,7 @@ export function GetPlaylistsDemo() {
                 if (r.playlists[0]) setLastPlaylistId(r.playlists[0].id);
                 appendLog(`${r.playlists.length} playlist(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -51,7 +52,7 @@ export function GetSongsDemo() {
                 setSongs(r.songs);
                 appendLog(`${r.songs.length} library song(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -95,7 +96,7 @@ export function GetPlaylistTracksDemo() {
                 setTracks(r.songs);
                 appendLog(`${r.songs.length} track(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -124,7 +125,7 @@ export function GetArtistsDemo() {
                 setArtists(r.artists);
                 appendLog(`${r.artists.length} library artist(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -153,7 +154,7 @@ export function GetAlbumsDemo() {
                 setAlbums(r.albums);
                 appendLog(`${r.albums.length} library album(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }

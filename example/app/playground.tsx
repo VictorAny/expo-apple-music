@@ -1,11 +1,11 @@
 import {
-  getErrorMessage,
   History,
   Library,
   MusicItem,
   Recommendations,
   type Song,
 } from "@wwdrew/expo-apple-music";
+import { formatApiError } from "../lib/format-error";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
@@ -48,7 +48,7 @@ export default function PlaygroundScreen() {
           meta: `${formatDuration(song.duration)} · tap to play`,
           onPress: () => {
             void queueAndPlay(song.id, MusicItem.SONG, appendLog).catch((e) =>
-              appendLog(`play error: ${getErrorMessage(e)}`),
+              appendLog(`play error: ${formatApiError(e)}`),
             );
           },
         })),
@@ -63,7 +63,7 @@ export default function PlaygroundScreen() {
   function playSong(song: Song, label: string) {
     void queueAndPlay(song.id, MusicItem.SONG, appendLog)
       .then(() => appendLog(`${label}: ${song.title}`))
-      .catch((e) => appendLog(`play error: ${getErrorMessage(e)}`));
+      .catch((e) => appendLog(`play error: ${formatApiError(e)}`));
   }
 
   if (!authorized) {
@@ -91,7 +91,7 @@ export default function PlaygroundScreen() {
                 setLibrarySongs(r.songs);
                 appendLog(`${r.songs.length} library song(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
         {librarySongs.map((song) => (
@@ -117,7 +117,7 @@ export default function PlaygroundScreen() {
                 setHistorySongs(r.songs);
                 appendLog(`${r.songs.length} recent track(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
         {historySongs.map((song) => (
@@ -143,7 +143,7 @@ export default function PlaygroundScreen() {
                 setRecTitles(r.recommendations.map((g) => g.title));
                 appendLog(`${r.recommendations.length} recommendation group(s)`);
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
         {recTitles.map((title, index) => (

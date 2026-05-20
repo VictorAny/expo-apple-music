@@ -32,15 +32,20 @@ describe('callNative', () => {
     });
   });
 
-  it('rethrows normalized errors', async () => {
+  it('rethrows normalized errors as Error with code and operation', async () => {
     await expect(
       callNative('Catalog.search', async () => {
         throw { code: 'ERROR', message: 'not found' };
       }),
-    ).rejects.toEqual({
+    ).rejects.toMatchObject({
       code: 'ERROR',
       message: 'not found',
       operation: 'Catalog.search',
     });
+    await expect(
+      callNative('Catalog.search', async () => {
+        throw { code: 'ERROR', message: 'not found' };
+      }),
+    ).rejects.toThrow('not found');
   });
 });

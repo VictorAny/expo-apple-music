@@ -1,4 +1,5 @@
 import { MusicItem, Player } from "@wwdrew/expo-apple-music";
+import { formatApiError } from "../lib/format-error";
 import { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { ApiScreen } from "../components/ApiScreen";
@@ -17,7 +18,7 @@ export function ConfigurePlayerDemo() {
           onPress={() => {
             void Player.configurePlayer(false)
               .then((c) => appendLog(`mixWithOthers: ${c.mixWithOthers}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -55,7 +56,7 @@ export function SetQueueDemo() {
                 .then(() => Player.setQueue(songId.trim(), MusicItem.SONG))
                 .then(() => Player.getCurrentState())
                 .then((state) => appendLog(`queue song — status: ${state.playbackStatus}`))
-                .catch((e) => appendLog(`error: ${String(e)}`));
+                .catch((e) => appendLog(`error: ${formatApiError(e)}`));
             }}
           />
           <RunButton
@@ -66,7 +67,7 @@ export function SetQueueDemo() {
                 .then(() => Player.setQueue(albumId.trim(), MusicItem.ALBUM))
                 .then(() => Player.getCurrentState())
                 .then((state) => appendLog(`queue album — status: ${state.playbackStatus}`))
-                .catch((e) => appendLog(`error: ${String(e)}`));
+                .catch((e) => appendLog(`error: ${formatApiError(e)}`));
             }}
           />
           <RunButton
@@ -75,7 +76,7 @@ export function SetQueueDemo() {
             onPress={() => {
               setSelectedSongId(songId.trim());
               void playCatalogSong(songId.trim(), appendLog).catch((e) =>
-                appendLog(`error: ${String(e)}`),
+                appendLog(`error: ${formatApiError(e)}`),
               );
             }}
           />
@@ -101,7 +102,7 @@ export function PlayLibrarySongDemo() {
           onPress={() => {
             void Player.playLibrarySong(songId.trim())
               .then(() => appendLog(`playing library song ${songId.trim()}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -133,7 +134,7 @@ export function PlayLibraryPlaylistDemo() {
           onPress={() => {
             void Player.playLibraryPlaylist(playlistId.trim())
               .then(() => appendLog(`playing playlist ${playlistId.trim()}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -155,7 +156,7 @@ export function GetCurrentStateDemo() {
                   `status: ${s.playbackStatus}, time: ${s.playbackTime.toFixed(1)}s`,
                 ),
               )
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -176,7 +177,7 @@ export function PlayDemo() {
               Player.play();
               appendLog("play() called");
             } catch (e) {
-              appendLog(`error: ${String(e)}`);
+              appendLog(`error: ${formatApiError(e)}`);
             }
           }}
         />
@@ -197,7 +198,7 @@ export function PauseDemo() {
               Player.pause();
               appendLog("pause() called");
             } catch (e) {
-              appendLog(`error: ${String(e)}`);
+              appendLog(`error: ${formatApiError(e)}`);
             }
           }}
         />
@@ -218,7 +219,7 @@ export function TogglePlayerStateDemo() {
               Player.togglePlayerState();
               appendLog("togglePlayerState() called");
             } catch (e) {
-              appendLog(`error: ${String(e)}`);
+              appendLog(`error: ${formatApiError(e)}`);
             }
           }}
         />
@@ -239,7 +240,7 @@ export function SkipToNextEntryDemo() {
               Player.skipToNextEntry();
               appendLog("skipToNextEntry() called");
             } catch (e) {
-              appendLog(`error: ${String(e)}`);
+              appendLog(`error: ${formatApiError(e)}`);
             }
           }}
         />
@@ -260,7 +261,7 @@ export function SkipToPreviousEntryDemo() {
               Player.skipToPreviousEntry();
               appendLog("skipToPreviousEntry() called");
             } catch (e) {
-              appendLog(`error: ${String(e)}`);
+              appendLog(`error: ${formatApiError(e)}`);
             }
           }}
         />
@@ -281,7 +282,7 @@ export function RestartCurrentEntryDemo() {
               Player.restartCurrentEntry();
               appendLog("restartCurrentEntry() called");
             } catch (e) {
-              appendLog(`error: ${String(e)}`);
+              appendLog(`error: ${formatApiError(e)}`);
             }
           }}
         />
@@ -303,7 +304,7 @@ export function SeekToTimeDemo() {
               Player.seekToTime(30);
               appendLog("seekToTime(30) called");
             } catch (e) {
-              appendLog(`error: ${String(e)}`);
+              appendLog(`error: ${formatApiError(e)}`);
             }
           }}
         />

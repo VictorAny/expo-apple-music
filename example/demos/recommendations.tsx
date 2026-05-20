@@ -1,4 +1,5 @@
 import { Recommendations } from "@wwdrew/expo-apple-music";
+import { formatApiError } from "../lib/format-error";
 import { useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
 import { useApp } from "../context/AppContext";
@@ -25,7 +26,7 @@ export function GetRecommendationsDemo() {
                       : ""),
                 );
               })
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -38,14 +39,14 @@ export function GetReplayDemo() {
   const { appendLog } = useApp();
   return (
     <ApiScreen
-      hint="May 404 for ineligible accounts or years without enough listening history."
+      hint="Omit year for Apple's latest eligible Replay year. May 404 if the account has insufficient listening history."
       actions={
         <RunButton
-          title="Run getReplay({ year: 2024 })"
+          title="Run getReplay()"
           onPress={() => {
-            void Recommendations.getReplay({ year: 2024 })
+            void Recommendations.getReplay()
               .then((r) => appendLog(`replay summaries: ${r.summaries.length}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }

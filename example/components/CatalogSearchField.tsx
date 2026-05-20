@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Platform, StyleSheet, Text, TextInput, View } from "react-native";
 import { useApp } from "../context/AppContext";
 import { isAuthorized } from "../lib/auth";
+import { formatApiError } from "../lib/format-error";
 import { theme } from "../lib/theme";
 import { RunButton } from "../demos/helpers";
 
@@ -65,7 +66,7 @@ export function CatalogSearchField({ onResults, limit = 10 }: CatalogSearchField
           `artists: ${result.artists.length}, playlists: ${result.playlists.length}`,
       );
     } catch (e) {
-      appendLog(`search error: ${String(e)}`);
+      appendLog(`search error: ${formatApiError(e)}`);
     }
   }
 

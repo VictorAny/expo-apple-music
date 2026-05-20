@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
 import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
+import { formatApiError } from "../lib/format-error";
 import { RunButton } from "./helpers";
 
 function useSongIdField() {
@@ -39,7 +40,7 @@ export function AddToLibraryDemo() {
               .then(() =>
                 appendLog(`added ${songId.trim()} (may take a moment to appear)`),
               )
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -72,7 +73,7 @@ export function CreatePlaylistDemo() {
                 : undefined,
             })
               .then((p) => appendLog(`created: ${p.name} (${p.id})`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }
@@ -109,7 +110,7 @@ export function AddTracksToPlaylistDemo() {
               { id: songId.trim(), type: PlaylistTrackType.SONG },
             ])
               .then(() => appendLog(`added track to playlist ${playlistId.trim()}`))
-              .catch((e) => appendLog(`error: ${String(e)}`));
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
         />
       }

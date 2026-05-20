@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Player from '../modules/player';
 import type { PlaybackState } from '../types/playback-state';
 import type { PlaybackStatus } from '../types/playback-status';
+import { getErrorMessage } from '../utils/get-error-message';
 
 /**
  * Hook to track playback state (playbackTime, playbackStatus) from native events.
@@ -22,7 +23,7 @@ const usePlaybackState = (): {
         setPlaybackTime(state.playbackTime ?? 0);
         setPlaybackStatus(state.playbackStatus ?? 'stopped');
       })
-      .catch(setError);
+      .catch((err) => setError(new Error(getErrorMessage(err))));
 
     const stateListener = Player.addListener('onPlaybackStateChange', (next: PlaybackState) => {
       setError(undefined);
