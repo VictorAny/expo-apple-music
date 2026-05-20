@@ -51,7 +51,7 @@ if (status === AuthStatus.AUTHORIZED) {
 **Auth details**: **[docs/AUTH.md](./docs/AUTH.md)**  
 **CLI** (mint JWTs locally): **[docs/CLI.md](./docs/CLI.md)**
 
-Public API direction before 1.0: [docs/V1_PLAN.md](./docs/V1_PLAN.md). Attribution: [ATTRIBUTION.md](./ATTRIBUTION.md).
+**1.0.0** — see [CHANGELOG.md](./CHANGELOG.md). Plan and deferred APIs: [docs/V1_PLAN.md](./docs/V1_PLAN.md). Attribution: [ATTRIBUTION.md](./ATTRIBUTION.md). Pre-publish QA: [docs/QA_SIGNOFF.md](./docs/QA_SIGNOFF.md).
 
 ## Platform parity
 

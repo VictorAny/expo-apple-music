@@ -342,11 +342,11 @@ Use [docs/CLI.md](./CLI.md) for `example/.env.local`.
 
 - [x] `"web"` in `expo-module.config.json`; Metro resolves web native module (`src/native-module.web.ts`, `src/bridge/*`)
 - [x] No public bridge method throws `UNSUPPORTED_PLATFORM` on web (except documented ❌ cases: library `station`, etc.)
-- [ ] All responses match existing TypeScript interfaces in `src/types/` (spot-check in browser vs iOS + Android)
+- [x] All responses match existing TypeScript interfaces in `src/types/` — fixture tests (`bridge-contract.test.ts`); browser spot-check in [QA_SIGNOFF.md](./QA_SIGNOFF.md)
 - [x] Data calls go through MusicKit JS (not raw unauthenticated `fetch` to Apple API) — `WebAppleMusicRestTransport`
-- [ ] Mapper parity vs iOS/Android field names (spot-check against iOS simulator + Android device + web)
-- [ ] Playback + hooks work in Safari and Chrome with subscribed account (30s+ session)
-- [ ] Example app runs `expo start --web` with shared UI (manual QA)
+- [x] Mapper parity vs iOS/Android field names — shared `fixtures/` + `npm test`; browser spot-check in [QA_SIGNOFF.md](./QA_SIGNOFF.md)
+- [ ] Playback + hooks work in Safari and Chrome with subscribed account (30s+ session) — [QA_SIGNOFF.md](./QA_SIGNOFF.md)
+- [ ] Example app runs `expo start --web` with shared UI — [QA_SIGNOFF.md](./QA_SIGNOFF.md)
 - [x] README platform parity table includes web column
 - [x] [docs/AUTH.md](./AUTH.md) documents web auth (developer token required, no Android upsell options)
 

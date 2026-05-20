@@ -125,6 +125,8 @@ See [Generating developer tokens](https://developer.apple.com/documentation/appl
 
 ## 7. Release checklist (iOS)
 
+For **this npm package**, use [QA_SIGNOFF.md](./QA_SIGNOFF.md) (iOS section). The items below are for **your consumer app** before App Store submission.
+
 - [ ] App ID in portal matches `expo.ios.bundleIdentifier` (explicit).
 - [ ] **MusicKit** enabled under App Services for that App ID.
 - [ ] No invalid MusicKit keys in `*.entitlements` / `app.json` `ios.entitlements`.

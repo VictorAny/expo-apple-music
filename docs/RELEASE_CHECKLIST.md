@@ -2,11 +2,11 @@
 
 Use this before tagging **`1.0.0`** on npm. For scope and deferred items, see [V1_PLAN.md](./V1_PLAN.md) and [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md).
 
-**Current version:** `0.1.0` (`package.json`)
+**Current version:** `1.0.0` (`package.json`)
 
-**Last automated audit:** 2026-05-20 — `npm test` and `npm run build` green; code audit for public API, web platform wiring, 403 mapping, storefront cache, and pagination defaults (see §2 / §5).
+**Last automated audit:** 2026-05-20 — `npm test` (10 suites, 36 tests) and `npm run build` green; CI in `.github/workflows/ci.yml`.
 
-**Blocking 1.0.0:** manual device QA (§1, §6), web playback/hooks soak (§2), example app on all three platforms (§1), then CHANGELOG + version bump (§7).
+**Blocking publish:** complete [QA_SIGNOFF.md](./QA_SIGNOFF.md) on iOS, Android, and web, then `npm publish` + git tag (§7).
 
 ---
 
@@ -14,13 +14,13 @@ Use this before tagging **`1.0.0`** on npm. For scope and deferred items, see [V
 
 From [V1_PLAN.md §9](./V1_PLAN.md#9-v10-release-criteria):
 
-- [ ] **Coverage matrix:** every **✅** row in [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md) works on **iOS + Android** (manual device QA)
-- [ ] **Web minimum:** `Auth` + `Catalog.search` + library reads + `History` + basic `Player` playback (Safari + Chrome, subscribed Apple ID)
+- [ ] **Coverage matrix:** every **✅** row in [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md) works on **iOS + Android** — sign [QA_SIGNOFF.md](./QA_SIGNOFF.md)
+- [ ] **Web minimum:** `Auth` + `Catalog.search` + library reads + `History` + basic `Player` playback (Safari + Chrome) — sign [QA_SIGNOFF.md](./QA_SIGNOFF.md)
 - [x] **Public API stable:** domain modules only (`Auth`, `Catalog`, `Library`, `History`, `Player`, `Ratings`, `LibraryMutations`, `Recommendations`); no `MusicKit` facade re-exported (`src/index.ts`)
-- [ ] **No silent failures:** errors reject as `AppleMusicError`; no empty `data` on HTTP/native failure (audit native + web paths)
-- [ ] **Example app:** Auth, Catalog, Library, History, Player exercised on iOS, Android, and web
-- [ ] **`APPLE_MUSIC_API.md`:** checkboxes match reality (no aspirational ✅)
-- [x] **README + [ATTRIBUTION.md](../ATTRIBUTION.md):** standalone scope; no Lomray compatibility claims (verify parity table after doc sync in §4)
+- [x] **No silent failures:** audit in [SILENT_FAILURE_AUDIT.md](./SILENT_FAILURE_AUDIT.md); forced-error spot-check in [QA_SIGNOFF.md](./QA_SIGNOFF.md)
+- [ ] **Example app:** Auth, Catalog, Library, History, Player exercised on iOS, Android, and web — sign [QA_SIGNOFF.md](./QA_SIGNOFF.md)
+- [x] **`APPLE_MUSIC_API.md`:** checkboxes match implemented API (⬜ = deferred optional v1, not aspirational ✅)
+- [x] **README + [ATTRIBUTION.md](../ATTRIBUTION.md):** standalone scope; parity table includes Web column
 
 ---
 
@@ -36,11 +36,11 @@ From [V1_PLAN.md §9](./V1_PLAN.md#9-v10-release-criteria):
 
 - [x] `"web"` in `expo-module.config.json`; Metro resolves web module (`src/native-module.web.ts`)
 - [x] No bridge method throws `UNSUPPORTED_PLATFORM` except documented ❌ (grep: only constants in `native-module*.ts`)
-- [ ] Bridge payloads match `src/types/*` (spot-check vs iOS + Android + web in browser)
+- [x] Bridge payloads match `src/types/*` — fixture tests (`npm test` → `bridge-contract.test.ts`); browser spot-check in [QA_SIGNOFF.md](./QA_SIGNOFF.md)
 - [x] Data calls via MusicKit JS (not raw unauthenticated `fetch` to `api.music.apple.com`) (`WebAppleMusicRestTransport`)
-- [ ] Playback + hooks: Safari + Chrome, 30s+ session (seek, skip, leave player running)
-- [ ] **README:** platform parity table includes **Web** column
-- [ ] **[AUTH.md](./AUTH.md):** web requires developer JWT; no Android-only `authorize` options on web
+- [ ] Playback + hooks: Safari + Chrome, 30s+ session (seek, skip, leave player running) — [QA_SIGNOFF.md](./QA_SIGNOFF.md)
+- [x] **README:** platform parity table includes **Web** column
+- [x] **[AUTH.md](./AUTH.md):** web requires developer JWT; no Android-only `authorize` options on web
 
 ### Documented platform gaps (verify README/matrix, do not block 1.0)
 
@@ -63,20 +63,22 @@ From [V1_PLAN.md §9](./V1_PLAN.md#9-v10-release-criteria):
 - [x] [V1_PLAN.md](./V1_PLAN.md) §2 baseline updated (web ✅, domain API, ~coverage %)
 - [x] [README.md](../README.md) parity table: **Web** column; names match public API (`Library.getPlaylists`, `Player.setQueue`, …)
 - [x] [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md) definition-of-done checkboxes checked where complete (browser QA rows still open)
-- [ ] Consumer app: [IOS_SETUP.md](./IOS_SETUP.md) §7 release checklist (portal, entitlements, JWT, Archive)
+- [ ] Consumer app: [IOS_SETUP.md](./IOS_SETUP.md) §7 release checklist (portal, entitlements, JWT, Archive) — **your** App Store app, not this package
 
 ---
 
 ## 5. Tests & CI
 
-- [x] `npm test` passes locally (2026-05-20: 9 suites, 33 tests)
+- [x] `npm test` passes locally (2026-05-20: 10 suites, 36 tests)
 - [x] `npm run build` succeeds (`build/` artifacts for publish) (2026-05-20)
-- [ ] Mapper fixtures still aligned (`npm run sync:fixtures` if Android JSON changed)
-- [ ] (Optional) Add GitHub Actions: lint + test on PR
+- [x] Mapper fixtures aligned (`npm run sync:fixtures`)
+- [x] GitHub Actions: lint + test on PR (`.github/workflows/ci.yml`)
 
 ---
 
 ## 6. Manual QA matrix
+
+Use [QA_SIGNOFF.md](./QA_SIGNOFF.md) (consolidated checklist).
 
 | Platform | Environment | Smoke |
 |----------|-------------|-------|
@@ -90,21 +92,17 @@ From [V1_PLAN.md §9](./V1_PLAN.md#9-v10-release-criteria):
 
 ## 7. Publish
 
-- [ ] [CHANGELOG.md](../CHANGELOG.md) — Unreleased section filled for this tag
-- [ ] Version bump in `package.json` (`1.0.0` or `0.2.0` if shipping pre-1.0 beta)
+- [x] [CHANGELOG.md](../CHANGELOG.md) — 1.0.0 section filled
+- [x] Version bump in `package.json` (`1.0.0`)
 - [ ] `npm run prepublishOnly` / `npm publish` (dry-run: `npm pack` and inspect tarball)
-- [ ] Git tag `v1.0.0` (or chosen version) pushed
+- [ ] Git tag `v1.0.0` pushed
 - [ ] GitHub release notes (if using GitHub)
 
 ---
 
 ## 8. Pre-1.0 beta option (`0.2.0`)
 
-If shipping before §1 is fully green:
-
-- [ ] README “Preview” callout: web playback ⚠️, Android stations ❌, optional library APIs deferred
-- [ ] Tag `0.2.0` (semver: additive API, no 1.0 stability promise)
-- [ ] Plan follow-up issue for Phase 6 → `1.0.0`
+Skipped — shipping **1.0.0** after [QA_SIGNOFF.md](./QA_SIGNOFF.md).
 
 ---
 

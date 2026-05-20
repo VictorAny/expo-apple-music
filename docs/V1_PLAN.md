@@ -26,7 +26,7 @@ Plan for completing `@wwdrew/expo-apple-music` before a **1.0.0** release. The p
 
 ## 2. What exists today (baseline)
 
-**Updated:** 2026-05-20. Source of truth for per-endpoint status: [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md).
+**Updated:** 2026-05-20. **Release:** `1.0.0` — manual sign-off [QA_SIGNOFF.md](./QA_SIGNOFF.md), then publish per [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md). Source of truth for per-endpoint status: [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md).
 
 ### Implemented (~majority of v1 matrix; optional rows still ⬜)
 
