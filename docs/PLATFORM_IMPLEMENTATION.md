@@ -4,7 +4,7 @@ How each **public JS method** is implemented on iOS vs Android. The TypeScript A
 
 **Policy (iOS):** Use **MusicKit** when it can perform the operation. Use **REST** (`AppleMusicRestClient`) only for gaps (no MusicKit API, or REST-only writes). Both paths must emit the **same bridge object shape** as Android’s `AppleMusicJsonMapper` (see [TYPES.md](./TYPES.md), `fixtures/*.json`).
 
-**Policy (Android):** REST via `AppleMusicApiClient` + `AppleMusicJsonMapper` for all data reads/writes; MusicKit AAR for auth and playback.
+**Policy (Android):** REST via `*RestClient` + `AppleMusicRestStack` + `AppleMusicJsonMapper` for all data reads/writes; MusicKit AAR for auth and playback.
 
 **Mappers on iOS:**
 

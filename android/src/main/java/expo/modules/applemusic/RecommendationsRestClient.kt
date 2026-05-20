@@ -1,0 +1,33 @@
+package expo.modules.applemusic
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+/** Recommendations and Replay Apple Music REST. */
+internal class RecommendationsRestClient(
+  private val transport: AppleMusicRestTransport,
+) {
+  suspend fun getRecommendations(ids: List<String>?): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val query =
+        if (!ids.isNullOrEmpty()) {
+          mapOf("ids" to ids.joinToString(","))
+        } else {
+          emptyMap()
+        }
+      val json = transport.getJson("/v1/me/recommendations", query)
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecommendation(it) }
+    }
+
+  suspend fun getReplay(year: Int?): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val query =
+        if (year != null) {
+          mapOf("filter[year]" to year.toString())
+        } else {
+          emptyMap()
+        }
+      val json = transport.getJson("/v1/me/music-summaries", query)
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapReplaySummary(it) }
+    }
+}

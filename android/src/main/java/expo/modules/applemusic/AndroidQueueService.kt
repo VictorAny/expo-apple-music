@@ -5,9 +5,13 @@ import android.content.Context
 internal class AndroidQueueService(
   context: Context,
   private val playback: AndroidPlaybackController,
+  private val library: LibraryRestClient,
 ) {
-  private val api = AppleMusicApiClient(context)
-  private val library = AndroidLibraryService(context)
+  constructor(context: Context, playback: AndroidPlaybackController) : this(
+    context,
+    playback,
+    AppleMusicRestStack.create(context).library,
+  )
 
   enum class MediaType(val raw: String) {
     SONG("song"),
@@ -24,7 +28,7 @@ internal class AndroidQueueService(
   suspend fun setQueue(itemId: String, type: String) {
     val mediaType =
       MediaType.from(type) ?: throw AppleMusicErrors.unknownMediaType(type)
-    val isLibrary = AppleMusicApiClient.isLibraryId(itemId)
+    val isLibrary = LibraryIds.isLibraryId(itemId)
 
     if (isLibrary) {
       setLibraryQueue(itemId, mediaType)
@@ -50,17 +54,17 @@ internal class AndroidQueueService(
     when (type) {
       MediaType.STATION -> throw AppleMusicErrors.unsupportedLibraryType("station")
       MediaType.SONG -> {
-        val catalogId = api.resolveCatalogPlaybackId(itemId, "song")
+        val catalogId = library.resolveCatalogPlaybackId(itemId, "song")
         playback.clearSongCache()
         playback.prepareQueue(playback.buildSongProvider(catalogId))
       }
       MediaType.ALBUM -> {
-        val catalogId = api.resolveCatalogPlaybackId(itemId, "album")
+        val catalogId = library.resolveCatalogPlaybackId(itemId, "album")
         playback.clearSongCache()
         playback.prepareQueue(playback.buildAlbumProvider(catalogId))
       }
       MediaType.PLAYLIST -> {
-        val catalogId = api.resolveCatalogPlaybackId(itemId, "playlist")
+        val catalogId = library.resolveCatalogPlaybackId(itemId, "playlist")
         playback.clearSongCache()
         playback.prepareQueue(playback.buildPlaylistProvider(catalogId))
       }
@@ -68,13 +72,13 @@ internal class AndroidQueueService(
   }
 
   suspend fun playLibrarySong(songId: String) {
-    val catalogId = api.resolveCatalogPlaybackId(songId, "song")
+    val catalogId = library.resolveCatalogPlaybackId(songId, "song")
     playback.clearSongCache()
     playback.prepareQueue(playback.buildSongProvider(catalogId))
   }
 
   suspend fun playLibraryPlaylist(playlistId: String, startingAt: Int) {
-    val catalogIds = api.resolveLibrarySongCatalogIds(playlistId)
+    val catalogIds = library.resolveLibrarySongCatalogIds(playlistId)
     if (catalogIds.isEmpty()) {
       throw AppleMusicErrors.noSongsInPlaylist()
     }

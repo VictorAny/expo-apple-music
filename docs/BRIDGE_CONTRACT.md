@@ -7,7 +7,7 @@ The **bridge contract** is the set of plain objects returned to JavaScript (`Son
 | Platform | Adapter | Runtime |
 | -------- | ------- | ------- |
 | TypeScript / Web | `src/mappers/apple-music-json-mapper.ts` | Web REST |
-| Android | `AppleMusicJsonMapper.kt` | `AppleMusicApiClient` |
+| Android | `AppleMusicJsonMapper.kt` | `*RestClient` via `AppleMusicRestStack` |
 | iOS (REST) | `RestJsonMapper.swift` | `AppleMusicRestClient` |
 | iOS (native) | `MusicItemMapper.swift` | MusicKit types — separate adapter, same field rules |
 

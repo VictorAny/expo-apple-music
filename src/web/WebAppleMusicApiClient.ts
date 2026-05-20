@@ -1,262 +1,78 @@
-import {
-  catalogPlaybackId,
-  mapAlbum,
-  mapArtist,
-  mapMusicVideo,
-  mapPlaylist,
-  mapRating,
-  mapRecentlyPlayed,
-  mapRecentResource,
-  mapRecommendation,
-  mapReplaySummary,
-  mapSong,
-  mapStation,
-  type AppleMusicApiResource,
-} from '../mappers/apple-music-json-mapper';
-import * as errors from './apple-music-errors';
+import { createAppleMusicRestStack } from '../rest/apple-music-rest-stack';
+import { isLibraryId } from '../rest/library-ids';
 import { getMusic } from './MusicKitLoader';
-import {
-  musicKitApiRequest,
-  parseStorefrontId,
-  storefrontIdFromInstance,
-} from './music-kit-api';
-import type { MusicKitApiResponse } from './musickit-types';
+import { storefrontIdFromInstance } from './music-kit-api';
+import { WebAppleMusicRestTransport } from './WebAppleMusicRestTransport';
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
-
-function isLibraryId(id: string): boolean {
-  return id.startsWith('l.') || id.startsWith('i.') || id.startsWith('p.');
-}
-
-function catalogSearchTypeParam(type: string): string | null {
-  switch (type) {
-    case 'songs':
-    case 'song':
-      return 'songs';
-    case 'albums':
-    case 'album':
-      return 'albums';
-    case 'artists':
-    case 'artist':
-      return 'artists';
-    case 'playlists':
-    case 'playlist':
-      return 'playlists';
-    case 'stations':
-    case 'station':
-      return 'stations';
-    case 'music-videos':
-    case 'musicVideos':
-    case 'musicVideo':
-      return 'music-videos';
-    default:
-      return null;
-  }
-}
-
-function mapResourceArray<T>(
-  data: unknown,
-  mapper: (resource: AppleMusicApiResource) => T,
-): T[] {
-  if (!Array.isArray(data)) {
-    return [];
-  }
-  return data.map((item) => mapper(item as AppleMusicApiResource));
-}
-
-function buildIdsQuery(resourceIds: Record<string, string[]>): Record<string, string> {
-  const query: Record<string, string> = {};
-  for (const [type, ids] of Object.entries(resourceIds)) {
-    if (ids.length > 0) {
-      query[`ids[${type}]`] = ids.join(',');
-    }
-  }
-  return query;
-}
-
+/** Web facade over shared REST domain clients (MusicKit JS transport). */
 export class WebAppleMusicApiClient {
-  private cachedStorefront: string | null = null;
+  private readonly stack = createAppleMusicRestStack(new WebAppleMusicRestTransport(), async () => {
+    const music = await getMusic();
+    return storefrontIdFromInstance(music);
+  });
+
+  readonly catalog = this.stack.catalog;
+  readonly library = this.stack.library;
+  readonly history = this.stack.history;
+  readonly ratings = this.stack.ratings;
+  readonly libraryMutations = this.stack.libraryMutations;
+  readonly recommendations = this.stack.recommendations;
 
   static isLibraryId(id: string): boolean {
     return isLibraryId(id);
   }
 
-  private async requireAuthorized(): Promise<void> {
-    const music = await getMusic();
-    if (!music.isAuthorized) {
-      throw errors.missingTokens();
-    }
-  }
-
   async request(
-    method: HttpMethod,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     path: string,
     query: Record<string, string> = {},
     body?: Record<string, unknown>,
-  ): Promise<MusicKitApiResponse> {
-    await this.requireAuthorized();
-    const music = await getMusic();
-    try {
-      return await musicKitApiRequest(music, method, path, query, body);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (message.includes('403')) {
-        throw errors.permissionDenied();
-      }
-      throw errors.apiError(message);
-    }
-  }
-
-  private async getJson(
-    path: string,
-    query: Record<string, string> = {},
-  ): Promise<MusicKitApiResponse> {
-    return this.request('GET', path, query);
+  ) {
+    return this.stack.transport.request(method, path, query, body);
   }
 
   async getStorefront(): Promise<string> {
-    if (this.cachedStorefront) {
-      return this.cachedStorefront;
-    }
-
-    const music = await getMusic();
-    const fromInstance = storefrontIdFromInstance(music);
-    if (fromInstance) {
-      this.cachedStorefront = fromInstance;
-      return fromInstance;
-    }
-
-    const json = await this.getJson('/v1/me/storefront');
-    const id = parseStorefrontId(json);
-    if (!id) {
-      throw errors.apiError('Storefront response missing id');
-    }
-    this.cachedStorefront = id;
-    return id;
+    return this.stack.storefront.getStorefront();
   }
 
-  async catalogSearch(
-    term: string,
-    types: string[],
-    limit: number,
-    offset: number,
-  ): Promise<{
-    songs: Record<string, unknown>[];
-    albums: Record<string, unknown>[];
-    artists: Record<string, unknown>[];
-    playlists: Record<string, unknown>[];
-    stations: Record<string, unknown>[];
-    musicVideos: Record<string, unknown>[];
-  }> {
-    const storefront = await this.getStorefront();
-    const typeParam =
-      types
-        .map((t) => catalogSearchTypeParam(t))
-        .filter((t): t is string => t !== null)
-        .filter((t, i, arr) => arr.indexOf(t) === i)
-        .join(',') || 'songs,albums';
-
-    const json = await this.getJson(`/v1/catalog/${storefront}/search`, {
-      term,
-      types: typeParam,
-      limit: String(limit),
-      offset: String(offset),
-    });
-
-    const results = json.results ?? {};
-    const songs = mapResourceArray(results.songs?.data, mapSong);
-    const albums = mapResourceArray(results.albums?.data, mapAlbum);
-    const artists = mapResourceArray(results.artists?.data, mapArtist);
-    const playlists = mapResourceArray(results.playlists?.data, mapPlaylist);
-    const stations = mapResourceArray(results.stations?.data, mapStation);
-    const musicVideos = mapResourceArray(results['music-videos']?.data, mapMusicVideo);
-
-    return { songs, albums, artists, playlists, stations, musicVideos };
-  }
-
-  private async getCatalogResource(
-    path: string,
-    mapper: (resource: AppleMusicApiResource) => Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
-    const json = await this.getJson(path);
-    const data = Array.isArray(json.data) ? json.data[0] : null;
-    if (!data) {
-      throw errors.itemNotFound('Catalog item', false);
-    }
-    return mapper(data as AppleMusicApiResource);
+  async catalogSearch(term: string, types: string[], limit: number, offset: number) {
+    return this.catalog.catalogSearch(term, types, limit, offset);
   }
 
   async getCatalogSong(id: string) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogResource(`/v1/catalog/${storefront}/songs/${id}`, mapSong);
+    return this.catalog.getCatalogSong(id);
   }
 
   async getCatalogAlbum(id: string) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogResource(`/v1/catalog/${storefront}/albums/${id}`, mapAlbum);
+    return this.catalog.getCatalogAlbum(id);
   }
 
   async getCatalogArtist(id: string) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogResource(`/v1/catalog/${storefront}/artists/${id}`, mapArtist);
+    return this.catalog.getCatalogArtist(id);
   }
 
   async getCatalogPlaylist(id: string) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogResource(`/v1/catalog/${storefront}/playlists/${id}`, mapPlaylist);
+    return this.catalog.getCatalogPlaylist(id);
   }
 
   async getCatalogStation(id: string) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogResource(`/v1/catalog/${storefront}/stations/${id}`, mapStation);
+    return this.catalog.getCatalogStation(id);
   }
 
   async getCatalogMusicVideo(id: string) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogResource(`/v1/catalog/${storefront}/music-videos/${id}`, mapMusicVideo);
-  }
-
-  private async getCatalogRelationship(
-    path: string,
-    limit: number,
-    offset: number,
-    mapper: (resource: AppleMusicApiResource) => Record<string, unknown>,
-  ): Promise<Record<string, unknown>[]> {
-    const json = await this.getJson(path, {
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return mapResourceArray(json.data, mapper);
+    return this.catalog.getCatalogMusicVideo(id);
   }
 
   async getCatalogAlbumTracks(albumId: string, limit: number, offset: number) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogRelationship(
-      `/v1/catalog/${storefront}/albums/${albumId}/tracks`,
-      limit,
-      offset,
-      mapSong,
-    );
+    return this.catalog.getCatalogAlbumTracks(albumId, limit, offset);
   }
 
   async getCatalogArtistAlbums(artistId: string, limit: number, offset: number) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogRelationship(
-      `/v1/catalog/${storefront}/artists/${artistId}/albums`,
-      limit,
-      offset,
-      mapAlbum,
-    );
+    return this.catalog.getCatalogArtistAlbums(artistId, limit, offset);
   }
 
   async getCatalogPlaylistTracks(playlistId: string, limit: number, offset: number) {
-    const storefront = await this.getStorefront();
-    return this.getCatalogRelationship(
-      `/v1/catalog/${storefront}/playlists/${playlistId}/tracks`,
-      limit,
-      offset,
-      mapSong,
-    );
+    return this.catalog.getCatalogPlaylistTracks(playlistId, limit, offset);
   }
 
   async getCatalogCharts(
@@ -266,181 +82,83 @@ export class WebAppleMusicApiClient {
     genre?: string | null,
     chart?: string | null,
   ) {
-    const storefront = await this.getStorefront();
-    const query: Record<string, string> = {
-      types: types.join(',') || 'songs,albums',
-      limit: String(limit),
-      offset: String(offset),
-    };
-    if (genre) {
-      query.genre = genre;
-    }
-    if (chart) {
-      query.chart = chart;
-    }
-    const json = await this.getJson(`/v1/catalog/${storefront}/charts`, query);
-    const results = json.results ?? {};
-    return {
-      songs: mapResourceArray(results.songs?.data, mapSong),
-      albums: mapResourceArray(results.albums?.data, mapAlbum),
-      playlists: mapResourceArray(results.playlists?.data, mapPlaylist),
-      musicVideos: mapResourceArray(results['music-videos']?.data, mapMusicVideo),
-    };
+    return this.catalog.getCatalogCharts(types, limit, offset, genre, chart);
   }
 
   async getUserPlaylists(limit: number, offset: number) {
-    const json = await this.getJson('/v1/me/library/playlists', {
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return mapResourceArray(json.data, mapPlaylist);
+    return this.library.getLibraryPlaylists(limit, offset);
   }
 
   async getLibrarySongs(limit: number, offset: number) {
-    const json = await this.getJson('/v1/me/library/songs', {
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return mapResourceArray(json.data, mapSong);
+    return this.library.getLibrarySongs(limit, offset);
   }
 
   async getPlaylistTracks(playlistId: string) {
-    const json = await this.getJson(`/v1/me/library/playlists/${playlistId}/tracks`);
-    const data = Array.isArray(json.data) ? json.data : [];
-    return data
-      .filter((item) => String((item as AppleMusicApiResource).type ?? '').includes('song'))
-      .map((item) => mapSong(item as AppleMusicApiResource));
+    return this.library.getPlaylistTracks(playlistId);
   }
 
   async getRecentlyPlayed() {
-    const json = await this.getJson('/v1/me/recent/played', { limit: '10' });
-    return mapResourceArray(json.data, mapRecentlyPlayed);
+    return this.history.getRecentlyPlayed();
   }
 
   async getRecentlyPlayedTracks(limit: number) {
-    const json = await this.getJson('/v1/me/recent/played/tracks', { limit: String(limit) });
-    return mapResourceArray(json.data, mapSong);
+    return this.history.getRecentlyPlayedTracks(limit);
   }
 
   async getLibraryArtists(limit: number, offset: number) {
-    const json = await this.getJson('/v1/me/library/artists', {
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return mapResourceArray(json.data, mapArtist);
+    return this.library.getLibraryArtists(limit, offset);
   }
 
   async getLibraryAlbums(limit: number, offset: number) {
-    const json = await this.getJson('/v1/me/library/albums', {
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return mapResourceArray(json.data, mapAlbum);
+    return this.library.getLibraryAlbums(limit, offset);
   }
 
   async getHeavyRotation(limit: number) {
-    const json = await this.getJson('/v1/me/history/heavy-rotation', { limit: String(limit) });
-    return mapResourceArray(json.data, mapRecentResource);
+    return this.history.getHeavyRotation(limit);
   }
 
   async getRecentlyPlayedStations(limit: number) {
-    const json = await this.getJson('/v1/me/recent/radio-stations', { limit: String(limit) });
-    return mapResourceArray(json.data, mapStation);
+    return this.history.getRecentlyPlayedStations(limit);
   }
 
   async getRecentlyAdded(limit: number, offset: number) {
-    const json = await this.getJson('/v1/me/library/recently-added', {
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return mapResourceArray(json.data, mapRecentResource);
+    return this.library.getRecentlyAdded(limit, offset);
   }
 
   async probeLibraryAccess(): Promise<boolean> {
-    try {
-      await this.getJson('/v1/me/library/songs', { limit: '1' });
-      return true;
-    } catch {
-      return false;
-    }
+    return this.library.probeLibraryAccess();
   }
 
-  async resolveCatalogPlaybackId(libraryId: string, mediaType: string): Promise<string> {
-    const path =
-      mediaType === 'song'
-        ? `/v1/me/library/songs/${libraryId}`
-        : mediaType === 'album'
-          ? `/v1/me/library/albums/${libraryId}`
-          : mediaType === 'playlist'
-            ? `/v1/me/library/playlists/${libraryId}`
-            : null;
-    if (!path) {
-      throw errors.unknownMediaType(mediaType);
-    }
-    const json = await this.getJson(path);
-    const data = Array.isArray(json.data) ? json.data[0] : null;
-    if (!data) {
-      throw errors.itemNotFound(mediaType, true);
-    }
-    const catalogId = catalogPlaybackId(data as AppleMusicApiResource);
-    if (!catalogId) {
-      throw errors.itemNotFound(mediaType, true);
-    }
-    return catalogId;
+  async resolveCatalogPlaybackId(libraryId: string, mediaType: string) {
+    return this.library.resolveCatalogPlaybackId(libraryId, mediaType);
   }
 
-  async resolveLibrarySongCatalogIds(playlistId: string): Promise<string[]> {
-    const json = await this.getJson(`/v1/me/library/playlists/${playlistId}/tracks`);
-    const data = Array.isArray(json.data) ? json.data : [];
-    const ids: string[] = [];
-    for (const item of data) {
-      const resource = item as AppleMusicApiResource;
-      if (!String(resource.type ?? '').includes('song')) {
-        continue;
-      }
-      const catalogId = catalogPlaybackId(resource);
-      if (catalogId) {
-        ids.push(catalogId);
-      }
-    }
-    return ids;
+  async resolveLibrarySongCatalogIds(playlistId: string) {
+    return this.library.resolveLibrarySongCatalogIds(playlistId);
   }
 
   async getRating(resourceType: string, id: string) {
-    try {
-      const json = await this.getJson(`/v1/me/ratings/${resourceType}/${id}`);
-      return mapRating(json);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (message.includes('404')) {
-        return null;
-      }
-      throw error;
-    }
+    return this.ratings.getRating(resourceType, id);
   }
 
   async setRating(resourceType: string, id: string, value: number) {
-    const json = await this.request('PUT', `/v1/me/ratings/${resourceType}/${id}`, {}, {
-      type: 'rating',
-      attributes: { value },
-    });
-    return mapRating(json);
+    return this.ratings.setRating(resourceType, id, value);
   }
 
   async clearRating(resourceType: string, id: string) {
-    await this.request('DELETE', `/v1/me/ratings/${resourceType}/${id}`);
+    return this.ratings.clearRating(resourceType, id);
   }
 
   async addToFavorites(resourceIds: Record<string, string[]>) {
-    await this.request('POST', '/v1/me/favorites', buildIdsQuery(resourceIds));
+    return this.ratings.addToFavorites(resourceIds);
   }
 
   async removeFromFavorites(resourceIds: Record<string, string[]>) {
-    await this.request('DELETE', '/v1/me/favorites', buildIdsQuery(resourceIds));
+    return this.ratings.removeFromFavorites(resourceIds);
   }
 
   async addToLibrary(resourceIds: Record<string, string[]>) {
-    await this.request('POST', '/v1/me/library', buildIdsQuery(resourceIds));
+    return this.libraryMutations.addToLibrary(resourceIds);
   }
 
   async createLibraryPlaylist(
@@ -449,50 +167,18 @@ export class WebAppleMusicApiClient {
     isPublic: boolean,
     tracks: { id: string; type: string }[] | null,
   ) {
-    const attributes: Record<string, unknown> = { name, isPublic };
-    if (description?.trim()) {
-      attributes.description = { standard: description };
-    }
-    const payload: Record<string, unknown> = { attributes };
-    if (tracks?.length) {
-      payload.relationships = {
-        tracks: {
-          data: tracks.map((track) => ({ id: track.id, type: track.type })),
-        },
-      };
-    }
-    const json = await this.request('POST', '/v1/me/library/playlists', {}, payload);
-    const data = Array.isArray(json.data) ? json.data[0] : null;
-    if (!data) {
-      throw errors.apiError('Create playlist returned no data');
-    }
-    return mapPlaylist(data as AppleMusicApiResource);
+    return this.libraryMutations.createLibraryPlaylist(name, description, isPublic, tracks);
   }
 
   async addTracksToLibraryPlaylist(playlistId: string, tracks: { id: string; type: string }[]) {
-    await this.request(
-      'POST',
-      `/v1/me/library/playlists/${playlistId}/tracks`,
-      {},
-      { data: tracks.map((track) => ({ id: track.id, type: track.type })) },
-    );
+    return this.libraryMutations.addTracksToLibraryPlaylist(playlistId, tracks);
   }
 
   async getRecommendations(ids: string[] | null) {
-    const query: Record<string, string> = {};
-    if (ids?.length) {
-      query.ids = ids.join(',');
-    }
-    const json = await this.getJson('/v1/me/recommendations', query);
-    return mapResourceArray(json.data, mapRecommendation);
+    return this.recommendations.getRecommendations(ids);
   }
 
   async getReplay(year: number | null) {
-    const query: Record<string, string> = {};
-    if (year != null) {
-      query['filter[year]'] = String(year);
-    }
-    const json = await this.getJson('/v1/me/music-summaries', query);
-    return mapResourceArray(json.data, mapReplaySummary);
+    return this.recommendations.getReplay(year);
   }
 }

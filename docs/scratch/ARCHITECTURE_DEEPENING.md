@@ -100,7 +100,7 @@ Small **Catalog** **interface** (“search store”) with two **adapters**: nati
 
 ## 4. Monolithic REST on Android and Web
 
-**Status:** [ ] not started · [ ] in progress · [ ] done
+**Status:** [ ] not started · [ ] in progress · [x] done
 
 **Files**
 
@@ -123,6 +123,8 @@ Slice by CONTEXT domains: **Catalog**, **Library**, **History**, **Auth** — na
 - Matches v1 domain API shape
 
 **Notes**
+
+- 2026-05-20: Full REST slice — `AppleMusicRestTransport` + domain clients (`Catalog`, `Library`, `History`, `Ratings`, `LibraryMutations`, `Recommendations`, `Storefront`) via `AppleMusicRestStack`. Removed monolithic `AppleMusicApiClient.kt`. Android services depend on domain clients only. TS: `src/rest/*` + `createAppleMusicRestStack`; `WebAppleMusicApiClient` is a thin facade.
 
 ---
 
@@ -214,7 +216,7 @@ Group bridge by domain with shared envelope/pagination helpers — or codegen fr
 
 ## 8. Web duplicates native bridge instead of shared JS REST depth
 
-**Status:** [ ] not started · [ ] in progress · [ ] done
+**Status:** [ ] not started · [ ] in progress · [x] done
 
 **Files**
 
@@ -236,6 +238,8 @@ Web **Catalog** / **Library** / **History** call shared TS REST **adapter** (And
 - **Tests:** mapper + REST once in TS
 
 **Notes**
+
+- 2026-05-20: All Web data REST goes through `src/rest/*` domain clients; MusicKit JS only in `WebAppleMusicRestTransport` + Auth/Player seams. `WebAppleMusicApiClient` delegates to stack (bridge-compatible facade).
 
 ---
 
@@ -259,3 +263,5 @@ Web **Catalog** / **Library** / **History** call shared TS REST **adapter** (And
 | ---- | - | ------- |
 | 2026-05-20 | 3 | Catalog search transport seam: protocol + MusicKit/REST adapters + factory |
 | 2026-05-20 | 6 | Auth session: `AuthenticatedSession` + storefront cache; REST/catalog depend on session |
+| 2026-05-20 | 4 + 8 | Catalog REST slice: shared transport + `CatalogRestClient` (Android + TS/Web) |
+| 2026-05-20 | 4 + 8 | Completed: all domain REST clients + `AppleMusicRestStack`; removed `AppleMusicApiClient.kt` |

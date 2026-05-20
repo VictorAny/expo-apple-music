@@ -3,6 +3,7 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: [
     '<rootDir>/src/mappers/__tests__/**/*.test.ts',
+    '<rootDir>/src/rest/__tests__/**/*.test.ts',
     '<rootDir>/src/web/__tests__/**/*.test.ts',
   ],
   transform: {

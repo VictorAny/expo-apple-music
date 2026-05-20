@@ -104,7 +104,7 @@ On **iOS**, the developer token is optional for `authorize()` (media-library per
 
 ### Native session (iOS / Android)
 
-After `authorize()`, native code reads an **`AuthenticatedSession`** snapshot (developer JWT, music user token, and transport flags) instead of querying storage ad hoc. `MusicKitAuthStorage` only persists tokens; REST (`AppleMusicRestClient` / `AppleMusicApiClient`), catalog search transport, and storefront resolution use the session. Storefront id is cached in memory until tokens change.
+After `authorize()`, native code reads an **`AuthenticatedSession`** snapshot (developer JWT, music user token, and transport flags) instead of querying storage ad hoc. `MusicKitAuthStorage` only persists tokens; REST (`AppleMusicRestTransport` / domain `*RestClient`s), catalog search transport, and storefront resolution use the session. Storefront id is cached in memory until tokens change.
 
 ### Providing the token
 

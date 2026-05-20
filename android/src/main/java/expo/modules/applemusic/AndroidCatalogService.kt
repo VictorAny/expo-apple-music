@@ -2,8 +2,10 @@ package expo.modules.applemusic
 
 import android.content.Context
 
-internal class AndroidCatalogService(context: Context) {
-  private val api = AppleMusicApiClient(context)
+internal class AndroidCatalogService(
+  private val catalog: CatalogRestClient,
+) {
+  constructor(context: Context) : this(AppleMusicRestStack.create(context).catalog)
 
   data class SearchResult(
     val songs: List<Map<String, Any?>>,
@@ -19,7 +21,7 @@ internal class AndroidCatalogService(context: Context) {
     types: List<String>,
     options: PaginationOptions,
   ): SearchResult {
-    val result = api.catalogSearch(term, types, options.limit, options.offset)
+    val result = catalog.catalogSearch(term, types, options.limit, options.offset)
     return SearchResult(
       songs = result.songs,
       albums = result.albums,
@@ -30,32 +32,32 @@ internal class AndroidCatalogService(context: Context) {
     )
   }
 
-  suspend fun getSong(id: String): Map<String, Any?> = api.getCatalogSong(id)
+  suspend fun getSong(id: String): Map<String, Any?> = catalog.getCatalogSong(id)
 
-  suspend fun getAlbum(id: String): Map<String, Any?> = api.getCatalogAlbum(id)
+  suspend fun getAlbum(id: String): Map<String, Any?> = catalog.getCatalogAlbum(id)
 
-  suspend fun getArtist(id: String): Map<String, Any?> = api.getCatalogArtist(id)
+  suspend fun getArtist(id: String): Map<String, Any?> = catalog.getCatalogArtist(id)
 
-  suspend fun getPlaylist(id: String): Map<String, Any?> = api.getCatalogPlaylist(id)
+  suspend fun getPlaylist(id: String): Map<String, Any?> = catalog.getCatalogPlaylist(id)
 
-  suspend fun getStation(id: String): Map<String, Any?> = api.getCatalogStation(id)
+  suspend fun getStation(id: String): Map<String, Any?> = catalog.getCatalogStation(id)
 
-  suspend fun getMusicVideo(id: String): Map<String, Any?> = api.getCatalogMusicVideo(id)
+  suspend fun getMusicVideo(id: String): Map<String, Any?> = catalog.getCatalogMusicVideo(id)
 
   suspend fun getAlbumTracks(
     albumId: String,
     options: PaginationOptions,
-  ): List<Map<String, Any?>> = api.getCatalogAlbumTracks(albumId, options.limit, options.offset)
+  ): List<Map<String, Any?>> = catalog.getCatalogAlbumTracks(albumId, options.limit, options.offset)
 
   suspend fun getArtistAlbums(
     artistId: String,
     options: PaginationOptions,
-  ): List<Map<String, Any?>> = api.getCatalogArtistAlbums(artistId, options.limit, options.offset)
+  ): List<Map<String, Any?>> = catalog.getCatalogArtistAlbums(artistId, options.limit, options.offset)
 
   suspend fun getPlaylistTracks(
     playlistId: String,
     options: PaginationOptions,
-  ): List<Map<String, Any?>> = api.getCatalogPlaylistTracks(playlistId, options.limit, options.offset)
+  ): List<Map<String, Any?>> = catalog.getCatalogPlaylistTracks(playlistId, options.limit, options.offset)
 
   data class ChartsResult(
     val songs: List<Map<String, Any?>>,
@@ -70,7 +72,7 @@ internal class AndroidCatalogService(context: Context) {
     genre: String?,
     chart: String?,
   ): ChartsResult {
-    val result = api.getCatalogCharts(types, options.limit, options.offset, genre, chart)
+    val result = catalog.getCatalogCharts(types, options.limit, options.offset, genre, chart)
     return ChartsResult(
       songs = result.songs,
       albums = result.albums,

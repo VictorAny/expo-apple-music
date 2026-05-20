@@ -7,15 +7,16 @@ import android.content.Context
  */
 internal class AndroidSubscriptionService(
   private val context: Context,
+  private val library: LibraryRestClient,
 ) {
-  private val api = AppleMusicApiClient(context)
+  constructor(context: Context) : this(context, AppleMusicRestStack.create(context).library)
 
   suspend fun checkSubscription(): Map<String, Any?> {
     if (!AuthenticatedSession.load(context).hasMusicUserToken) {
       throw AppleMusicErrors.missingTokens()
     }
 
-    val libraryOk = api.probeLibraryAccess()
+    val libraryOk = library.probeLibraryAccess()
     val canPlay = libraryOk
 
     return mapOf(

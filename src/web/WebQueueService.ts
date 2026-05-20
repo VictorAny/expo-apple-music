@@ -1,3 +1,4 @@
+import { isLibraryId } from '../rest/library-ids';
 import * as errors from './apple-music-errors';
 import { WebAppleMusicApiClient } from './WebAppleMusicApiClient';
 import { getMusic } from './MusicKitLoader';
@@ -21,7 +22,7 @@ export class WebQueueService {
 
   async setQueue(itemId: string, type: string): Promise<void> {
     const mediaType = parseMediaType(type);
-    if (WebAppleMusicApiClient.isLibraryId(itemId)) {
+    if (isLibraryId(itemId)) {
       await this.setLibraryQueue(itemId, mediaType);
     } else {
       await this.setCatalogQueue(itemId, mediaType);

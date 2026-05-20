@@ -10,7 +10,7 @@ Apple uses **different identifiers** for catalog store resources vs items in the
 | `l.` | Library album (less common in docs; also seen for other library types) |
 | `p.` | Library playlist |
 
-Helper: `isLibraryItem(id)` in TypeScript (`src/utils/is-library-item.ts`) and `AppleMusicApiClient.isLibraryId` on Android.
+Helper: `isLibraryItem(id)` in TypeScript (`src/utils/is-library-item.ts`), `isLibraryId` in `src/rest/library-ids.ts`, and `LibraryIds.isLibraryId` on Android.
 
 Numeric-only IDs (e.g. `1441164424`) are usually **catalog** storefront IDs.
 

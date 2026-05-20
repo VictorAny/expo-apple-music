@@ -73,7 +73,7 @@ Everything below must work on Android (parity with `ios/ExpoAppleMusicModule.swi
 ## Shared native layer
 
 ```
-AppleMusicApiClient.kt          // OkHttp (or Ktor): GET + headers + JSON
+AppleMusicRestStack.kt          // OkHttp transport + domain *RestClient slices
   ├── getStorefront()
   ├── catalogSearch(term, types, limit, offset)
   ├── getLibraryPlaylists(limit, offset)
@@ -139,7 +139,7 @@ Return strings match iOS:
 1. Load natives before SDK: `c++_shared`, `appleMusicSDK`
 2. `MediaPlayerControllerFactory.createLocalController(context, handler, MusicKitTokenProvider)`
 3. Queue via `CatalogPlaybackQueueItemProvider.Builder` — spike library vs catalog IDs on device
-4. If library IDs fail on provider alone, resolve to catalog song IDs via `AppleMusicApiClient` first
+4. If library IDs fail on provider alone, resolve to catalog song IDs via `LibraryRestClient` first
 
 `MediaContainerType` in AAR: `ALBUM`, `PLAYLIST` only — confirm catalog `station` during spike.
 
@@ -164,7 +164,7 @@ Pagination: honor `limit` / `offset` from JS options (defaults like iOS: 25 / 0)
 
 ## Implementation order
 
-1. **`AppleMusicApiClient` + mapper** — storefront, tokens, one catalog + one library call proven in isolation
+1. **`AppleMusicRestStack` + mapper** — storefront, tokens, one catalog + one library call proven in isolation
 2. **Library read APIs** — `getUserPlaylists`, `getLibrarySongs`, `getPlaylistSongs`, `getTracksFromLibrary`
 3. **`catalogSearch`**
 4. **`checkSubscription`** approximation
