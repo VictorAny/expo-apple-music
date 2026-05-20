@@ -38,12 +38,15 @@ export const BRIDGE_METHODS: readonly BridgeMethodSpec[] = [
   { domain: 'catalog', nativeName: 'getCatalogArtistAlbums', publicName: 'Catalog.getArtistAlbums' },
   { domain: 'catalog', nativeName: 'getCatalogPlaylistTracks', publicName: 'Catalog.getPlaylistTracks' },
   { domain: 'catalog', nativeName: 'getCatalogCharts', publicName: 'Catalog.getCharts' },
+  { domain: 'catalog', nativeName: 'getCatalogResources', publicName: 'Catalog.getByIds' },
 
   { domain: 'library', nativeName: 'getUserPlaylists', publicName: 'Library.getPlaylists' },
   { domain: 'library', nativeName: 'getLibrarySongs', publicName: 'Library.getSongs' },
   { domain: 'library', nativeName: 'getPlaylistSongs', publicName: 'Library.getPlaylistTracks' },
   { domain: 'library', nativeName: 'getLibraryArtists', publicName: 'Library.getArtists' },
   { domain: 'library', nativeName: 'getLibraryAlbums', publicName: 'Library.getAlbums' },
+  { domain: 'library', nativeName: 'getLibraryMusicVideos', publicName: 'Library.getMusicVideos' },
+  { domain: 'library', nativeName: 'librarySearch', publicName: 'Library.search' },
 
   { domain: 'history', nativeName: 'getRecentlyPlayedResources', publicName: 'History.getRecentlyPlayedResources' },
   { domain: 'history', nativeName: 'getRecentlyPlayedTracks', publicName: 'History.getRecentlyPlayedTracks' },

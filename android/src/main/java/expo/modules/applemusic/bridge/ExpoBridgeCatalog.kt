@@ -59,4 +59,17 @@ internal fun ModuleDefinitionBuilder.registerCatalogBridge(
     val chart = options["chart"] as? String
     BridgeResponses.catalogCharts(catalogService().getCharts(types, pagination, genre, chart))
   }
+
+  AsyncFunction("getCatalogResources") Coroutine { type: String, ids: List<String> ->
+    val items = catalogService().getResources(type, ids)
+    when (type) {
+      "songs" -> BridgeResponses.songs(items)
+      "albums" -> BridgeResponses.albums(items)
+      "artists" -> BridgeResponses.artists(items)
+      "playlists" -> BridgeResponses.playlists(items)
+      "stations" -> BridgeResponses.stations(items)
+      "music-videos" -> BridgeResponses.musicVideos(items)
+      else -> throw AppleMusicErrors.unknownMediaType(type)
+    }
+  }
 }

@@ -63,7 +63,8 @@ The **same TypeScript API** is exposed on **iOS, Android, and web**. Native impl
 | `Auth.checkSubscription()` | ✅ | ⚠️ | ⚠️ | Android/web infer flags from auth + library probe (no `MusicSubscription` API). |
 | `Catalog.search()` | ✅ | ✅ | ✅ | iOS uses **REST** when a dev JWT was passed to `authorize()`, else native MusicKit ([details](./docs/PLATFORM_IMPLEMENTATION.md#catalog)). |
 | `Catalog.get*` / relationship helpers / `getCharts()` | ✅ | ✅ | ✅ | Catalog by ID, relationships, and charts via REST / MusicKit JS. |
-| `Library.getPlaylists` / `getSongs` / `getPlaylistTracks` / `getArtists` / `getAlbums` | ✅ | ✅ | ✅ | Library reads via REST (or native on iOS where applicable). |
+| `Library.getPlaylists` / `getSongs` / `getPlaylistTracks` / `getArtists` / `getAlbums` / `getMusicVideos` / `search` | ✅ | ✅ | ✅ | Library reads via REST (or native on iOS where applicable). |
+| `Catalog.getByIds(type, ids)` | ✅ REST | ✅ REST | ✅ REST | Batch catalog resources (`GET ...?ids=`). |
 | `History.*` (recent, heavy rotation, recently added) | ✅ | ✅ | ✅ | Recent resources capped at **10** per request on Android (API limit). |
 | `Ratings.*` / `LibraryMutations.*` | ✅ | ✅ | ✅ | REST write paths. iOS needs developer JWT for REST mutations. |
 | `Recommendations.get` / `getReplay` | ✅ | ✅ | ✅ | iOS uses MusicKit for `get()` without `ids`; Replay is REST everywhere. |

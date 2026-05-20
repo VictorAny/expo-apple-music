@@ -16,6 +16,14 @@ export type CatalogChartsPayload = {
   musicVideos: unknown[];
 };
 
+export type LibrarySearchPayload = {
+  songs: unknown[];
+  albums: unknown[];
+  artists: unknown[];
+  playlists: unknown[];
+  musicVideos: unknown[];
+};
+
 export const BridgeResponses = {
   storefront(id: string): { id: string } {
     return { id };
@@ -39,6 +47,20 @@ export const BridgeResponses = {
       playlists: result.playlists,
       musicVideos: result.musicVideos,
     };
+  },
+
+  librarySearch(result: LibrarySearchPayload): LibrarySearchPayload {
+    return {
+      songs: result.songs,
+      albums: result.albums,
+      artists: result.artists,
+      playlists: result.playlists,
+      musicVideos: result.musicVideos,
+    };
+  },
+
+  musicVideos(items: unknown[]): { musicVideos: unknown[] } {
+    return { musicVideos: items };
   },
 
   songs(items: unknown[]): { songs: unknown[] } {

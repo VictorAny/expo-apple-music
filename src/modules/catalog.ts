@@ -4,6 +4,7 @@ import type { Album } from '../types/album';
 import type { AlbumsResponse } from '../types/albums-response';
 import type { CatalogAlbumTracksResponse } from '../types/catalog-album-tracks';
 import type { CatalogCharts, CatalogChartType, CatalogChartsOptions } from '../types/catalog-charts';
+import type { CatalogResourceType } from '../types/catalog-resource-type';
 import type { CatalogSearch, CatalogSearchType } from '../types/catalog-search';
 import type { Artist } from '../types/artist';
 import type { MusicVideo } from '../types/music-video';
@@ -90,6 +91,34 @@ class Catalog {
       (await MusicModule.getCatalogCharts(types, options ?? {})) as CatalogCharts,
     );
   }
+
+  /**
+   * Fetch multiple catalog resources by storefront id (`GET .../{type}?ids=`).
+   * Apple allows many ids per request; prefer batches under ~100 for reliability.
+   */
+  public static async getByIds<T extends CatalogResourceType>(
+    type: T,
+    ids: string[],
+  ): Promise<CatalogByIdsResult<T>> {
+    return callNative('Catalog.getByIds', async () =>
+      (await MusicModule.getCatalogResources(type, ids)) as CatalogByIdsResult<T>,
+    );
+  }
 }
+
+/** Bridge envelope for `Catalog.getByIds` keyed by resource type. */
+export type CatalogByIdsResult<T extends CatalogResourceType> = T extends 'songs'
+  ? { songs: Song[] }
+  : T extends 'albums'
+    ? { albums: Album[] }
+    : T extends 'artists'
+      ? { artists: Artist[] }
+      : T extends 'playlists'
+        ? { playlists: Playlist[] }
+        : T extends 'stations'
+          ? { stations: Station[] }
+          : T extends 'music-videos'
+            ? { musicVideos: MusicVideo[] }
+            : never;
 
 export default Catalog;

@@ -78,6 +78,56 @@ final class LibraryService {
     return response.items.map(MusicItemMapper.map)
   }
 
+  func getMusicVideos(options: BridgePagination) async throws -> [[String: Any]] {
+    var request = MusicLibraryRequest<MusicVideo>()
+    request.limit = options.limit
+    request.offset = options.offset
+    let response = try await request.response()
+    return response.items.map(MusicItemMapper.map)
+  }
+
+  struct LibrarySearchResult {
+    let songs: [[String: Any]]
+    let albums: [[String: Any]]
+    let artists: [[String: Any]]
+    let playlists: [[String: Any]]
+    let musicVideos: [[String: Any]]
+  }
+
+  func search(term: String, types: [String], options: BridgePagination) async throws -> LibrarySearchResult {
+    let searchTypes = types.compactMap { Self.librarySearchableType($0) }
+    let resolvedTypes: [any MusicLibrarySearchable.Type]
+    if searchTypes.isEmpty {
+      resolvedTypes = [Song.self, Album.self, Artist.self, Playlist.self, MusicVideo.self]
+    } else {
+      resolvedTypes = searchTypes
+    }
+
+    var request = MusicLibrarySearchRequest(term: term, types: resolvedTypes)
+    request.limit = options.limit
+    request.offset = options.offset
+    let response = try await request.response()
+
+    return LibrarySearchResult(
+      songs: response.songs.map(MusicItemMapper.map),
+      albums: response.albums.map(MusicItemMapper.map),
+      artists: response.artists.map(MusicItemMapper.map),
+      playlists: response.playlists.map(MusicItemMapper.map),
+      musicVideos: response.musicVideos.map(MusicItemMapper.map)
+    )
+  }
+
+  private static func librarySearchableType(_ type: String) -> (any MusicLibrarySearchable.Type)? {
+    switch type {
+    case "library-songs", "songs": return Song.self
+    case "library-albums", "albums": return Album.self
+    case "library-artists", "artists": return Artist.self
+    case "library-playlists", "playlists": return Playlist.self
+    case "library-music-videos", "music-videos", "musicVideos": return MusicVideo.self
+    default: return nil
+    }
+  }
+
   // MARK: - Fetch Items by ID
 
   func fetchSong(id: MusicItemID) async throws -> Song? {

@@ -59,4 +59,28 @@ enum ExpoBridgeCatalog {
     let result = try await service.getCharts(types: types, options: searchOptions, genre: genre, chart: chart)
     return BridgeResponses.catalogCharts(result)
   }
+
+  static func getCatalogResources(
+    service: CatalogService,
+    type: String,
+    ids: [String]
+  ) async throws -> [String: Any] {
+    let items = try await service.getResources(type: type, ids: ids)
+    switch type {
+    case "songs":
+      return BridgeResponses.songs(items)
+    case "albums":
+      return BridgeResponses.albums(items)
+    case "artists":
+      return BridgeResponses.artists(items)
+    case "playlists":
+      return BridgeResponses.playlists(items)
+    case "stations":
+      return BridgeResponses.stations(items)
+    case "music-videos":
+      return BridgeResponses.musicVideos(items)
+    default:
+      throw CatalogService.CatalogServiceError.unknownResourceType(type)
+    }
+  }
 }

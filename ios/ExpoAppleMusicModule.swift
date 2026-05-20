@@ -140,6 +140,14 @@ public class ExpoAppleMusicModule: Module {
         )
       }
 
+      AsyncFunction("getCatalogResources") { (type: String, ids: [String]) -> [String: Any] in
+        try await ExpoBridgeCatalog.getCatalogResources(
+          service: self.catalogService,
+          type: type,
+          ids: ids
+        )
+      }
+
       // MARK: - Library
 
       AsyncFunction("getUserPlaylists") { (options: [String: Any]) -> [String: Any] in
@@ -173,6 +181,22 @@ public class ExpoAppleMusicModule: Module {
       AsyncFunction("getLibraryAlbums") { (options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeLibrary.getLibraryAlbums(
           service: self.libraryService,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getLibraryMusicVideos") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeLibrary.getLibraryMusicVideos(
+          service: self.libraryService,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("librarySearch") { (term: String, types: [String], options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeLibrary.librarySearch(
+          service: self.libraryService,
+          term: term,
+          types: types,
           options: options as NSDictionary
         )
       }

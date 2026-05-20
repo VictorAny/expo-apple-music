@@ -32,4 +32,18 @@ internal fun ModuleDefinitionBuilder.registerLibraryBridge(
     val pagination = PaginationOptions.fromMap(options)
     BridgeResponses.albums(libraryService().getAlbums(pagination))
   }
+
+  AsyncFunction("getLibraryMusicVideos") Coroutine { options: Map<String, Any?> ->
+    val pagination = PaginationOptions.fromMap(options)
+    BridgeResponses.musicVideos(libraryService().getMusicVideos(pagination))
+  }
+
+  AsyncFunction("librarySearch") Coroutine {
+      term: String,
+      types: List<String>,
+      options: Map<String, Any?>,
+    ->
+    val pagination = PaginationOptions.fromMap(options)
+    BridgeResponses.librarySearch(libraryService().search(term, types, pagination))
+  }
 }

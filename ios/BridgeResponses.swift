@@ -42,6 +42,20 @@ enum BridgeResponses {
     ["playlists": items]
   }
 
+  static func musicVideos(_ items: [[String: Any]]) -> [String: Any] {
+    ["musicVideos": items]
+  }
+
+  static func librarySearch(_ result: LibraryService.LibrarySearchResult) -> [String: Any] {
+    [
+      "songs": result.songs,
+      "albums": result.albums,
+      "artists": result.artists,
+      "playlists": result.playlists,
+      "musicVideos": result.musicVideos,
+    ]
+  }
+
   static func stations(_ items: [[String: Any]]) -> [String: Any] {
     ["stations": items]
   }

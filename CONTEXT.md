@@ -42,6 +42,7 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | `Catalog.search(term, types, options?)` | **Catalog**                | Search Apple Music store (`songs`, `albums`, `artists`, `playlists`, `stations`, `music-videos`) |
 | `Catalog.getSong` / `getAlbum` / … | **Catalog**                | Fetch catalog resource by ID |
 | `Catalog.getAlbumTracks` / `getArtistAlbums` / `getPlaylistTracks` | **Catalog** | Catalog relationship endpoints |
+| `Catalog.getByIds(type, ids)`                  | **Catalog**          | Batch catalog GET by storefront id |
 | `setPlaybackQueue(itemId, type)`       | Catalog playback (usually) | Queue catalog item by store ID               |
 
 ### Library — user account (`Library`)
@@ -50,6 +51,8 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | ---------------------------------------------- | -------------------- | -------------------------------- |
 | `Library.getPlaylists(options?)`               | **Library**          | User’s playlists                 |
 | `Library.getSongs(options?)`                   | **Library**          | User’s library songs             |
+| `Library.getMusicVideos(options?)`             | **Library**          | User’s library music videos      |
+| `Library.search(term, types, options?)`        | **Library**          | Search the user’s library        |
 | `Library.getPlaylistTracks(playlistId, …)`     | **Library**          | Tracks in a playlist             |
 | `Library.getArtists(options?)`                 | **Library**          | User’s library artists           |
 | `playLibrarySong(songId)`                      | **Library playback** | Play a library song              |

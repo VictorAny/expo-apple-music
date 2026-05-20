@@ -30,5 +30,31 @@ internal class AndroidLibraryService(
   suspend fun getAlbums(options: PaginationOptions): List<Map<String, Any?>> =
     library.getLibraryAlbums(options.limit, options.offset)
 
+  suspend fun getMusicVideos(options: PaginationOptions): List<Map<String, Any?>> =
+    library.getLibraryMusicVideos(options.limit, options.offset)
+
+  data class LibrarySearchResult(
+    val songs: List<Map<String, Any?>>,
+    val albums: List<Map<String, Any?>>,
+    val artists: List<Map<String, Any?>>,
+    val playlists: List<Map<String, Any?>>,
+    val musicVideos: List<Map<String, Any?>>,
+  )
+
+  suspend fun search(
+    term: String,
+    types: List<String>,
+    options: PaginationOptions,
+  ): LibrarySearchResult {
+    val result = library.searchLibrary(term, types, options.limit, options.offset)
+    return LibrarySearchResult(
+      songs = result.songs,
+      albums = result.albums,
+      artists = result.artists,
+      playlists = result.playlists,
+      musicVideos = result.musicVideos,
+    )
+  }
+
   suspend fun getStorefrontId(): String = storefront.getStorefront()
 }

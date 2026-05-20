@@ -1,6 +1,7 @@
 jest.mock('../../web/apple-music-errors', () => ({
   itemNotFound: (label: string) => new Error(`${label} not found`),
   apiError: (message: string) => new Error(message),
+  unknownMediaType: (type: string) => new Error(`unknown: ${type}`),
 }));
 
 import { CatalogRestClient } from '../catalog-rest-client';
@@ -34,5 +35,19 @@ describe('CatalogRestClient', () => {
       limit: '25',
       offset: '0',
     });
+  });
+
+  it('getCatalogResources calls batch ids path', async () => {
+    const getJson = jest.fn().mockResolvedValue({ data: [] });
+    const transport: AppleMusicRestTransport = {
+      getJson,
+      request: jest.fn(),
+    };
+    const storefront = new StorefrontRestClient(transport, async () => 'us');
+    const catalog = new CatalogRestClient(transport, storefront);
+
+    await catalog.getCatalogResources('songs', ['1', '2']);
+
+    expect(getJson).toHaveBeenCalledWith('/v1/catalog/us/songs', { ids: '1,2' });
   });
 });

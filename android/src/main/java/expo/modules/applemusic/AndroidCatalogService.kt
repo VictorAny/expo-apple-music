@@ -80,4 +80,7 @@ internal class AndroidCatalogService(
       musicVideos = result.musicVideos,
     )
   }
+
+  suspend fun getResources(type: String, ids: List<String>): List<Map<String, Any?>> =
+    catalog.getCatalogResources(type, ids)
 }

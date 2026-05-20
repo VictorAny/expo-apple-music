@@ -1,4 +1,5 @@
 import { paginationFromMap } from '../../web/pagination';
+import * as errors from '../../web/apple-music-errors';
 import type { WebAppleMusicApiClient } from '../../web/WebAppleMusicApiClient';
 import { BridgeResponses } from '../bridge-responses';
 
@@ -45,6 +46,26 @@ export function createCatalogBridge(api: WebAppleMusicApiClient) {
         (options.chart as string | undefined) ?? null,
       );
       return BridgeResponses.catalogCharts(result);
+    },
+
+    async getCatalogResources(type: string, ids: string[]) {
+      const items = await api.getCatalogResources(type, ids);
+      switch (type) {
+        case 'songs':
+          return BridgeResponses.songs(items);
+        case 'albums':
+          return BridgeResponses.albums(items);
+        case 'artists':
+          return BridgeResponses.artists(items);
+        case 'playlists':
+          return BridgeResponses.playlists(items);
+        case 'stations':
+          return BridgeResponses.stations(items);
+        case 'music-videos':
+          return BridgeResponses.musicVideos(items);
+        default:
+          throw errors.unknownMediaType(type);
+      }
     },
   };
 }

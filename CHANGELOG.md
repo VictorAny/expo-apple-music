@@ -10,6 +10,8 @@ First stable release of the cross-platform Apple Music API client for Expo (iOS 
 
 ### Features
 
+- **Library:** `Library.getMusicVideos()`, `Library.search()` (library-songs, library-albums, …).
+- **Catalog:** `Catalog.getByIds(type, ids)` — batch storefront resource GET (`?ids=`).
 - **iOS:** MusicKit playback, native library/history where available, REST for catalog gaps, ratings, mutations, and recommendations replay.
 - **Android:** REST data layer + MusicKit playback AAR; developer JWT required for auth.
 - **Web:** MusicKit JS bridge for auth, catalog, library, history, ratings, mutations, recommendations, and playback.
@@ -32,4 +34,3 @@ First stable release of the cross-platform Apple Music API client for Expo (iOS 
 - **Android:** catalog station queue not supported (playback AAR).
 - **Web / Android:** `Auth.checkSubscription()` infers flags (no native `MusicSubscription` API).
 - **Web:** playback and hooks marked ⚠️ — verify in Safari + Chrome ([docs/QA_SIGNOFF.md](./docs/QA_SIGNOFF.md)).
-- **Optional APIs deferred:** `Library.getMusicVideos`, `Library.search`, catalog batch GET by IDs.

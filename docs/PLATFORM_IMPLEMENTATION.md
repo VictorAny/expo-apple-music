@@ -49,6 +49,9 @@ How each **public JS method** is implemented on iOS vs Android. The TypeScript A
 | `Library.getPlaylistTracks()` | **Native** library playlist + tracks | REST |
 | `Library.getArtists()` | **Native** `MusicLibraryRequest<Artist>` | REST |
 | `Library.getAlbums()` | **Native** `MusicLibraryRequest<Album>` | REST |
+| `Library.getMusicVideos()` | **Native** `MusicLibraryRequest<MusicVideo>` | REST |
+| `Library.search()` | **Native** `MusicLibrarySearchRequest` | REST `GET /v1/me/library/search` |
+| `Catalog.getByIds()` | REST `GET .../{type}?ids=` | REST |
 
 ---
 

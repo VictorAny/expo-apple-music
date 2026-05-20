@@ -30,4 +30,21 @@ enum ExpoBridgeLibrary {
     let albums = try await service.getAlbums(options: pagination)
     return BridgeResponses.albums(albums)
   }
+
+  static func getLibraryMusicVideos(service: LibraryService, options: NSDictionary) async throws -> [String: Any] {
+    let pagination = BridgePagination(from: options)
+    let musicVideos = try await service.getMusicVideos(options: pagination)
+    return BridgeResponses.musicVideos(musicVideos)
+  }
+
+  static func librarySearch(
+    service: LibraryService,
+    term: String,
+    types: [String],
+    options: NSDictionary
+  ) async throws -> [String: Any] {
+    let pagination = BridgePagination(from: options)
+    let result = try await service.search(term: term, types: types, options: pagination)
+    return BridgeResponses.librarySearch(result)
+  }
 }

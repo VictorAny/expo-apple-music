@@ -41,7 +41,7 @@ Plan for completing `@wwdrew/expo-apple-music` before a **1.0.0** release. The p
 | Playback | `Player.setQueue`, `playLibrary*`, transport, hooks | ✅ | ✅ / station ❌ | ⚠️ soak QA |
 | Public exports | Domain modules only (`src/index.ts`) | ✅ | ✅ | ✅ |
 
-**Deferred (optional v1):** `Library.getMusicVideos`, `Library.search`, catalog batch GET by IDs — see [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md) ⬜ / 🔜 rows.
+**Also in 1.0.0:** `Library.getMusicVideos`, `Library.search`, `Catalog.getByIds` — see [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md).
 
 ### Structural debt remaining for 1.0
 

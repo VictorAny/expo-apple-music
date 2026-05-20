@@ -30,6 +30,17 @@ internal object BridgeResponses {
 
   fun playlists(items: List<Map<String, Any?>>): Map<String, Any?> = mapOf("playlists" to items)
 
+  fun musicVideos(items: List<Map<String, Any?>>): Map<String, Any?> = mapOf("musicVideos" to items)
+
+  fun librarySearch(result: AndroidLibraryService.LibrarySearchResult): Map<String, Any?> =
+    mapOf(
+      "songs" to result.songs,
+      "albums" to result.albums,
+      "artists" to result.artists,
+      "playlists" to result.playlists,
+      "musicVideos" to result.musicVideos,
+    )
+
   fun stations(items: List<Map<String, Any?>>): Map<String, Any?> = mapOf("stations" to items)
 
   fun recentlyPlayedResources(items: List<Map<String, Any?>>): Map<String, Any?> =

@@ -85,6 +85,13 @@ export class WebAppleMusicApiClient {
     return this.catalog.getCatalogCharts(types, limit, offset, genre, chart);
   }
 
+  async getCatalogResources(type: string, ids: string[]) {
+    return this.catalog.getCatalogResources(
+      type as import('../types/catalog-resource-type').CatalogResourceType,
+      ids,
+    );
+  }
+
   async getUserPlaylists(limit: number, offset: number) {
     return this.library.getLibraryPlaylists(limit, offset);
   }
@@ -111,6 +118,19 @@ export class WebAppleMusicApiClient {
 
   async getLibraryAlbums(limit: number, offset: number) {
     return this.library.getLibraryAlbums(limit, offset);
+  }
+
+  async getLibraryMusicVideos(limit: number, offset: number) {
+    return this.library.getLibraryMusicVideos(limit, offset);
+  }
+
+  async librarySearch(term: string, types: string[], limit: number, offset: number) {
+    return this.library.searchLibrary(
+      term,
+      types as import('../types/library-search').LibrarySearchType[],
+      limit,
+      offset,
+    );
   }
 
   async getHeavyRotation(limit: number) {

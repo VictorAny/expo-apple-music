@@ -8,6 +8,7 @@ import {
   type AppleMusicApiResource,
 } from '../mappers/apple-music-json-mapper';
 import * as errors from '../web/apple-music-errors';
+import type { CatalogResourceType } from '../types/catalog-resource-type';
 import type { AppleMusicRestTransport } from './apple-music-rest-transport';
 import { mapResourceArray } from './rest-json';
 import { StorefrontRestClient } from './storefront-rest-client';
@@ -71,6 +72,27 @@ function catalogChartTypeParam(type: string): string | null {
       return 'music-videos';
     default:
       return null;
+  }
+}
+
+function catalogResourceMapper(
+  type: CatalogResourceType,
+): (resource: AppleMusicApiResource) => Record<string, unknown> {
+  switch (type) {
+    case 'songs':
+      return mapSong;
+    case 'albums':
+      return mapAlbum;
+    case 'artists':
+      return mapArtist;
+    case 'playlists':
+      return mapPlaylist;
+    case 'stations':
+      return mapStation;
+    case 'music-videos':
+      return mapMusicVideo;
+    default:
+      throw errors.unknownMediaType(type);
   }
 }
 
@@ -153,6 +175,22 @@ export class CatalogRestClient {
   async getCatalogMusicVideo(id: string): Promise<Record<string, unknown>> {
     const storefrontId = await this.storefront.getStorefront();
     return this.getCatalogResource(`/v1/catalog/${storefrontId}/music-videos/${id}`, mapMusicVideo);
+  }
+
+  async getCatalogResources(
+    type: CatalogResourceType,
+    ids: string[],
+  ): Promise<Record<string, unknown>[]> {
+    const trimmed = ids.map((id) => id.trim()).filter((id) => id.length > 0);
+    if (trimmed.length === 0) {
+      return [];
+    }
+    const storefrontId = await this.storefront.getStorefront();
+    const json = await this.transport.getJson(`/v1/catalog/${storefrontId}/${type}`, {
+      ids: trimmed.join(','),
+    });
+    const mapper = catalogResourceMapper(type);
+    return mapResourceArray(json.data, mapper);
   }
 
   private async getCatalogRelationship(

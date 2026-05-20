@@ -10,6 +10,7 @@ final class CatalogService {
   enum CatalogServiceError: LocalizedError {
     case notFound(String)
     case configurationRequired(String)
+    case unknownResourceType(String)
 
     var errorDescription: String? {
       switch self {
@@ -17,6 +18,8 @@ final class CatalogService {
         return "\(item) not found"
       case .configurationRequired(let message):
         return message
+      case .unknownResourceType(let type):
+        return "Unknown catalog resource type: \(type)"
       }
     }
   }
@@ -264,5 +267,43 @@ final class CatalogService {
     let request = MusicCatalogResourceRequest<MusicVideo>(matching: \.id, equalTo: id)
     let response = try await request.response()
     return response.items.first
+  }
+
+  // MARK: - Batch catalog resources (REST)
+
+  func getResources(type: String, ids: [String]) async throws -> [[String: Any]] {
+    let trimmed = ids.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    if trimmed.isEmpty {
+      return []
+    }
+    let storefront = try await StorefrontService.getStorefrontId()
+    let path = "/v1/catalog/\(storefront)/\(type)"
+    let json = try await AppleMusicRestClient.get(path: path, query: ["ids": trimmed.joined(separator: ",")])
+    guard let data = json["data"] as? [[String: Any]] else {
+      return []
+    }
+    return data.compactMap { resource in
+      mapCatalogResource(type: type, resource: resource)
+    }
+  }
+
+  private func mapCatalogResource(type: String, resource: [String: Any]) -> [String: Any]? {
+    let apiType = resource["type"] as? String ?? ""
+    switch type {
+    case "songs" where apiType.contains("song"):
+      return RestJsonMapper.mapSong(resource)
+    case "albums" where apiType.contains("album"):
+      return RestJsonMapper.mapAlbum(resource)
+    case "artists" where apiType.contains("artist"):
+      return RestJsonMapper.mapArtist(resource)
+    case "playlists" where apiType.contains("playlist"):
+      return RestJsonMapper.mapPlaylist(resource)
+    case "stations" where apiType.contains("station"):
+      return RestJsonMapper.mapStation(resource)
+    case "music-videos" where apiType.contains("music-video"):
+      return RestJsonMapper.mapMusicVideo(resource)
+    default:
+      return nil
+    }
   }
 }

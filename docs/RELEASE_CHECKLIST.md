@@ -50,11 +50,11 @@ From [V1_PLAN.md §9](./V1_PLAN.md#9-v10-release-criteria):
 
 ---
 
-## 3. Optional v1 (defer to 1.x if skipping)
+## 3. Optional v1 (implemented in 1.0.0)
 
-- [ ] `Library.getMusicVideos()` — [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md) ⬜
-- [ ] `Library.search()` — ⬜
-- [ ] Catalog batch GET by IDs — 🔜 in [V1_PLAN.md](./V1_PLAN.md)
+- [x] `Library.getMusicVideos()` — [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md)
+- [x] `Library.search()` — [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md)
+- [x] `Catalog.getByIds(type, ids)` — batch catalog GET via REST on all platforms
 
 ---
 

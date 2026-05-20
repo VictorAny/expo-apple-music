@@ -32,5 +32,17 @@ export function createLibraryBridge(api: WebAppleMusicApiClient) {
       const albums = await api.getLibraryAlbums(pagination.limit, pagination.offset);
       return BridgeResponses.albums(albums);
     },
+
+    async getLibraryMusicVideos(options: Record<string, unknown>) {
+      const pagination = paginationFromMap(options);
+      const musicVideos = await api.getLibraryMusicVideos(pagination.limit, pagination.offset);
+      return BridgeResponses.musicVideos(musicVideos);
+    },
+
+    async librarySearch(term: string, types: string[], options: Record<string, unknown>) {
+      const pagination = paginationFromMap(options);
+      const result = await api.librarySearch(term, types, pagination.limit, pagination.offset);
+      return BridgeResponses.librarySearch(result);
+    },
   };
 }

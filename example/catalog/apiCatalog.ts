@@ -110,6 +110,12 @@ export const API_MODULES: ApiModule[] = [
         signature: "Catalog.getCharts(types, options?)",
         summary: "Top charts for songs, albums, and other types.",
       },
+      {
+        id: "getByIds",
+        name: "getByIds",
+        signature: "Catalog.getByIds(type, ids)",
+        summary: "Fetch multiple catalog resources by storefront id.",
+      },
     ],
   },
   {
@@ -231,6 +237,18 @@ export const API_MODULES: ApiModule[] = [
         name: "getAlbums",
         signature: "Library.getAlbums(options?)",
         summary: "Albums in the user's library.",
+      },
+      {
+        id: "getMusicVideos",
+        name: "getMusicVideos",
+        signature: "Library.getMusicVideos(options?)",
+        summary: "Music videos in the user's library.",
+      },
+      {
+        id: "search",
+        name: "search",
+        signature: "Library.search(term, types, options?)",
+        summary: "Search the user's library (not the catalog store).",
       },
     ],
   },

@@ -42,6 +42,16 @@ internal class LibraryRestClient(
       songs
     }
 
+  private fun librarySearchTypeParam(type: String): String? =
+    when (type) {
+      "library-songs", "songs" -> "library-songs"
+      "library-albums", "albums" -> "library-albums"
+      "library-artists", "artists" -> "library-artists"
+      "library-playlists", "playlists" -> "library-playlists"
+      "library-music-videos", "music-videos", "musicVideos" -> "library-music-videos"
+      else -> null
+    }
+
   suspend fun getLibraryArtists(limit: Int, offset: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
@@ -60,6 +70,75 @@ internal class LibraryRestClient(
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
       mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapAlbum(it) }
+    }
+
+  data class LibrarySearchResult(
+    val songs: List<Map<String, Any?>>,
+    val albums: List<Map<String, Any?>>,
+    val artists: List<Map<String, Any?>>,
+    val playlists: List<Map<String, Any?>>,
+    val musicVideos: List<Map<String, Any?>>,
+  )
+
+  suspend fun getLibraryMusicVideos(limit: Int, offset: Int): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val json =
+        transport.getJson(
+          "/v1/me/library/music-videos",
+          mapOf("limit" to limit.toString(), "offset" to offset.toString()),
+        )
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapMusicVideo(it) }
+    }
+
+  suspend fun searchLibrary(
+    term: String,
+    types: List<String>,
+    limit: Int,
+    offset: Int,
+  ): LibrarySearchResult =
+    withContext(Dispatchers.IO) {
+      val typeParam =
+        types
+          .mapNotNull { librarySearchTypeParam(it) }
+          .distinct()
+          .sorted()
+          .joinToString(",")
+          .ifEmpty { "library-songs,library-albums" }
+
+      val json =
+        transport.getJson(
+          "/v1/me/library/search",
+          mapOf(
+            "term" to term,
+            "types" to typeParam,
+            "limit" to limit.toString(),
+            "offset" to offset.toString(),
+          ),
+        )
+
+      val results = json.optJSONObject("results") ?: JSONObject()
+      LibrarySearchResult(
+        songs =
+          mapResourceArray(results.optJSONObject("library-songs")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapSong(it)
+          },
+        albums =
+          mapResourceArray(results.optJSONObject("library-albums")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapAlbum(it)
+          },
+        artists =
+          mapResourceArray(results.optJSONObject("library-artists")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapArtist(it)
+          },
+        playlists =
+          mapResourceArray(results.optJSONObject("library-playlists")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapPlaylist(it)
+          },
+        musicVideos =
+          mapResourceArray(results.optJSONObject("library-music-videos")?.optJSONArray("data")) {
+            AppleMusicJsonMapper.mapMusicVideo(it)
+          },
+      )
     }
 
   suspend fun probeLibraryAccess(): Boolean =

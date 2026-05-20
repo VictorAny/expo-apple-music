@@ -25,6 +25,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Search (songs, albums) | `Catalog.search()` | ✅ | ✅ | ✅ |
 | Search (artists, playlists, stations, music-videos) | `Catalog.search()` | ✅ | ✅ | ✅ |
 | Get resource by ID | `Catalog.getSong` / `getAlbum` / `getArtist` / `getPlaylist` / `getStation` / `getMusicVideo` | ✅ | ✅ | ✅ |
+| Multiple resources by ID | `Catalog.getByIds(type, ids)` | ✅ REST | ✅ REST | ✅ REST |
 | Album → tracks | `Catalog.getAlbumTracks()` | ✅ | ✅ | ✅ |
 | Artist → albums | `Catalog.getArtistAlbums()` | ✅ | ✅ | ✅ |
 | Playlist → tracks | `Catalog.getPlaylistTracks()` | ✅ | ✅ | ✅ |
@@ -41,8 +42,8 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Playlist tracks | `Library.getPlaylistTracks()` | ✅ | ✅ | ✅ |
 | List artists | `Library.getArtists()` | ✅ | ✅ | ✅ |
 | List albums | `Library.getAlbums()` | ✅ | ✅ | ✅ |
-| List music-videos | `Library.getMusicVideos()` | ⬜ | ⬜ | ⬜ |
-| Library search | `Library.search()` | ⬜ | ⬜ | ⬜ |
+| List music-videos | `Library.getMusicVideos()` | ✅ | ✅ | ✅ |
+| Library search | `Library.search()` | ✅ | ✅ | ✅ |
 
 ---
 
@@ -103,6 +104,9 @@ See [RECOMMENDATIONS.md](./RECOMMENDATIONS.md). Heavy rotation is under History,
 | Catalog playlist tracks | `GET /v1/catalog/{storefront}/playlists/{id}/tracks` |
 | Catalog charts | `GET /v1/catalog/{storefront}/charts` |
 | Library songs | `GET /v1/me/library/songs` |
+| Library music-videos | `GET /v1/me/library/music-videos` |
+| Library search | `GET /v1/me/library/search` |
+| Catalog batch by id | `GET /v1/catalog/{storefront}/{type}?ids=` |
 | Library artists | `GET /v1/me/library/artists` |
 | Library playlists | `GET /v1/me/library/playlists` |
 | Playlist tracks | `GET /v1/me/library/playlists/{id}/tracks` |

@@ -6,6 +6,12 @@ export * from './types/playback-status';
 
 export * from './types/catalog-search';
 
+export * from './types/catalog-resource-type';
+
+export * from './types/library-search';
+
+export * from './types/library-music-videos';
+
 export * from './types/album';
 
 export * from './types/auth-status';
@@ -57,6 +63,8 @@ import Ratings from './modules/ratings';
 import Recommendations from './modules/recommendations';
 
 export type { LibrarySongsResponse } from './modules/library';
+
+export type { CatalogByIdsResult } from './modules/catalog';
 
 export type { RecentlyPlayedTracksResponse } from './modules/history';
 

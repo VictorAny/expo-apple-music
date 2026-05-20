@@ -2,13 +2,46 @@ import {
   catalogPlaybackId,
   mapAlbum,
   mapArtist,
+  mapMusicVideo,
   mapPlaylist,
   mapSong,
   type AppleMusicApiResource,
 } from '../mappers/apple-music-json-mapper';
+import type { LibrarySearchType } from '../types/library-search';
 import * as errors from '../web/apple-music-errors';
 import type { AppleMusicRestTransport } from './apple-music-rest-transport';
 import { mapResourceArray } from './rest-json';
+
+export type LibrarySearchResult = {
+  songs: Record<string, unknown>[];
+  albums: Record<string, unknown>[];
+  artists: Record<string, unknown>[];
+  playlists: Record<string, unknown>[];
+  musicVideos: Record<string, unknown>[];
+};
+
+function librarySearchTypeParam(type: string): string | null {
+  switch (type) {
+    case 'library-songs':
+    case 'songs':
+      return 'library-songs';
+    case 'library-albums':
+    case 'albums':
+      return 'library-albums';
+    case 'library-artists':
+    case 'artists':
+      return 'library-artists';
+    case 'library-playlists':
+    case 'playlists':
+      return 'library-playlists';
+    case 'library-music-videos':
+    case 'music-videos':
+    case 'musicVideos':
+      return 'library-music-videos';
+    default:
+      return null;
+  }
+}
 
 /** Library-domain Apple Music REST (user collection reads + playback id resolution). */
 export class LibraryRestClient {
@@ -52,6 +85,42 @@ export class LibraryRestClient {
       offset: String(offset),
     });
     return mapResourceArray(json.data, mapAlbum);
+  }
+
+  async getLibraryMusicVideos(limit: number, offset: number) {
+    const json = await this.transport.getJson('/v1/me/library/music-videos', {
+      limit: String(limit),
+      offset: String(offset),
+    });
+    return mapResourceArray(json.data, mapMusicVideo);
+  }
+
+  async searchLibrary(
+    term: string,
+    types: LibrarySearchType[],
+    limit: number,
+    offset: number,
+  ): Promise<LibrarySearchResult> {
+    const typeParam = [...new Set(types.map(librarySearchTypeParam).filter(Boolean))].sort().join(
+      ',',
+    );
+    const typesQuery = typeParam || 'library-songs,library-albums';
+
+    const json = await this.transport.getJson('/v1/me/library/search', {
+      term,
+      types: typesQuery,
+      limit: String(limit),
+      offset: String(offset),
+    });
+
+    const results = (json.results ?? {}) as Record<string, { data?: AppleMusicApiResource[] }>;
+    return {
+      songs: mapResourceArray(results['library-songs']?.data, mapSong),
+      albums: mapResourceArray(results['library-albums']?.data, mapAlbum),
+      artists: mapResourceArray(results['library-artists']?.data, mapArtist),
+      playlists: mapResourceArray(results['library-playlists']?.data, mapPlaylist),
+      musicVideos: mapResourceArray(results['library-music-videos']?.data, mapMusicVideo),
+    };
   }
 
   async probeLibraryAccess(): Promise<boolean> {

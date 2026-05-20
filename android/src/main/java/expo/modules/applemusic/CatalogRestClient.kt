@@ -92,6 +92,47 @@ internal class CatalogRestClient(
   suspend fun getCatalogMusicVideo(id: String): Map<String, Any?> =
     getCatalogResource("/music-videos/$id") { AppleMusicJsonMapper.mapMusicVideo(it) }
 
+  suspend fun getCatalogResources(type: String, ids: List<String>): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val trimmed = ids.map { it.trim() }.filter { it.isNotEmpty() }
+      if (trimmed.isEmpty()) {
+        return@withContext emptyList()
+      }
+      val storefrontId = storefront.getStorefront()
+      val json =
+        transport.getJson(
+          "/v1/catalog/$storefrontId/$type",
+          mapOf("ids" to trimmed.joinToString(",")),
+        )
+      val data = json.optJSONArray("data") ?: JSONArray()
+      val items = mutableListOf<Map<String, Any?>>()
+      for (i in 0 until data.length()) {
+        val resource = data.getJSONObject(i)
+        val mapped = mapCatalogResource(type, resource) ?: continue
+        items.add(mapped)
+      }
+      items
+    }
+
+  private fun mapCatalogResource(type: String, resource: JSONObject): Map<String, Any?>? {
+    val apiType = resource.optString("type", "")
+    return when (type) {
+      "songs" ->
+        if (apiType.contains("song")) AppleMusicJsonMapper.mapSong(resource) else null
+      "albums" ->
+        if (apiType.contains("album")) AppleMusicJsonMapper.mapAlbum(resource) else null
+      "artists" ->
+        if (apiType.contains("artist")) AppleMusicJsonMapper.mapArtist(resource) else null
+      "playlists" ->
+        if (apiType.contains("playlist")) AppleMusicJsonMapper.mapPlaylist(resource) else null
+      "stations" ->
+        if (apiType.contains("station")) AppleMusicJsonMapper.mapStation(resource) else null
+      "music-videos" ->
+        if (apiType.contains("music-video")) AppleMusicJsonMapper.mapMusicVideo(resource) else null
+      else -> null
+    }
+  }
+
   suspend fun getCatalogAlbumTracks(
     albumId: String,
     limit: Int,
