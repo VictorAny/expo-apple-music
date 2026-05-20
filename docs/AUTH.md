@@ -70,11 +70,34 @@ There is **no web-based login** on Android native MusicKit — only the Apple Mu
 - **Developer JWT required** — same as Android; reject with `MISSING_DEVELOPER_TOKEN` if missing
 - User signs in through MusicKit’s browser authorize UI (popup to `authorize.music.apple.com`; allow popups for your origin)
 - Success is determined from **`music.isAuthorized`** after `music.authorize()` — the SDK return value is often a user token string, not a status label
-- Configure your App ID for **MusicKit on the Web** in the Apple Developer portal (domain association)
+- **Apple Developer portal:** enable **MusicKit** on your App ID ([Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources) → **Identifiers** → your App ID → **App Services** → MusicKit). There is **no** separate “add web domain” screen like Sign in with Apple — see [Web origin (optional JWT claim)](#web-origin-optional-jwt-claim) below.
 - `options` (`hideStartScreen`, `startScreenMessage`) are **ignored** on web
 - `checkSubscription()` uses REST inference (library probe), not `MusicSubscription.current`
 
 See [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md).
+
+#### Web origin (optional JWT claim)
+
+For production web apps, Apple recommends an optional **`origin`** claim in the developer JWT — an array of allowed browser origins (full URL including scheme and port):
+
+```json
+"origin": ["https://music.example.com", "http://localhost:8081"]
+```
+
+When present, Apple rejects requests whose `Origin` header does not match a listed value. This is **not** configured in the Developer portal; you add it when signing the JWT ([Generating Developer Tokens](https://developer.apple.com/documentation/applemusicapi/generating-developer-tokens)).
+
+| Token | Behavior |
+| ----- | -------- |
+| **No `origin` claim** (default from `npm run dev-token`) | Works from any origin — simplest for local dev |
+| **With `origin` claim** | Must match the exact URL in the browser (e.g. `http://localhost:8081`, not `8080`) |
+
+Mint a localhost token with the repo CLI:
+
+```sh
+npm run dev-token -- --origin http://localhost:8081 --write-env example/.env.local
+```
+
+**Local dev checklist:** use the exact origin Expo prints, allow popups, use a normal (non-private) browser window, and ensure the account has an Apple Music subscription. If auth still fails on localhost, see [CLI.md](./CLI.md) (tunnel fallback).
 
 ### Android-only options
 

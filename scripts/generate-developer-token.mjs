@@ -59,18 +59,22 @@ Generate options:
   --key-id <id>            Key ID (JWT kid header)
   --private-key <path>     Path to .p8 private key file
   --expires-in <duration>  Token lifetime (default: 1d). Suffix: s, m, h, d
+  --origin <url>           Web origin claim (repeatable or comma-separated). Example: http://localhost:8081
   --write-env <path>       Write EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN=… to file
 
 Verify options:
   --verify <jwt>           Decode JWT and call Apple Music API (no Apple Music app)
   --storefront <code>      Catalog storefront for verify request (default: us)
+  --origin <url>           Origin header for verify (required when JWT has origin claim)
 
   -h, --help               Show this help
 
 Examples:
   npm run dev-token
   npm run dev-token -- --write-env example/.env.local
-  npm run dev-token -- --verify "$(grep EXPO_PUBLIC example/.env.local | cut -d= -f2)"
+  npm run dev-token -- --origin http://localhost:8081 --write-env example/.env.local
+  npm run dev-token -- --verify "$(grep EXPO_PUBLIC example/.env.local | cut -d= -f2-)"
+  npm run dev-token -- --verify "<jwt>" --origin http://localhost:8081
 `);
 }
 
@@ -85,12 +89,40 @@ function parseDuration(value) {
   return amount * multipliers[unit];
 }
 
+function parseOriginValues(raw) {
+  if (!raw?.trim()) {
+    return [];
+  }
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function normalizeOrigins(values) {
+  const origins = [];
+  for (const value of values) {
+    for (const part of parseOriginValues(value)) {
+      if (!/^https?:\/\//i.test(part)) {
+        throw new Error(
+          `Invalid origin "${part}". Use a full URL with http:// or https:// (e.g. http://localhost:8081).`,
+        );
+      }
+      if (!origins.includes(part)) {
+        origins.push(part);
+      }
+    }
+  }
+  return origins;
+}
+
 function parseArgs(argv) {
   const options = {
     expiresIn: '1d',
     writeEnv: null,
     verifyToken: null,
     storefront: 'us',
+    origins: normalizeOrigins(parseOriginValues(process.env.APPLE_MUSIC_ORIGINS)),
     teamId: process.env.APPLE_MUSIC_TEAM_ID,
     keyId: process.env.APPLE_MUSIC_KEY_ID,
     privateKeyPath: process.env.APPLE_MUSIC_PRIVATE_KEY_PATH,
@@ -132,6 +164,9 @@ function parseArgs(argv) {
       case '--storefront':
         options.storefront = readValue();
         break;
+      case '--origin':
+        options.origins = normalizeOrigins([...options.origins, ...parseOriginValues(readValue())]);
+        break;
       default:
         throw new Error(`Unknown argument: ${arg}`);
     }
@@ -162,7 +197,20 @@ function formatUnixTime(seconds) {
   return `${new Date(seconds * 1000).toISOString()} (${seconds})`;
 }
 
-async function verifyDeveloperToken(token, storefront) {
+function originHeaderForVerify(payload, cliOrigin) {
+  const claimOrigins = Array.isArray(payload.origin)
+    ? payload.origin.filter((value) => typeof value === 'string')
+    : [];
+  if (cliOrigin) {
+    return cliOrigin;
+  }
+  if (claimOrigins.length === 1) {
+    return claimOrigins[0];
+  }
+  return null;
+}
+
+async function verifyDeveloperToken(token, storefront, cliOrigin) {
   let header;
   let payload;
   try {
@@ -174,6 +222,25 @@ async function verifyDeveloperToken(token, storefront) {
 
   console.log('JWT header:', JSON.stringify(header, null, 2));
   console.log('JWT payload:', JSON.stringify(payload, null, 2));
+
+  const claimOrigins = Array.isArray(payload.origin) ? payload.origin : null;
+  if (claimOrigins?.length) {
+    console.log(`JWT origin claim: ${JSON.stringify(claimOrigins)}`);
+  }
+
+  const originHeader = originHeaderForVerify(payload, cliOrigin);
+  if (claimOrigins?.length && !originHeader) {
+    console.error(
+      '✗ JWT includes an origin claim. Pass --origin <url> matching one of the claim values.',
+    );
+    process.exit(1);
+  }
+  if (claimOrigins?.length && originHeader && !claimOrigins.includes(originHeader)) {
+    console.error(
+      `✗ --origin ${originHeader} is not listed in the JWT origin claim: ${JSON.stringify(claimOrigins)}`,
+    );
+    process.exit(1);
+  }
 
   const now = Math.floor(Date.now() / 1000);
   if (typeof payload.exp === 'number') {
@@ -205,11 +272,15 @@ async function verifyDeveloperToken(token, storefront) {
 
   console.log(`\nCalling Apple Music API: ${url.pathname}${url.search}`);
 
+  const headers = { Authorization: `Bearer ${token.trim()}` };
+  if (originHeader) {
+    headers.Origin = originHeader;
+    console.log(`Using Origin header: ${originHeader}`);
+  }
+
   let response;
   try {
-    response = await fetch(url, {
-      headers: { Authorization: `Bearer ${token.trim()}` },
-    });
+    response = await fetch(url, { headers });
   } catch (error) {
     console.error(`✗ Network error: ${error.message}`);
     process.exit(1);
@@ -234,7 +305,7 @@ function base64urlJson(value) {
   return Buffer.from(JSON.stringify(value)).toString('base64url');
 }
 
-function signDeveloperToken({ teamId, keyId, privateKeyPem, expiresInSeconds }) {
+function signDeveloperToken({ teamId, keyId, privateKeyPem, expiresInSeconds, origins }) {
   const now = Math.floor(Date.now() / 1000);
   const exp = now + expiresInSeconds;
   if (expiresInSeconds > MAX_EXPIRY_SECONDS) {
@@ -245,6 +316,9 @@ function signDeveloperToken({ teamId, keyId, privateKeyPem, expiresInSeconds }) 
 
   const header = { alg: 'ES256', kid: keyId };
   const payload = { iss: teamId, iat: now, exp };
+  if (origins.length > 0) {
+    payload.origin = origins;
+  }
 
   const encodedHeader = base64urlJson(header);
   const encodedPayload = base64urlJson(payload);
@@ -281,7 +355,11 @@ async function main() {
   }
 
   if (options.verifyToken) {
-    await verifyDeveloperToken(options.verifyToken, options.storefront);
+    await verifyDeveloperToken(
+      options.verifyToken,
+      options.storefront,
+      options.origins[0] ?? null,
+    );
     return;
   }
 
@@ -315,7 +393,12 @@ async function main() {
     keyId,
     privateKeyPem,
     expiresInSeconds,
+    origins: options.origins,
   });
+
+  if (options.origins.length > 0) {
+    console.error(`Origin claim: ${JSON.stringify(options.origins)}`);
+  }
 
   if (options.writeEnv) {
     const envPath = resolve(options.writeEnv);

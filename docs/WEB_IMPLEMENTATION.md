@@ -51,11 +51,12 @@ web/
 
 ## Prerequisites (app + Apple Developer)
 
-1. **MusicKit** enabled on your App ID in the [Apple Developer portal](https://developer.apple.com) (same as iOS/Android).
-2. **MusicKit identifier** configured for web (bundle/domain association per Apple’s MusicKit JS setup).
+1. **MusicKit** enabled on your App ID in the [Apple Developer portal](https://developer.apple.com/account/resources) → **Identifiers** → App IDs → your app → **App Services** → **MusicKit** (same toggle as iOS).
+2. **MusicKit private key** — **Keys** → create a key with **Media Services** / MusicKit → download `.p8`; sign developer JWTs with Team ID + Key ID ([CLI.md](./CLI.md)).
 3. **Developer token** from your **backend** (or dev-only env var in the example app). Never ship the `.p8` private key in the client.
-4. **Expo web** in the host app (`expo start --web`); test in browsers Apple supports for MusicKit JS (Safari, Chrome, Firefox — verify playback per target).
-5. User must have an **Apple Music subscription** (or trial) and complete the web sign-in flow.
+4. **Web origins (optional):** restrict JWTs with an `origin` claim in the payload (not a portal “domain list”). Omit for dev; add `http://localhost:<port>` when you want origin lock-down — see [AUTH.md](./AUTH.md#web-origin-optional-jwt-claim).
+5. **Expo web** in the host app (`expo start --web`); test in browsers Apple supports for MusicKit JS (Safari, Chrome, Firefox — verify playback per target).
+6. User must have an **Apple Music subscription** (or trial) and complete the web sign-in flow.
 
 ### Config plugin
 

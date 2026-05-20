@@ -22,7 +22,9 @@ On **iOS**, a developer JWT is optional for `Auth.authorize()` (media library pe
 2. Download **`AuthKey_XXXXXXXXXX.p8`** once (cannot be re-downloaded).
 3. Note your **Team ID** (issuer) and **Key ID** (`kid`).
 
-Enable **MusicKit** on your App ID if you have not already. The CLI does not configure Apple Developer for you.
+Enable **MusicKit** on your App ID if you have not already ([Identifiers](https://developer.apple.com/account/resources) → App IDs → **App Services** → MusicKit). The CLI does not configure Apple Developer for you.
+
+Optional: set **`APPLE_MUSIC_ORIGINS`** in `.env.music` (comma-separated full URLs) to add an `origin` JWT claim on every generate — useful for web lock-down. See [AUTH.md](./AUTH.md#web-origin-optional-jwt-claim).
 
 ---
 
@@ -60,23 +62,29 @@ npm run dev-token
 | `--key-id <id>` | Key ID (`kid` header). Overrides `APPLE_MUSIC_KEY_ID`. |
 | `--private-key <path>` | Path to `.p8` file. Overrides `APPLE_MUSIC_PRIVATE_KEY_PATH`. |
 | `--expires-in <duration>` | Lifetime: `30m`, `12h`, `1d`, etc. Default `1d`. Max ~6 months (Apple limit). |
+| `--origin <url>` | Optional **`origin` JWT claim** for web (repeat flag or comma-separated). Example: `http://localhost:8081`. Omit for a token valid from any origin. |
 | `--write-env <path>` | Write `EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN=…` to a file. |
 
-Credentials are read from **flags** or **`.env.music`** in the repo root (loaded automatically).
+Credentials are read from **flags** or **`.env.music`** in the repo root (loaded automatically). **`APPLE_MUSIC_ORIGINS`** in `.env.music` adds an `origin` claim when `--origin` is not passed.
 
 ### Example app workflow
 
 ```sh
-# 1. Mint token into the example env file
+# 1. Mint token into the example env file (no origin claim — any localhost port)
 npm run dev-token -- --write-env example/.env.local
+
+# Web: lock token to Expo’s origin (use the port Metro prints, often 8081)
+npm run dev-token -- --origin http://localhost:8081 --write-env example/.env.local
 
 # 2. Restart Metro so Expo picks up the new env
 cd example && npx expo start --clear
 
-# 3. Run the native app and tap Authorize
+# 3. Run the app
 cd example && npx expo run:ios
 # or
 cd example && npx expo run:android
+# or
+cd example && npx expo start --web
 ```
 
 The example reads `process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` and passes it to `Auth.authorize(token)`. On **iOS**, that enables REST catalog search; on **Android** it is required.
@@ -109,6 +117,7 @@ npm run dev-token -- --verify "$(grep '^EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN=
 | ---- | ----------- |
 | `--verify <jwt>` | Required. The token to check. |
 | `--storefront <code>` | Catalog storefront for the test request. Default `us`. |
+| `--origin <url>` | Send an `Origin` header with the test request. **Required** when the JWT includes an `origin` claim with multiple values; auto-used when the claim has exactly one value. |
 
 ### What verify does
 
@@ -119,7 +128,7 @@ npm run dev-token -- --verify "$(grep '^EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN=
 | API result | Meaning |
 | ---------- | ------- |
 | HTTP **200** | Developer JWT is valid for Apple Music API (signature, team, key, expiry). |
-| HTTP **401** / **403** | Rejected — wrong key, team ID, expired token, or malformed JWT. |
+| HTTP **401** / **403** | Rejected — wrong key, team ID, expired token, malformed JWT, or **`origin` claim mismatch** (pass `--origin`). |
 | Decode error | Not a JWT (e.g. a random string). |
 
 A successful verify does **not** guarantee `Auth.authorize()` returns `authorized` — you still need the user to complete the Apple Music app flow (sign-in, subscription, approval). It only confirms the **developer token** is correct.
@@ -152,7 +161,8 @@ node scripts/generate-developer-token.mjs --help
 | ------- | ------------- |
 | `Missing credentials` | Create `.env.music` from `.env.music.example` or pass `--team-id`, `--key-id`, `--private-key`. |
 | `Could not read private key` | Check `APPLE_MUSIC_PRIVATE_KEY_PATH` points at your `.p8` file. |
-| Verify HTTP 401 | Regenerate with `npm run dev-token`; confirm Team ID and Key ID match the `.p8` key. |
+| Verify HTTP 401 | Regenerate with `npm run dev-token`; confirm Team ID and Key ID match the `.p8` key. If the JWT has an `origin` claim, pass `--origin` matching the claim. |
+| Web auth popup 403 | Allow popups; match JWT `origin` to the browser URL (scheme + host + port); try a normal browser window. See [AUTH.md](./AUTH.md#web-origin-optional-jwt-claim). |
 | Example Authorize disabled | Set `EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` in `example/.env.local` and restart Metro. |
 | Authorize opens Apple Music but never `authorized` | Token may still be fine — verify with `--verify`; complete approval in Apple Music with an active subscription. |
 | `MISSING_DEVELOPER_TOKEN` in app | Pass a non-empty string to `Auth.authorize(developerToken)` on Android. |

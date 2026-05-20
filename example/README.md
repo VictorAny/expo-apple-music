@@ -19,12 +19,40 @@ Dev playground for [`@wwdrew/expo-apple-music`](../README.md).
 
 Without `EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN`, iOS search may hit Apple’s auto-token 404 until the bundle ID is fully registered for MusicKit — the JWT forces REST search.
 
-## Android & web
+## Android
 
 Set the same env var; Android **requires** it. See [docs/CLI.md](../docs/CLI.md).
+
+```sh
+npm run dev-token -- --write-env example/.env.local
+cd example && npx expo start --clear && npx expo run:android
+```
+
+## Web (localhost)
+
+There is **no** “add domain” page in the Apple Developer portal for MusicKit web. Configure:
+
+1. **App ID** — [Identifiers](https://developer.apple.com/account/resources) → `com.wwdrew.applemusic.example` → **App Services** → **MusicKit** ✓
+2. **Developer JWT** — same `npm run dev-token` flow as Android ([docs/CLI.md](../docs/CLI.md))
+3. **Optional origin lock** — only if you add an `origin` claim to the JWT (recommended for production, optional for local dev):
+
+   ```sh
+   # Use the exact URL Expo prints (port may differ)
+   npm run dev-token -- --origin http://localhost:8081 --write-env example/.env.local
+   ```
+
+4. **Run:**
+
+   ```sh
+   cd example && npx expo start --web
+   ```
+
+5. **Browser:** allow popups for localhost; use a subscribed Apple ID; open the exact origin you minted (if using `--origin`).
+
+If auth fails with 403 after the popup, see [docs/AUTH.md](../docs/AUTH.md#web-origin-optional-jwt-claim). As a fallback, expose the app via a tunnel (ngrok, Cloudflare Tunnel), add that HTTPS origin to `--origin`, and register nothing extra in the portal.
 
 ## Docs
 
 - [docs/IOS_SETUP.md](../docs/IOS_SETUP.md) — full iOS signing and release checklist  
-- [docs/AUTH.md](../docs/AUTH.md) — auth behavior  
+- [docs/AUTH.md](../docs/AUTH.md) — auth behavior (incl. web / localhost)  
 - [docs/CLI.md](../docs/CLI.md) — `npm run dev-token`
