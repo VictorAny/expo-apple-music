@@ -102,6 +102,10 @@ A **developer token** is a **signed JWT** you create with your MusicKit **privat
 
 On **iOS**, the developer token is optional for `authorize()` (media-library permission still works without it). When provided, it is stored for REST and **catalog search** uses the Apple Music API with that JWT instead of MusicKit auto-token (useful when provisioning does not yet include MusicKit).
 
+### Native session (iOS / Android)
+
+After `authorize()`, native code reads an **`AuthenticatedSession`** snapshot (developer JWT, music user token, and transport flags) instead of querying storage ad hoc. `MusicKitAuthStorage` only persists tokens; REST (`AppleMusicRestClient` / `AppleMusicApiClient`), catalog search transport, and storefront resolution use the session. Storefront id is cached in memory until tokens change.
+
 ### Providing the token
 
 **Runtime (production and apps)**

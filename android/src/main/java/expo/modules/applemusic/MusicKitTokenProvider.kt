@@ -6,9 +6,10 @@ import com.apple.android.sdk.authentication.TokenProvider
 internal class MusicKitTokenProvider(
   private val context: Context,
 ) : TokenProvider {
-  override fun getDeveloperToken(): String =
-    MusicKitAuthStorage.getDeveloperToken(context).orEmpty()
+  private val session: AuthenticatedSession
+    get() = AuthenticatedSession.load(context)
 
-  override fun getUserToken(): String =
-    MusicKitAuthStorage.getMusicUserToken(context).orEmpty()
+  override fun getDeveloperToken(): String = session.developerToken.orEmpty()
+
+  override fun getUserToken(): String = session.musicUserToken.orEmpty()
 }

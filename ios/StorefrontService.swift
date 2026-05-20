@@ -20,9 +20,15 @@ enum StorefrontService {
   }
 
   static func getStorefrontId() async throws -> String {
-    if MusicKitAuthStorage.hasRestTokens() {
+    if let cached = AuthenticatedSessionCache.cachedStorefrontId() {
+      return cached
+    }
+
+    let session = AuthenticatedSession.current
+    if session.hasRestTokens {
       let data = try await AppleMusicRestClient.getDataArray(path: "/v1/me/storefront")
       if let id = data.first?["id"] as? String, !id.isEmpty {
+        AuthenticatedSessionCache.setStorefrontId(id)
         return id
       }
     }

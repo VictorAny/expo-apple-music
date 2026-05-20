@@ -21,24 +21,14 @@ internal class AppleMusicApiClient(
       .readTimeout(30, TimeUnit.SECONDS)
       .build()
 
-  @Volatile
-  private var cachedStorefront: String? = null
-
-  private fun requireTokens(): Pair<String, String> {
-    val developer = MusicKitAuthStorage.getDeveloperToken(context)
-    val user = MusicKitAuthStorage.getMusicUserToken(context)
-    if (developer.isNullOrBlank() || user.isNullOrBlank()) {
-      throw AppleMusicErrors.missingTokens()
-    }
-    return developer to user
-  }
+  private fun session(): AuthenticatedSession = AuthenticatedSession.load(context)
 
   suspend fun getStorefront(): String =
     withContext(Dispatchers.IO) {
-      cachedStorefront?.let { return@withContext it }
+      AuthenticatedSessionCache.storefrontId?.let { return@withContext it }
       val json = getJson("/v1/me/storefront")
       val id = json.getJSONArray("data").getJSONObject(0).getString("id")
-      cachedStorefront = id
+      AuthenticatedSessionCache.storefrontId = id
       id
     }
 
@@ -593,7 +583,9 @@ internal class AppleMusicApiClient(
     body: JSONObject? = null,
   ): JSONObject =
     withContext(Dispatchers.IO) {
-      val (developerToken, userToken) = requireTokens()
+      val credentials = session().requireRestCredentials()
+      val developerToken = credentials.developerToken
+      val userToken = credentials.musicUserToken
       val urlBuilder =
         HttpUrl.Builder()
           .scheme("https")

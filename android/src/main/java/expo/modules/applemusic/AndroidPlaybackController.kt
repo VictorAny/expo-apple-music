@@ -330,11 +330,7 @@ internal class AndroidPlaybackController private constructor(
   }
 
   private fun requirePlaybackTokens() {
-    val developer = MusicKitAuthStorage.getDeveloperToken(appContext)
-    val user = MusicKitAuthStorage.getMusicUserToken(appContext)
-    if (developer.isNullOrBlank() || user.isNullOrBlank()) {
-      throw AppleMusicErrors.missingTokens()
-    }
+    AuthenticatedSession.load(appContext).requireRestCredentials()
   }
 
   companion object {

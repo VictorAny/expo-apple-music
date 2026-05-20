@@ -10,6 +10,7 @@ enum MusicKitAuthStorage {
 
   static func saveDeveloperToken(_ token: String) {
     UserDefaults.standard.set(token, forKey: developerTokenKey)
+    AuthenticatedSessionCache.invalidate()
   }
 
   static func getDeveloperToken() -> String? {
@@ -18,6 +19,7 @@ enum MusicKitAuthStorage {
 
   static func saveMusicUserToken(_ token: String) {
     UserDefaults.standard.set(token, forKey: musicUserTokenKey)
+    AuthenticatedSessionCache.invalidate()
   }
 
   static func getMusicUserToken() -> String? {
@@ -26,20 +28,11 @@ enum MusicKitAuthStorage {
 
   static func clearMusicUserToken() {
     UserDefaults.standard.removeObject(forKey: musicUserTokenKey)
+    AuthenticatedSessionCache.invalidate()
   }
 
   static func clearDeveloperToken() {
     UserDefaults.standard.removeObject(forKey: developerTokenKey)
-  }
-
-  static func hasDeveloperToken() -> Bool {
-    guard let developer = getDeveloperToken(), !developer.isEmpty else { return false }
-    return true
-  }
-
-  static func hasRestTokens() -> Bool {
-    guard hasDeveloperToken() else { return false }
-    guard let user = getMusicUserToken(), !user.isEmpty else { return false }
-    return true
+    AuthenticatedSessionCache.invalidate()
   }
 }

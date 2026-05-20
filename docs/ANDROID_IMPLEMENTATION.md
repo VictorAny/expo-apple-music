@@ -17,7 +17,7 @@ Single handoff to implement **every** `ExpoAppleMusic` native method on Android 
 
 **JavaScript must not** call Apple Music API directly for these features. Native Kotlin will:
 
-1. Read `developerToken` + `musicUserToken` from `MusicKitAuthStorage`
+1. Load `AuthenticatedSession` (tokens from `MusicKitAuthStorage` after `authorize()`)
 2. Resolve **storefront** (e.g. `GET /v1/me/storefront`)
 3. Perform REST requests with headers:
    - `Authorization: Bearer {developerToken}`
@@ -90,7 +90,8 @@ AndroidLibraryService.kt        // library reads (mirror LibraryService.swift)
 AndroidQueueService.kt          // setPlaybackQueue, playLibrary* (mirror QueueService.swift)
 AndroidPlaybackController.kt    // MediaPlayerController, native libs, transport
 AndroidPlaybackObserver.kt      // events
-MusicKitTokenProvider.kt        // TokenProvider → MusicKitAuthStorage
+MusicKitTokenProvider.kt        // TokenProvider → AuthenticatedSession
+AuthenticatedSession.kt         // REST/catalog credential snapshot + storefront cache
 AndroidSubscriptionService.kt   // checkSubscription approximation
 ExpoAppleMusicModule.kt         // wire all methods
 ```

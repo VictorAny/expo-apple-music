@@ -35,13 +35,16 @@ enum AppleMusicRestClient {
     query: [String: String] = [:],
     body: [String: Any]? = nil
   ) async throws -> [String: Any] {
-    if method == .get, MusicKitAuthStorage.hasDeveloperToken() {
-      return try await requestViaUrlSession(method: method, path: path, query: query, body: body)
+    let session = AuthenticatedSession.current
+    if method == .get, session.prefersStoredDeveloperTokenForGet {
+      return try await requestViaUrlSession(
+        session: session, method: method, path: path, query: query, body: body)
     }
-    if method == .get, !MusicKitAuthStorage.hasRestTokens() {
+    if method == .get, session.canUseMusicKitAutoTokenForGet {
       return try await getViaMusicDataRequest(path: path, query: query)
     }
-    return try await requestViaUrlSession(method: method, path: path, query: query, body: body)
+    return try await requestViaUrlSession(
+      session: session, method: method, path: path, query: query, body: body)
   }
 
   static func get(path: String, query: [String: String] = [:]) async throws -> [String: Any] {
@@ -77,12 +80,13 @@ enum AppleMusicRestClient {
   }
 
   private static func requestViaUrlSession(
+    session: AuthenticatedSession,
     method: AppleMusicHttpMethod,
     path: String,
     query: [String: String],
     body: [String: Any]?
   ) async throws -> [String: Any] {
-    guard let developerToken = MusicKitAuthStorage.getDeveloperToken(),
+    guard let developerToken = session.developerToken,
       !developerToken.isEmpty
     else {
       if method == .get {
@@ -91,8 +95,8 @@ enum AppleMusicRestClient {
       throw RestError.apiError("Apple Music REST requires a stored developer token")
     }
 
-    let userToken = MusicKitAuthStorage.getMusicUserToken()
-    let requiresUserToken = path.hasPrefix("/v1/me/")
+    let userToken = session.musicUserToken
+    let requiresUserToken = session.pathRequiresMusicUserToken(path)
 
     if requiresUserToken, userToken == nil || userToken?.isEmpty == true {
       if method == .get {

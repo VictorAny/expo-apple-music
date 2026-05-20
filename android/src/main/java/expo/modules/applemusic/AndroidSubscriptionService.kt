@@ -11,8 +11,7 @@ internal class AndroidSubscriptionService(
   private val api = AppleMusicApiClient(context)
 
   suspend fun checkSubscription(): Map<String, Any?> {
-    val hasUserToken = !MusicKitAuthStorage.getMusicUserToken(context).isNullOrBlank()
-    if (!hasUserToken) {
+    if (!AuthenticatedSession.load(context).hasMusicUserToken) {
       throw AppleMusicErrors.missingTokens()
     }
 

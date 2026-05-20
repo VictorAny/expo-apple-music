@@ -7,7 +7,7 @@ import Foundation
 enum CatalogSearchStoreFactory {
 
   static func primaryStore() -> any CatalogSearchStore {
-    if MusicKitAuthStorage.hasDeveloperToken() {
+    if AuthenticatedSession.current.prefersRestCatalogSearch {
       return RestCatalogSearchStore()
     }
     return MusicKitCatalogSearchStore()
@@ -22,7 +22,7 @@ enum CatalogSearchStoreFactory {
     do {
       return try await store.search(term: term, types: types, options: options)
     } catch {
-      if store is MusicKitCatalogSearchStore, MusicKitAuthStorage.hasDeveloperToken() {
+      if store is MusicKitCatalogSearchStore, AuthenticatedSession.current.prefersRestCatalogSearch {
         return try await RestCatalogSearchStore().search(
           term: term, types: types, options: options)
       }

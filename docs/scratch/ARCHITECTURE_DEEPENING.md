@@ -156,7 +156,7 @@ One **History** native **module** per platform matching `History.*` in CONTEXT; 
 
 ## 6. Auth session seam (tokens + storefront)
 
-**Status:** [ ] not started · [ ] in progress · [ ] done
+**Status:** [ ] not started · [ ] in progress · [x] done
 
 **Files**
 
@@ -179,6 +179,8 @@ No single **interface** for “what credentials exist?” Token checks scattered
 - Clearer “why search 404’d” story
 
 **Notes**
+
+- 2026-05-20: `AuthenticatedSession` + `AuthenticatedSessionCache` on iOS/Android; `MusicKitAuthStorage` persists only; REST, catalog search factory, storefront, playback, and API client read session instead of scattered token checks.
 
 ---
 
@@ -256,3 +258,4 @@ Web **Catalog** / **Library** / **History** call shared TS REST **adapter** (And
 | Date | # | Outcome |
 | ---- | - | ------- |
 | 2026-05-20 | 3 | Catalog search transport seam: protocol + MusicKit/REST adapters + factory |
+| 2026-05-20 | 6 | Auth session: `AuthenticatedSession` + storefront cache; REST/catalog depend on session |
