@@ -2,9 +2,9 @@ package expo.modules.applemusic.bridge
 
 import expo.modules.applemusic.AndroidLibraryMutationsService
 import expo.modules.kotlin.functions.Coroutine
-import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 
-internal fun ModuleDefinition.registerLibraryMutationsBridge(
+internal fun ModuleDefinitionBuilder.registerLibraryMutationsBridge(
   libraryMutationsService: () -> AndroidLibraryMutationsService,
 ) {
   AsyncFunction("addToLibrary") Coroutine { resourceIds: Map<String, List<String>> ->

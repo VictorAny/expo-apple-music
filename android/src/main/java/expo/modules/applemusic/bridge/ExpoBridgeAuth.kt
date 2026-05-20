@@ -10,9 +10,9 @@ import expo.modules.applemusic.MusicKitAuthOutput
 import expo.modules.applemusic.MusicKitAuthStorage
 import expo.modules.kotlin.activityresult.AppContextActivityResultLauncher
 import expo.modules.kotlin.functions.Coroutine
-import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 
-internal fun ModuleDefinition.registerAuthBridge(
+internal fun ModuleDefinitionBuilder.registerAuthBridge(
   reactContext: () -> Context,
   authLauncher: () -> AppContextActivityResultLauncher<MusicKitAuthInput, MusicKitAuthOutput>,
   subscriptionService: () -> AndroidSubscriptionService,

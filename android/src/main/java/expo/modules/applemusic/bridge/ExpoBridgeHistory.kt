@@ -4,9 +4,9 @@ import expo.modules.applemusic.AndroidHistoryService
 import expo.modules.applemusic.BridgeResponses
 import expo.modules.applemusic.PaginationOptions
 import expo.modules.kotlin.functions.Coroutine
-import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 
-internal fun ModuleDefinition.registerHistoryBridge(
+internal fun ModuleDefinitionBuilder.registerHistoryBridge(
   historyService: () -> AndroidHistoryService,
 ) {
   AsyncFunction("getRecentlyPlayedResources") Coroutine { ->

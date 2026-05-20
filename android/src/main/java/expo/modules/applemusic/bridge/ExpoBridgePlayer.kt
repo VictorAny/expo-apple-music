@@ -4,11 +4,11 @@ import com.apple.android.music.playback.model.MediaPlayerException
 import expo.modules.applemusic.AndroidPlaybackController
 import expo.modules.applemusic.AndroidQueueService
 import expo.modules.kotlin.functions.Coroutine
-import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-internal fun ModuleDefinition.registerPlayerBridge(
+internal fun ModuleDefinitionBuilder.registerPlayerBridge(
   moduleScope: CoroutineScope,
   playbackController: () -> AndroidPlaybackController,
   queueService: () -> AndroidQueueService,

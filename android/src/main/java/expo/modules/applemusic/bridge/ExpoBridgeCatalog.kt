@@ -4,9 +4,9 @@ import expo.modules.applemusic.AndroidCatalogService
 import expo.modules.applemusic.BridgeResponses
 import expo.modules.applemusic.PaginationOptions
 import expo.modules.kotlin.functions.Coroutine
-import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 
-internal fun ModuleDefinition.registerCatalogBridge(
+internal fun ModuleDefinitionBuilder.registerCatalogBridge(
   catalogService: () -> AndroidCatalogService,
 ) {
   AsyncFunction("catalogSearch") Coroutine { term: String, types: List<String>, options: Map<String, Any?> ->

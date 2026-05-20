@@ -4,9 +4,9 @@ import expo.modules.applemusic.AndroidLibraryService
 import expo.modules.applemusic.BridgeResponses
 import expo.modules.applemusic.PaginationOptions
 import expo.modules.kotlin.functions.Coroutine
-import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 
-internal fun ModuleDefinition.registerLibraryBridge(
+internal fun ModuleDefinitionBuilder.registerLibraryBridge(
   libraryService: () -> AndroidLibraryService,
 ) {
   AsyncFunction("getUserPlaylists") Coroutine { options: Map<String, Any?> ->

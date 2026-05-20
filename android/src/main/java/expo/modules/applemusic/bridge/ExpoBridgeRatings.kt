@@ -2,9 +2,9 @@ package expo.modules.applemusic.bridge
 
 import expo.modules.applemusic.AndroidRatingsService
 import expo.modules.kotlin.functions.Coroutine
-import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 
-internal fun ModuleDefinition.registerRatingsBridge(
+internal fun ModuleDefinitionBuilder.registerRatingsBridge(
   ratingsService: () -> AndroidRatingsService,
 ) {
   AsyncFunction("getRating") Coroutine { resourceType: String, id: String ->
