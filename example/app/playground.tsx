@@ -1,4 +1,5 @@
 import {
+  getErrorMessage,
   History,
   Library,
   MusicItem,
@@ -47,7 +48,7 @@ export default function PlaygroundScreen() {
           meta: `${formatDuration(song.duration)} · tap to play`,
           onPress: () => {
             void queueAndPlay(song.id, MusicItem.SONG, appendLog).catch((e) =>
-              appendLog(`play error: ${String(e)}`),
+              appendLog(`play error: ${getErrorMessage(e)}`),
             );
           },
         })),
@@ -62,7 +63,7 @@ export default function PlaygroundScreen() {
   function playSong(song: Song, label: string) {
     void queueAndPlay(song.id, MusicItem.SONG, appendLog)
       .then(() => appendLog(`${label}: ${song.title}`))
-      .catch((e) => appendLog(`play error: ${String(e)}`));
+      .catch((e) => appendLog(`play error: ${getErrorMessage(e)}`));
   }
 
   if (!authorized) {

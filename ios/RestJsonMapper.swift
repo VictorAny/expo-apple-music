@@ -127,6 +127,19 @@ enum RestJsonMapper {
     return nil
   }
 
+  /// Candidate catalog song ids for MusicKit lookup (playback id, resource id, playParams).
+  static func catalogSongLookupIds(primaryId: String, resource: [String: Any]) -> [String] {
+    var ids: [String] = []
+    func append(_ value: String?) {
+      guard let value, !value.isEmpty, !ids.contains(value) else { return }
+      ids.append(value)
+    }
+    append(primaryId)
+    append(resource["id"] as? String)
+    append(catalogPlaybackId(resource))
+    return ids
+  }
+
   private static func durationMillis(_ attributes: [String: Any]) -> Int {
     if let millis = attributes["durationInMillis"] as? Int {
       return millis

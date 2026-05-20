@@ -200,9 +200,40 @@ final class CatalogService {
   }
 
   func fetchSong(id: MusicItemID) async throws -> Song? {
+    if let song = try await musicKitFetchSong(id: id) {
+      return song
+    }
+    guard let resource = try await restCatalogSongResource(id: id.rawValue) else {
+      return nil
+    }
+    for candidate in RestJsonMapper.catalogSongLookupIds(primaryId: id.rawValue, resource: resource) {
+      if candidate == id.rawValue { continue }
+      if let song = try await musicKitFetchSong(id: MusicItemID(candidate)) {
+        return song
+      }
+    }
+    return nil
+  }
+
+  private func musicKitFetchSong(id: MusicItemID) async throws -> Song? {
     let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: id)
     let response = try await request.response()
     return response.items.first
+  }
+
+  /// REST catalog song resource — used when MusicKit lookup by playback id misses (e.g. after REST search).
+  private func restCatalogSongResource(id: String) async throws -> [String: Any]? {
+    let storefront = try await StorefrontService.getStorefrontId()
+    let path = "/v1/catalog/\(storefront)/songs/\(id)"
+    do {
+      let json = try await AppleMusicRestClient.get(path: path)
+      guard let data = json["data"] as? [[String: Any]], let resource = data.first else {
+        return nil
+      }
+      return resource
+    } catch {
+      return nil
+    }
   }
 
   func fetchAlbum(id: MusicItemID) async throws -> Album? {

@@ -36,6 +36,8 @@ final class PlaybackController {
   private var cachedSongId: String?
   private var cachedSongInfo: [String: Any]?
 
+  private lazy var catalogService = CatalogService()
+
   // MARK: - Initialization
 
   private init() {}
@@ -144,14 +146,14 @@ final class PlaybackController {
       return cached
     }
 
-    // Fetch new song info
+    // Prefer metadata from the queue entry (avoids catalog re-fetch by cloud playback ids).
     let songInfo: [String: Any]?
     switch entry.item {
     case .song(let song):
-      songInfo = await fetchSongDetails(song.id)
+      songInfo = await songInfoForQueueEntry(song)
 
     case .musicVideo(let musicVideo):
-      songInfo = await fetchMusicVideoDetails(musicVideo.id)
+      songInfo = await musicVideoInfoForQueueEntry(musicVideo)
 
     default:
       songInfo = nil
@@ -166,27 +168,34 @@ final class PlaybackController {
     return songInfo ?? cachedSongInfo
   }
 
-  private func fetchSongDetails(_ id: MusicItemID) async -> [String: Any]? {
-    let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: id)
-    do {
-      let response = try await request.response()
-      guard let song = response.items.first else { return nil }
-      return MusicItemMapper.map(song)
-    } catch {
-      print("[PlaybackController] Error fetching song details: \(error)")
-      return nil
+  private func songInfoForQueueEntry(_ song: Song) async -> [String: Any] {
+    let mapped = MusicItemMapper.map(song)
+    if hasDisplayMetadata(mapped) {
+      return mapped
     }
+    return await fetchSongDetailsFallback(song.id) ?? mapped
   }
 
-  private func fetchMusicVideoDetails(_ id: MusicItemID) async -> [String: Any]? {
-    let request = MusicCatalogResourceRequest<MusicVideo>(matching: \.id, equalTo: id)
-    do {
-      let response = try await request.response()
-      guard let video = response.items.first else { return nil }
-      return MusicItemMapper.map(video)
-    } catch {
-      print("[PlaybackController] Error fetching music video details: \(error)")
-      return nil
+  private func musicVideoInfoForQueueEntry(_ musicVideo: MusicVideo) async -> [String: Any] {
+    let mapped = MusicItemMapper.map(musicVideo)
+    if hasDisplayMetadata(mapped) {
+      return mapped
     }
+    return await fetchMusicVideoDetailsFallback(musicVideo.id) ?? mapped
+  }
+
+  private func hasDisplayMetadata(_ mapped: [String: Any]) -> Bool {
+    let title = mapped["title"] as? String ?? ""
+    return !title.isEmpty
+  }
+
+  private func fetchSongDetailsFallback(_ id: MusicItemID) async -> [String: Any]? {
+    guard let song = try? await catalogService.fetchSong(id: id) else { return nil }
+    return MusicItemMapper.map(song)
+  }
+
+  private func fetchMusicVideoDetailsFallback(_ id: MusicItemID) async -> [String: Any]? {
+    guard let video = try? await catalogService.fetchMusicVideo(id: id) else { return nil }
+    return MusicItemMapper.map(video)
   }
 }
