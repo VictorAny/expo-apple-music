@@ -1,8 +1,9 @@
 import { Library, type Album, type Artist, type Playlist, type Song } from "@wwdrew/expo-apple-music";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
-import { ItemRow } from "../components/ItemRow";
+import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
+import { toDemoItems } from "../lib/demo-list";
 import { RunButton } from "./helpers";
 
 export function GetPlaylistsDemo() {
@@ -24,16 +25,15 @@ export function GetPlaylistsDemo() {
           }}
         />
       }
-    >
-      {playlists.map((p) => (
-        <ItemRow
-          key={p.id}
-          title={p.name}
-          meta={`id: ${p.id}`}
-          onPress={() => setLastPlaylistId(p.id)}
-        />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        playlists.map((p) => ({
+          key: p.id,
+          title: p.name,
+          meta: `id: ${p.id}`,
+          onPress: () => setLastPlaylistId(p.id),
+        })),
+      )}
+    />
   );
 }
 
@@ -55,26 +55,42 @@ export function GetSongsDemo() {
           }}
         />
       }
-    >
-      {songs.map((s) => (
-        <ItemRow key={s.id} title={s.title} subtitle={s.artistName} meta={`id: ${s.id}`} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        songs.map((s) => ({
+          key: s.id,
+          title: s.title,
+          subtitle: s.artistName,
+          meta: `id: ${s.id}`,
+        })),
+      )}
+    />
   );
 }
 
 export function GetPlaylistTracksDemo() {
   const { appendLog, lastPlaylistId } = useApp();
+  const [playlistId, setPlaylistId] = useState(lastPlaylistId ?? "");
   const [tracks, setTracks] = useState<Song[]>([]);
+  useEffect(() => {
+    if (!playlistId && lastPlaylistId) setPlaylistId(lastPlaylistId);
+  }, [lastPlaylistId, playlistId]);
+
   return (
     <ApiScreen
-      hint="Run getPlaylists first and tap a playlist to select its id."
+      headerExtra={
+        <IdField
+          label="Playlist id"
+          value={playlistId}
+          onChangeText={setPlaylistId}
+          hint="Run getPlaylists and tap a playlist, or paste an id."
+        />
+      }
       actions={
         <RunButton
           title="Run getPlaylistTracks(playlistId)"
-          disabled={!lastPlaylistId}
+          disabled={!playlistId.trim()}
           onPress={() => {
-            void Library.getPlaylistTracks(lastPlaylistId!, { limit: 25 })
+            void Library.getPlaylistTracks(playlistId.trim(), { limit: 25 })
               .then((r) => {
                 setTracks(r.songs);
                 appendLog(`${r.songs.length} track(s)`);
@@ -83,11 +99,14 @@ export function GetPlaylistTracksDemo() {
           }}
         />
       }
-    >
-      {tracks.map((t) => (
-        <ItemRow key={t.id} title={t.title} subtitle={t.artistName} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        tracks.map((t) => ({
+          key: t.id,
+          title: t.title,
+          subtitle: t.artistName,
+        })),
+      )}
+    />
   );
 }
 
@@ -109,11 +128,14 @@ export function GetArtistsDemo() {
           }}
         />
       }
-    >
-      {artists.map((a) => (
-        <ItemRow key={a.id} title={a.name} meta={`id: ${a.id}`} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        artists.map((a) => ({
+          key: a.id,
+          title: a.name,
+          meta: `id: ${a.id}`,
+        })),
+      )}
+    />
   );
 }
 
@@ -135,10 +157,14 @@ export function GetAlbumsDemo() {
           }}
         />
       }
-    >
-      {albums.map((a) => (
-        <ItemRow key={a.id} title={a.title} subtitle={a.artistName} meta={`id: ${a.id}`} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        albums.map((a) => ({
+          key: a.id,
+          title: a.title,
+          subtitle: a.artistName,
+          meta: `id: ${a.id}`,
+        })),
+      )}
+    />
   );
 }

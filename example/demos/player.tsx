@@ -1,19 +1,11 @@
-import { Player } from "@wwdrew/expo-apple-music";
-import { useEffect } from "react";
+import { MusicItem, Player } from "@wwdrew/expo-apple-music";
+import { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { ApiScreen } from "../components/ApiScreen";
+import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
-import { playCatalogAlbum, playCatalogSong } from "./catalog";
-import { NeedSearchHint, RunButton } from "./helpers";
-
-function useFirstIds() {
-  const { catalogSongs, catalogAlbums, catalogPlaylists } = useApp();
-  return {
-    songId: catalogSongs[0]?.id,
-    albumId: catalogAlbums[0]?.id,
-    playlistId: catalogPlaylists[0]?.id,
-  };
-}
+import { playCatalogSong } from "./catalog";
+import { RunButton } from "./helpers";
 
 export function ConfigurePlayerDemo() {
   const { appendLog } = useApp();
@@ -34,51 +26,82 @@ export function ConfigurePlayerDemo() {
 }
 
 export function SetQueueDemo() {
-  const { appendLog, setSelectedSongId } = useApp();
-  const { songId, albumId } = useFirstIds();
+  const { appendLog, catalogSongs, catalogAlbums, setSelectedSongId } = useApp();
+  const [songId, setSongId] = useState(catalogSongs[0]?.id ?? "");
+  const [albumId, setAlbumId] = useState(catalogAlbums[0]?.id ?? "");
+  useEffect(() => {
+    if (!songId && catalogSongs[0]?.id) setSongId(catalogSongs[0].id);
+  }, [catalogSongs, songId]);
+  useEffect(() => {
+    if (!albumId && catalogAlbums[0]?.id) setAlbumId(catalogAlbums[0].id);
+  }, [albumId, catalogAlbums]);
+
   return (
     <ApiScreen
+      headerExtra={
+        <>
+          <IdField label="Song id" value={songId} onChangeText={setSongId} />
+          <IdField label="Album id" value={albumId} onChangeText={setAlbumId} />
+        </>
+      }
       actions={
         <>
           <RunButton
-            title="Queue first search song"
-            disabled={!songId}
+            title="Queue song (no auto-play)"
+            disabled={!songId.trim()}
             onPress={() => {
-              if (!songId) return;
-              setSelectedSongId(songId);
-              void playCatalogSong(songId, appendLog).catch((e) =>
-                appendLog(`error: ${String(e)}`),
-              );
+              setSelectedSongId(songId.trim());
+              void Player.configurePlayer(false)
+                .then(() => Player.setQueue(songId.trim(), MusicItem.SONG))
+                .then(() => Player.getCurrentState())
+                .then((state) => appendLog(`queue song — status: ${state.playbackStatus}`))
+                .catch((e) => appendLog(`error: ${String(e)}`));
             }}
           />
           <RunButton
-            title="Queue first search album"
-            disabled={!albumId}
+            title="Queue album (no auto-play)"
+            disabled={!albumId.trim()}
             onPress={() => {
-              if (!albumId) return;
-              void playCatalogAlbum(albumId, appendLog).catch((e) =>
+              void Player.configurePlayer(false)
+                .then(() => Player.setQueue(albumId.trim(), MusicItem.ALBUM))
+                .then(() => Player.getCurrentState())
+                .then((state) => appendLog(`queue album — status: ${state.playbackStatus}`))
+                .catch((e) => appendLog(`error: ${String(e)}`));
+            }}
+          />
+          <RunButton
+            title="Queue + play song"
+            disabled={!songId.trim()}
+            onPress={() => {
+              setSelectedSongId(songId.trim());
+              void playCatalogSong(songId.trim(), appendLog).catch((e) =>
                 appendLog(`error: ${String(e)}`),
               );
             }}
           />
         </>
       }
-    >
-      <NeedSearchHint />
-    </ApiScreen>
+    />
   );
 }
 
 export function PlayLibrarySongDemo() {
   const { appendLog } = useApp();
+  const [songId, setSongId] = useState("");
   return (
     <ApiScreen
-      hint="Requires a library song id (not catalog). Load Library → getSongs first."
+      hint="Requires a library song id (i.* prefix), not a catalog id."
+      headerExtra={
+        <IdField label="Library song id" value={songId} onChangeText={setSongId} />
+      }
       actions={
         <RunButton
-          title="Run playLibrarySong (needs library id)"
+          title="Run playLibrarySong(songId)"
+          disabled={!songId.trim()}
           onPress={() => {
-            appendLog("Use a library song id from Library.getSongs");
+            void Player.playLibrarySong(songId.trim())
+              .then(() => appendLog(`playing library song ${songId.trim()}`))
+              .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
@@ -88,20 +111,32 @@ export function PlayLibrarySongDemo() {
 
 export function PlayLibraryPlaylistDemo() {
   const { appendLog, lastPlaylistId } = useApp();
+  const [playlistId, setPlaylistId] = useState(lastPlaylistId ?? "");
+  useEffect(() => {
+    if (!playlistId && lastPlaylistId) setPlaylistId(lastPlaylistId);
+  }, [lastPlaylistId, playlistId]);
+
   return (
     <ApiScreen
+      headerExtra={
+        <IdField
+          label="Library playlist id"
+          value={playlistId}
+          onChangeText={setPlaylistId}
+          hint="Run Library.getPlaylists and tap a playlist, or paste an id."
+        />
+      }
       actions={
         <RunButton
-          title="Run playLibraryPlaylist(id)"
-          disabled={!lastPlaylistId}
+          title="Run playLibraryPlaylist(playlistId)"
+          disabled={!playlistId.trim()}
           onPress={() => {
-            void Player.playLibraryPlaylist(lastPlaylistId!)
-              .then(() => appendLog(`playing playlist ${lastPlaylistId}`))
+            void Player.playLibraryPlaylist(playlistId.trim())
+              .then(() => appendLog(`playing playlist ${playlistId.trim()}`))
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-      hint="Run Library → getPlaylists and tap a playlist to store its id."
     />
   );
 }
@@ -132,6 +167,7 @@ export function PlayDemo() {
   const { appendLog } = useApp();
   return (
     <ApiScreen
+      hint="Queue something first. Transport controls also live in the player bar."
       actions={
         <RunButton
           title="Run play()"
@@ -145,7 +181,6 @@ export function PlayDemo() {
           }}
         />
       }
-      hint="Queue something first. Transport controls also live in the player bar."
     />
   );
 }
@@ -259,6 +294,7 @@ export function SeekToTimeDemo() {
   const { appendLog } = useApp();
   return (
     <ApiScreen
+      hint="Also demonstrated via the scrubber in the player bar."
       actions={
         <RunButton
           title="Seek to 30s"
@@ -272,7 +308,6 @@ export function SeekToTimeDemo() {
           }}
         />
       }
-      hint="Also demonstrated via the scrubber in the player bar."
     />
   );
 }
@@ -293,11 +328,14 @@ export function AddListenerDemo() {
   }, [appendLog]);
 
   return (
-    <ApiScreen hint="Events append to the log when playback changes. Queue a song to see updates.">
-      <Text style={{ fontSize: 13, color: "#666" }}>
-        This screen registers listeners on mount. Global onPlaybackError is
-        registered in AppProvider.
-      </Text>
-    </ApiScreen>
+    <ApiScreen
+      hint="Events append to the log when playback changes. Queue a song to see updates."
+      headerExtra={
+        <Text style={{ fontSize: 13, color: "#666" }}>
+          This screen registers listeners on mount. Global onPlaybackError is
+          registered in AppProvider.
+        </Text>
+      }
+    />
   );
 }

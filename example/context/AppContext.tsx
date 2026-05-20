@@ -13,6 +13,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -23,8 +24,12 @@ type AppContextValue = {
   hasStoredSession: boolean;
   devToken: string | undefined;
   log: string;
+  logVisible: boolean;
+  logUnread: boolean;
   appendLog: (message: string) => void;
   clearLog: () => void;
+  toggleLogVisible: () => void;
+  markLogRead: () => void;
   authorize: () => Promise<void>;
   restoreSession: () => Promise<boolean>;
   catalogSongs: Song[];
@@ -48,6 +53,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [authStatus, setAuthStatus] = useState("checking…");
   const [hasStoredSession, setHasStoredSession] = useState(false);
   const [log, setLog] = useState("");
+  const [logVisible, setLogVisible] = useState(false);
+  const [logUnread, setLogUnread] = useState(false);
+  const logVisibleRef = useRef(false);
+  logVisibleRef.current = logVisible;
   const [catalogSongs, setCatalogSongs] = useState<Song[]>([]);
   const [catalogAlbums, setCatalogAlbums] = useState<Album[]>([]);
   const [catalogArtists, setCatalogArtists] = useState<Artist[]>([]);
@@ -59,9 +68,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const appendLog = useCallback((message: string) => {
     setLog((prev) => `${message}\n${prev}`.slice(0, 4000));
+    if (!logVisibleRef.current) {
+      setLogUnread(true);
+    }
   }, []);
 
-  const clearLog = useCallback(() => setLog(""), []);
+  const clearLog = useCallback(() => {
+    setLog("");
+    setLogUnread(false);
+  }, []);
+
+  const toggleLogVisible = useCallback(() => {
+    setLogVisible((visible) => {
+      const next = !visible;
+      if (next) setLogUnread(false);
+      return next;
+    });
+  }, []);
+
+  const markLogRead = useCallback(() => setLogUnread(false), []);
 
   const restoreSession = useCallback(async (): Promise<boolean> => {
     try {
@@ -129,8 +154,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hasStoredSession,
       devToken,
       log,
+      logVisible,
+      logUnread,
       appendLog,
       clearLog,
+      toggleLogVisible,
+      markLogRead,
       authorize,
       restoreSession,
       catalogSongs,
@@ -152,8 +181,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hasStoredSession,
       devToken,
       log,
+      logVisible,
+      logUnread,
       appendLog,
       clearLog,
+      toggleLogVisible,
+      markLogRead,
       authorize,
       restoreSession,
       catalogSongs,

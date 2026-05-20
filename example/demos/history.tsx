@@ -6,8 +6,8 @@ import {
 } from "@wwdrew/expo-apple-music";
 import { useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
-import { ItemRow } from "../components/ItemRow";
 import { useApp } from "../context/AppContext";
+import { toDemoItems } from "../lib/demo-list";
 import { RunButton } from "./helpers";
 
 export function GetRecentlyPlayedResourcesDemo() {
@@ -30,15 +30,14 @@ export function GetRecentlyPlayedResourcesDemo() {
           }}
         />
       }
-    >
-      {items.map((item) => (
-        <ItemRow
-          key={String(item.id)}
-          title={item.title}
-          subtitle={`${item.type} · ${item.subtitle}`}
-        />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        items.map((item) => ({
+          key: String(item.id),
+          title: item.title,
+          subtitle: `${item.type} · ${item.subtitle}`,
+        })),
+      )}
+    />
   );
 }
 
@@ -60,11 +59,14 @@ export function GetRecentlyPlayedTracksDemo() {
           }}
         />
       }
-    >
-      {songs.map((s) => (
-        <ItemRow key={s.id} title={s.title} subtitle={s.artistName} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        songs.map((s) => ({
+          key: s.id,
+          title: s.title,
+          subtitle: s.artistName,
+        })),
+      )}
+    />
   );
 }
 
@@ -80,21 +82,20 @@ export function GetHeavyRotationDemo() {
             void History.getHeavyRotation({ limit: 10 })
               .then((r) => {
                 setItems(r.items);
-                appendLog(`${r.items.length} item(s)`);
+                appendLog(`${r.items.length} resource(s)`);
               })
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      {items.map((item) => (
-        <ItemRow
-          key={item.id}
-          title={item.title}
-          subtitle={`${item.type} · ${item.subtitle}`}
-        />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        items.map((item) => ({
+          key: String(item.id),
+          title: item.title,
+          subtitle: item.subtitle,
+        })),
+      )}
+    />
   );
 }
 
@@ -116,11 +117,14 @@ export function GetRecentlyPlayedStationsDemo() {
           }}
         />
       }
-    >
-      {stations.map((s) => (
-        <ItemRow key={s.id} title={s.name} meta={`id: ${s.id}`} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        stations.map((s) => ({
+          key: s.id,
+          title: s.name,
+          meta: `id: ${s.id}`,
+        })),
+      )}
+    />
   );
 }
 
@@ -136,20 +140,19 @@ export function GetRecentlyAddedDemo() {
             void History.getRecentlyAdded({ limit: 10 })
               .then((r) => {
                 setItems(r.items);
-                appendLog(`${r.items.length} item(s)`);
+                appendLog(`${r.items.length} resource(s)`);
               })
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      {items.map((item) => (
-        <ItemRow
-          key={item.id}
-          title={item.title}
-          subtitle={`${item.type} · ${item.subtitle}`}
-        />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        items.map((item) => ({
+          key: String(item.id),
+          title: item.title,
+          subtitle: item.subtitle,
+        })),
+      )}
+    />
   );
 }

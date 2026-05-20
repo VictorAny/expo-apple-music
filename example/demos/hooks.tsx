@@ -19,34 +19,39 @@ function HookValue({ label, value }: { label: string; value: string }) {
 export function UseCurrentSongDemo() {
   const { song } = useCurrentSong();
   return (
-    <ApiScreen hint="Values update when you queue playback. The player bar uses this hook too.">
-      <HookValue
-        label="song"
-        value={song ? `${song.title} — ${song.artistName}` : "(none)"}
-      />
-      {song ? (
-        <HookValue label="id" value={song.id} />
-      ) : null}
-    </ApiScreen>
+    <ApiScreen
+      hint="Values update when you queue playback. The player bar uses this hook too."
+      headerExtra={
+        <>
+          <HookValue
+            label="song"
+            value={song ? `${song.title} — ${song.artistName}` : "(none)"}
+          />
+          {song ? <HookValue label="id" value={song.id} /> : null}
+        </>
+      }
+    />
   );
 }
 
 export function UseIsPlayingDemo() {
   const { isPlaying } = useIsPlaying();
   return (
-    <ApiScreen>
-      <HookValue label="isPlaying" value={String(isPlaying)} />
-    </ApiScreen>
+    <ApiScreen headerExtra={<HookValue label="isPlaying" value={String(isPlaying)} />} />
   );
 }
 
 export function UsePlaybackStateDemo() {
   const { playbackStatus, playbackTime } = usePlaybackState();
   return (
-    <ApiScreen>
-      <HookValue label="playbackStatus" value={playbackStatus} />
-      <HookValue label="playbackTime" value={`${playbackTime.toFixed(1)}s`} />
-    </ApiScreen>
+    <ApiScreen
+      headerExtra={
+        <>
+          <HookValue label="playbackStatus" value={playbackStatus} />
+          <HookValue label="playbackTime" value={`${playbackTime.toFixed(1)}s`} />
+        </>
+      }
+    />
   );
 }
 

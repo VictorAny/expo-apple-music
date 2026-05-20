@@ -1,8 +1,8 @@
 import { Recommendations } from "@wwdrew/expo-apple-music";
 import { useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
-import { ItemRow } from "../components/ItemRow";
 import { useApp } from "../context/AppContext";
+import { toDemoItems } from "../lib/demo-list";
 import { RunButton } from "./helpers";
 
 export function GetRecommendationsDemo() {
@@ -29,11 +29,8 @@ export function GetRecommendationsDemo() {
           }}
         />
       }
-    >
-      {titles.map((t) => (
-        <ItemRow key={t} title={t} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(titles.map((t, index) => ({ key: `${t}-${index}`, title: t })))}
+    />
   );
 }
 

@@ -1,18 +1,29 @@
-import { type ReactNode } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import type { ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { DemoScreen, type DemoListItem } from "./DemoScreen";
+import { MethodDocs } from "./MethodDocs";
 import { useMethodMeta } from "../hooks/useMethodMeta";
 import { theme } from "../lib/theme";
-import { AuthBanner } from "./AuthBanner";
-import { LogPanel } from "./LogPanel";
 
 type ApiScreenProps = {
-  children?: ReactNode;
   actions?: ReactNode;
   hint?: string;
+  headerExtra?: ReactNode;
+  items?: DemoListItem[];
+  ListEmptyComponent?: ReactNode;
+  showDocs?: boolean;
 };
 
-export function ApiScreen({ children, actions, hint }: ApiScreenProps) {
+export function ApiScreen({
+  actions,
+  hint,
+  headerExtra,
+  items = [],
+  ListEmptyComponent,
+  showDocs = true,
+}: ApiScreenProps) {
   const { method } = useMethodMeta();
+
   if (!method) {
     return (
       <View style={styles.centered}>
@@ -21,35 +32,26 @@ export function ApiScreen({ children, actions, hint }: ApiScreenProps) {
     );
   }
 
-  return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <AuthBanner />
-      <Text style={styles.signature}>{method.signature}</Text>
-      <Text style={styles.summary}>{method.summary}</Text>
+  const header = (
+    <>
+      {showDocs ? <MethodDocs /> : null}
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      {headerExtra}
       {actions ? <View style={styles.actions}>{actions}</View> : null}
-      {children}
-      <LogPanel />
-    </ScrollView>
+    </>
+  );
+
+  return (
+    <DemoScreen
+      header={header}
+      items={items}
+      ListEmptyComponent={ListEmptyComponent}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  content: { padding: 16, paddingBottom: 24 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  signature: {
-    fontFamily: theme.mono,
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.accent,
-    marginBottom: 8,
-  },
-  summary: { fontSize: 14, color: theme.muted, lineHeight: 20, marginBottom: 12 },
   hint: { fontSize: 12, color: theme.muted, fontStyle: "italic", marginBottom: 12 },
-  actions: { gap: 8, marginBottom: 16 },
+  actions: { gap: 8, marginBottom: 8 },
 });

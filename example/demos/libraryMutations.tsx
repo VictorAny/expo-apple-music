@@ -3,41 +3,63 @@ import {
   LibraryResourceType,
   PlaylistTrackType,
 } from "@wwdrew/expo-apple-music";
+import { useEffect, useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
+import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
-import { NeedSearchHint, RunButton, SelectedSongHint } from "./helpers";
+import { RunButton } from "./helpers";
+
+function useSongIdField() {
+  const { catalogSongs, selectedSongId } = useApp();
+  const [songId, setSongId] = useState(selectedSongId ?? catalogSongs[0]?.id ?? "");
+  useEffect(() => {
+    if (!songId && (selectedSongId || catalogSongs[0]?.id)) {
+      setSongId(selectedSongId ?? catalogSongs[0]?.id ?? "");
+    }
+  }, [catalogSongs, selectedSongId, songId]);
+  return { songId, setSongId };
+}
 
 export function AddToLibraryDemo() {
-  const { appendLog, selectedSong } = useApp();
+  const { appendLog } = useApp();
+  const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen
+      headerExtra={
+        <IdField label="Catalog song id" value={songId} onChangeText={setSongId} />
+      }
       actions={
         <RunButton
           title="Run addToLibrary({ songs: [id] })"
-          disabled={!selectedSong}
+          disabled={!songId.trim()}
           onPress={() => {
             void LibraryMutations.addToLibrary({
-              [LibraryResourceType.SONGS]: [selectedSong!.id],
+              [LibraryResourceType.SONGS]: [songId.trim()],
             })
               .then(() =>
-                appendLog(
-                  `added ${selectedSong!.title} (may take a moment to appear)`,
-                ),
+                appendLog(`added ${songId.trim()} (may take a moment to appear)`),
               )
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      <SelectedSongHint />
-    </ApiScreen>
+    />
   );
 }
 
 export function CreatePlaylistDemo() {
-  const { appendLog, selectedSong } = useApp();
+  const { appendLog } = useApp();
+  const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen
+      headerExtra={
+        <IdField
+          label="Optional initial track id"
+          value={songId}
+          onChangeText={setSongId}
+          hint="Leave blank to create an empty playlist."
+        />
+      }
       actions={
         <RunButton
           title="Run createPlaylist({ name, tracks? })"
@@ -45,8 +67,8 @@ export function CreatePlaylistDemo() {
             void LibraryMutations.createPlaylist({
               name: `Expo test ${new Date().toISOString().slice(11, 19)}`,
               description: "Created from expo-apple-music example",
-              tracks: selectedSong
-                ? [{ id: selectedSong.id, type: PlaylistTrackType.SONG }]
+              tracks: songId.trim()
+                ? [{ id: songId.trim(), type: PlaylistTrackType.SONG }]
                 : undefined,
             })
               .then((p) => appendLog(`created: ${p.name} (${p.id})`))
@@ -54,36 +76,43 @@ export function CreatePlaylistDemo() {
           }}
         />
       }
-    >
-      {selectedSong ? (
-        <SelectedSongHint />
-      ) : (
-        <NeedSearchHint />
-      )}
-    </ApiScreen>
+    />
   );
 }
 
 export function AddTracksToPlaylistDemo() {
-  const { appendLog, selectedSong, lastPlaylistId } = useApp();
+  const { appendLog, lastPlaylistId } = useApp();
+  const { songId, setSongId } = useSongIdField();
+  const [playlistId, setPlaylistId] = useState(lastPlaylistId ?? "");
+  useEffect(() => {
+    if (!playlistId && lastPlaylistId) setPlaylistId(lastPlaylistId);
+  }, [lastPlaylistId, playlistId]);
+
   return (
     <ApiScreen
-      hint="Select a playlist via Library → getPlaylists, and a song via Catalog → search."
+      headerExtra={
+        <>
+          <IdField
+            label="Playlist id"
+            value={playlistId}
+            onChangeText={setPlaylistId}
+          />
+          <IdField label="Catalog song id" value={songId} onChangeText={setSongId} />
+        </>
+      }
       actions={
         <RunButton
           title="Run addTracksToPlaylist(playlistId, tracks)"
-          disabled={!lastPlaylistId || !selectedSong}
+          disabled={!playlistId.trim() || !songId.trim()}
           onPress={() => {
-            void LibraryMutations.addTracksToPlaylist(lastPlaylistId!, [
-              { id: selectedSong!.id, type: PlaylistTrackType.SONG },
+            void LibraryMutations.addTracksToPlaylist(playlistId.trim(), [
+              { id: songId.trim(), type: PlaylistTrackType.SONG },
             ])
-              .then(() => appendLog(`added track to playlist ${lastPlaylistId}`))
+              .then(() => appendLog(`added track to playlist ${playlistId.trim()}`))
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      <SelectedSongHint />
-    </ApiScreen>
+    />
   );
 }

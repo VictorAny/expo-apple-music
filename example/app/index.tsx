@@ -1,8 +1,9 @@
 import { Stack } from "expo-router";
 import { ScrollView, StyleSheet, Text } from "react-native";
 import { API_MODULES } from "../catalog/apiCatalog";
-import { AuthBanner } from "../components/AuthBanner";
-import { ModuleCard } from "../components/ModuleLink";
+import { AuthCard } from "../components/AuthCard";
+import { ModuleCard, PlaygroundCard } from "../components/ModuleLink";
+import { SectionHeader } from "../components/SectionHeader";
 import { theme } from "../lib/theme";
 
 export default function HomeScreen() {
@@ -15,9 +16,12 @@ export default function HomeScreen() {
       >
         <Text style={styles.title}>@wwdrew/expo-apple-music</Text>
         <Text style={styles.subtitle}>
-          Browse by module, then pick an API to run a live demo.
+          Authorize, try Playground, or browse the API reference.
         </Text>
-        <AuthBanner />
+        <AuthCard />
+        <SectionHeader title="Get started" />
+        <PlaygroundCard />
+        <SectionHeader title="API reference" />
         {API_MODULES.map((mod) => (
           <ModuleCard key={mod.id} mod={mod} />
         ))}

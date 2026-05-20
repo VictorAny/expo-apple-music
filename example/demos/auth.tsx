@@ -13,6 +13,7 @@ export function AuthorizeDemo() {
           title={hasStoredSession ? "Re-authorize" : "Run authorize()"}
           onPress={() => void authorize()}
           disabled={Platform.OS === "android" && !devToken}
+          requiresAuth={false}
         />
       }
     />
@@ -26,6 +27,7 @@ export function CheckSubscriptionDemo() {
       actions={
         <RunButton
           title="Run checkSubscription()"
+          requiresAuth={false}
           onPress={() => {
             void Auth.checkSubscription()
               .then((sub) =>
@@ -49,6 +51,7 @@ export function GetStorefrontDemo() {
       actions={
         <RunButton
           title="Run getStorefront()"
+          requiresAuth={false}
           onPress={() => {
             void Auth.getStorefront()
               .then((sf) => appendLog(`storefront.id: ${sf.id}`))

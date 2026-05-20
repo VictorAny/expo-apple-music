@@ -1,207 +1,205 @@
 import {
   Catalog,
   CatalogChartType,
-  CatalogSearchType,
   MusicItem,
-  Player,
   type Album,
 } from "@wwdrew/expo-apple-music";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";
 import { ApiScreen } from "../components/ApiScreen";
-import { ItemRow } from "../components/ItemRow";
+import { CatalogSearchField } from "../components/CatalogSearchField";
+import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
+import { toDemoItems } from "../lib/demo-list";
 import { formatDuration } from "../lib/format";
-import { NeedSearchHint, RunButton, SelectedSongHint } from "./helpers";
+import { queueAndPlay } from "../lib/playback";
+import { RunButton } from "./helpers";
 
 export function SearchDemo() {
   const {
-    appendLog,
-    devToken,
-    setCatalogSongs,
-    setCatalogAlbums,
-    setCatalogArtists,
-    setCatalogPlaylists,
-    setSelectedSongId,
     catalogSongs,
     catalogAlbums,
     catalogArtists,
+    catalogPlaylists,
+    devToken,
   } = useApp();
 
-  async function runSearch() {
-    if (Platform.OS === "ios" && !devToken?.trim()) {
-      appendLog(
-        "iOS search blocked: set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN in example/.env.local (npm run dev-token -- --write-env example/.env.local), restart Metro, Authorize",
-      );
-      return;
-    }
-    try {
-      const result = await Catalog.search(
-        "Beatles",
-        [
-          CatalogSearchType.SONGS,
-          CatalogSearchType.ALBUMS,
-          CatalogSearchType.ARTISTS,
-          CatalogSearchType.PLAYLISTS,
-        ],
-        { limit: 5 },
-      );
-      setCatalogSongs(result.songs);
-      setCatalogAlbums(result.albums);
-      setCatalogArtists(result.artists);
-      setCatalogPlaylists(result.playlists);
-      if (result.songs[0]) setSelectedSongId(result.songs[0].id);
-      appendLog(
-        `songs: ${result.songs.length}, albums: ${result.albums.length}, ` +
-          `artists: ${result.artists.length}, playlists: ${result.playlists.length}`,
-      );
-    } catch (e) {
-      appendLog(`error: ${String(e)}`);
-    }
-  }
+  const items = useMemo(
+    () =>
+      toDemoItems([
+        ...catalogSongs.map((song) => ({
+          key: `song-${song.id}`,
+          title: song.title,
+          subtitle: song.artistName,
+          meta: `id: ${song.id} · ${formatDuration(song.duration)}`,
+        })),
+        ...catalogAlbums.map((album) => ({
+          key: `album-${album.id}`,
+          title: album.title,
+          subtitle: album.artistName,
+          meta: `id: ${album.id}`,
+        })),
+        ...catalogArtists.map((artist) => ({
+          key: `artist-${artist.id}`,
+          title: artist.name,
+          meta: `id: ${artist.id}`,
+        })),
+        ...catalogPlaylists.map((playlist) => ({
+          key: `playlist-${playlist.id}`,
+          title: playlist.name,
+          meta: `id: ${playlist.id}`,
+        })),
+      ]),
+    [catalogAlbums, catalogArtists, catalogPlaylists, catalogSongs],
+  );
 
   return (
     <ApiScreen
-      actions={<RunButton title='Search "Beatles"' onPress={() => void runSearch()} />}
+      headerExtra={<CatalogSearchField limit={5} />}
       hint={
         Platform.OS === "ios" && !devToken?.trim()
           ? "iOS needs example/.env.local with EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN (see docs/CLI.md)."
           : undefined
       }
-    >
-      {catalogSongs.map((song) => (
-        <ItemRow
-          key={song.id}
-          title={song.title}
-          subtitle={song.artistName}
-          meta={`id: ${song.id} · ${formatDuration(song.duration)}`}
-        />
-      ))}
-      {catalogAlbums.map((album) => (
-        <ItemRow
-          key={album.id}
-          title={album.title}
-          subtitle={album.artistName}
-          meta={`id: ${album.id}`}
-        />
-      ))}
-      {catalogArtists.map((artist) => (
-        <ItemRow key={artist.id} title={artist.name} meta={`id: ${artist.id}`} />
-      ))}
-    </ApiScreen>
+      items={items}
+    />
   );
 }
 
-function useCatalogIds() {
-  const { catalogSongs, catalogAlbums, catalogArtists, catalogPlaylists } =
-    useApp();
-  return {
-    songId: catalogSongs[0]?.id,
-    albumId: catalogAlbums[0]?.id,
-    artistId: catalogArtists[0]?.id,
-    playlistId: catalogPlaylists[0]?.id,
-  };
+function useIdField(defaultValue = "") {
+  const [value, setValue] = useState(defaultValue);
+  return { value, setValue };
 }
 
 export function GetSongDemo() {
-  const { appendLog } = useApp();
-  const { songId } = useCatalogIds();
+  const { appendLog, catalogSongs } = useApp();
+  const { value: songId, setValue: setSongId } = useIdField(catalogSongs[0]?.id ?? "");
+  useEffect(() => {
+    if (!songId && catalogSongs[0]?.id) setSongId(catalogSongs[0].id);
+  }, [catalogSongs, songId, setSongId]);
+
   return (
     <ApiScreen
-      hint={!songId ? "Needs a song id from search." : undefined}
+      headerExtra={
+        <IdField label="Song id" value={songId} onChangeText={setSongId} />
+      }
       actions={
         <RunButton
           title="Run getSong(id)"
-          disabled={!songId}
+          disabled={!songId.trim()}
           onPress={() => {
-            void Catalog.getSong(songId!)
+            void Catalog.getSong(songId.trim())
               .then((s) => appendLog(`${s.title} — ${s.artistName}`))
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      <SelectedSongHint />
-    </ApiScreen>
+    />
   );
 }
 
 export function GetAlbumDemo() {
-  const { appendLog } = useApp();
-  const { albumId } = useCatalogIds();
+  const { appendLog, catalogAlbums } = useApp();
+  const { value: albumId, setValue: setAlbumId } = useIdField(catalogAlbums[0]?.id ?? "");
+  useEffect(() => {
+    if (!albumId && catalogAlbums[0]?.id) setAlbumId(catalogAlbums[0].id);
+  }, [albumId, catalogAlbums, setAlbumId]);
+
   return (
     <ApiScreen
+      headerExtra={
+        <IdField label="Album id" value={albumId} onChangeText={setAlbumId} />
+      }
       actions={
         <RunButton
           title="Run getAlbum(id)"
-          disabled={!albumId}
+          disabled={!albumId.trim()}
           onPress={() => {
-            void Catalog.getAlbum(albumId!)
+            void Catalog.getAlbum(albumId.trim())
               .then((a) => appendLog(`${a.title} — ${a.trackCount} tracks`))
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      {!albumId ? <NeedSearchHint /> : null}
-    </ApiScreen>
+    />
   );
 }
 
 export function GetArtistDemo() {
-  const { appendLog } = useApp();
-  const { artistId } = useCatalogIds();
+  const { appendLog, catalogArtists } = useApp();
+  const { value: artistId, setValue: setArtistId } = useIdField(
+    catalogArtists[0]?.id ?? "",
+  );
+  useEffect(() => {
+    if (!artistId && catalogArtists[0]?.id) setArtistId(catalogArtists[0].id);
+  }, [artistId, catalogArtists, setArtistId]);
+
   return (
     <ApiScreen
+      headerExtra={
+        <IdField label="Artist id" value={artistId} onChangeText={setArtistId} />
+      }
       actions={
         <RunButton
           title="Run getArtist(id)"
-          disabled={!artistId}
+          disabled={!artistId.trim()}
           onPress={() => {
-            void Catalog.getArtist(artistId!)
+            void Catalog.getArtist(artistId.trim())
               .then((a) => appendLog(`artist: ${a.name}`))
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      {!artistId ? <NeedSearchHint /> : null}
-    </ApiScreen>
+    />
   );
 }
 
 export function GetPlaylistDemo() {
   const { appendLog, catalogPlaylists } = useApp();
-  const playlist = catalogPlaylists[0];
+  const { value: playlistId, setValue: setPlaylistId } = useIdField(
+    catalogPlaylists[0]?.id ?? "",
+  );
+  useEffect(() => {
+    if (!playlistId && catalogPlaylists[0]?.id) setPlaylistId(catalogPlaylists[0].id);
+  }, [catalogPlaylists, playlistId, setPlaylistId]);
+
   return (
     <ApiScreen
+      headerExtra={
+        <IdField label="Playlist id" value={playlistId} onChangeText={setPlaylistId} />
+      }
       actions={
         <RunButton
           title="Run getPlaylist(id)"
-          disabled={!playlist}
+          disabled={!playlistId.trim()}
           onPress={() => {
-            void Catalog.getPlaylist(playlist!.id)
+            void Catalog.getPlaylist(playlistId.trim())
               .then((p) => appendLog(`playlist: ${p.name}`))
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      {!playlist ? <NeedSearchHint /> : null}
-    </ApiScreen>
+    />
   );
 }
 
 export function GetStationDemo() {
   const { appendLog } = useApp();
+  const { value: stationId, setValue: setStationId } = useIdField();
   return (
     <ApiScreen
-      hint="Catalog.search does not return stations. Supply a catalog station id in your own app."
+      hint="Catalog.search does not return stations. Paste a catalog station id."
+      headerExtra={
+        <IdField label="Station id" value={stationId} onChangeText={setStationId} />
+      }
       actions={
         <RunButton
-          title="Run getStation (example id)"
+          title="Run getStation(id)"
+          disabled={!stationId.trim()}
           onPress={() => {
-            appendLog("Provide a station id from Apple Music catalog URLs or API docs.");
+            void Catalog.getStation(stationId.trim())
+              .then((s) => appendLog(`station: ${s.name}`))
+              .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
@@ -211,39 +209,47 @@ export function GetStationDemo() {
 
 export function GetMusicVideoDemo() {
   const { appendLog } = useApp();
-  const { songId } = useCatalogIds();
+  const { value: videoId, setValue: setVideoId } = useIdField();
   return (
     <ApiScreen
-      hint="Use a music video catalog id. Song ids from search will not work."
+      hint="Use a music video catalog id — song ids from search will not work."
+      headerExtra={
+        <IdField label="Music video id" value={videoId} onChangeText={setVideoId} />
+      }
       actions={
         <RunButton
           title="Run getMusicVideo(id)"
-          disabled={!songId}
+          disabled={!videoId.trim()}
           onPress={() => {
-            void Catalog.getMusicVideo(songId!)
+            void Catalog.getMusicVideo(videoId.trim())
               .then((v) => appendLog(`video: ${v.title}`))
-              .catch((e) => appendLog(`error: ${String(e)} (expected if id is a song)`));
+              .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      <SelectedSongHint />
-    </ApiScreen>
+    />
   );
 }
 
 export function GetAlbumTracksDemo() {
-  const { appendLog } = useApp();
-  const { albumId } = useCatalogIds();
+  const { appendLog, catalogAlbums } = useApp();
+  const { value: albumId, setValue: setAlbumId } = useIdField(catalogAlbums[0]?.id ?? "");
   const [tracks, setTracks] = useState<{ id: string; title: string }[]>([]);
+  useEffect(() => {
+    if (!albumId && catalogAlbums[0]?.id) setAlbumId(catalogAlbums[0].id);
+  }, [albumId, catalogAlbums, setAlbumId]);
+
   return (
     <ApiScreen
+      headerExtra={
+        <IdField label="Album id" value={albumId} onChangeText={setAlbumId} />
+      }
       actions={
         <RunButton
           title="Run getAlbumTracks(albumId)"
-          disabled={!albumId}
+          disabled={!albumId.trim()}
           onPress={() => {
-            void Catalog.getAlbumTracks(albumId!, { limit: 25 })
+            void Catalog.getAlbumTracks(albumId.trim(), { limit: 25 })
               .then((r) => {
                 setTracks(r.songs.map((s) => ({ id: s.id, title: s.title })));
                 appendLog(`${r.songs.length} track(s)`);
@@ -252,84 +258,88 @@ export function GetAlbumTracksDemo() {
           }}
         />
       }
-    >
-      {!albumId ? <NeedSearchHint /> : null}
-      {tracks.map((t) => (
-        <ItemRow key={t.id} title={t.title} meta={`id: ${t.id}`} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        tracks.map((t) => ({ key: t.id, title: t.title, meta: `id: ${t.id}` })),
+      )}
+    />
   );
 }
 
 export function GetArtistAlbumsDemo() {
   const { appendLog, catalogArtists } = useApp();
-  const { artistId } = useCatalogIds();
-  const artist = catalogArtists[0];
+  const { value: artistId, setValue: setArtistId } = useIdField(
+    catalogArtists[0]?.id ?? "",
+  );
   const [albums, setAlbums] = useState<Album[]>([]);
+  useEffect(() => {
+    if (!artistId && catalogArtists[0]?.id) setArtistId(catalogArtists[0].id);
+  }, [artistId, catalogArtists, setArtistId]);
 
   return (
     <ApiScreen
+      headerExtra={
+        <IdField label="Artist id" value={artistId} onChangeText={setArtistId} />
+      }
       actions={
         <RunButton
           title="Run getArtistAlbums(artistId)"
-          disabled={!artistId}
+          disabled={!artistId.trim()}
           onPress={() => {
-            void Catalog.getArtistAlbums(artistId!, { limit: 10 })
+            void Catalog.getArtistAlbums(artistId.trim(), { limit: 10 })
               .then((r) => {
                 setAlbums(r.albums);
-                appendLog(`${r.albums.length} album(s) for ${artist?.name ?? artistId}`);
+                appendLog(`${r.albums.length} album(s)`);
               })
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      {!artistId ? <NeedSearchHint /> : null}
-      {albums.map((a) => (
-        <ItemRow key={a.id} title={a.title} meta={`id: ${a.id}`} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        albums.map((a) => ({ key: a.id, title: a.title, meta: `id: ${a.id}` })),
+      )}
+    />
   );
 }
 
 export function GetPlaylistTracksDemo() {
   const { appendLog, catalogPlaylists } = useApp();
-  const playlist = catalogPlaylists[0];
+  const { value: playlistId, setValue: setPlaylistId } = useIdField(
+    catalogPlaylists[0]?.id ?? "",
+  );
   const [tracks, setTracks] = useState<{ id: string; title: string }[]>([]);
+  useEffect(() => {
+    if (!playlistId && catalogPlaylists[0]?.id) setPlaylistId(catalogPlaylists[0].id);
+  }, [catalogPlaylists, playlistId, setPlaylistId]);
 
   return (
     <ApiScreen
+      headerExtra={
+        <IdField label="Playlist id" value={playlistId} onChangeText={setPlaylistId} />
+      }
       actions={
         <RunButton
           title="Run getPlaylistTracks(playlistId)"
-          disabled={!playlist}
+          disabled={!playlistId.trim()}
           onPress={() => {
-            void Catalog.getPlaylistTracks(playlist!.id, { limit: 25 })
+            void Catalog.getPlaylistTracks(playlistId.trim(), { limit: 25 })
               .then((r) => {
                 setTracks(r.songs.map((s) => ({ id: s.id, title: s.title })));
-                appendLog(`${r.songs.length} track(s) in ${playlist!.name}`);
+                appendLog(`${r.songs.length} track(s)`);
               })
               .catch((e) => appendLog(`error: ${String(e)}`));
           }}
         />
       }
-    >
-      {!playlist ? <NeedSearchHint /> : null}
-      {tracks.map((t) => (
-        <ItemRow key={t.id} title={t.title} meta={`id: ${t.id}`} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems(
+        tracks.map((t) => ({ key: t.id, title: t.title, meta: `id: ${t.id}` })),
+      )}
+    />
   );
 }
 
 export function GetChartsDemo() {
-  const {
-    appendLog,
-    setCatalogSongs,
-    setCatalogAlbums,
-    catalogSongs,
-    catalogAlbums,
-  } = useApp();
+  const { appendLog, setCatalogSongs, setCatalogAlbums, catalogSongs, catalogAlbums } =
+    useApp();
 
   return (
     <ApiScreen
@@ -352,14 +362,19 @@ export function GetChartsDemo() {
           }}
         />
       }
-    >
-      {catalogSongs.slice(0, 5).map((s) => (
-        <ItemRow key={s.id} title={s.title} subtitle={s.artistName} />
-      ))}
-      {catalogAlbums.slice(0, 5).map((a) => (
-        <ItemRow key={a.id} title={a.title} subtitle={a.artistName} />
-      ))}
-    </ApiScreen>
+      items={toDemoItems([
+        ...catalogSongs.slice(0, 5).map((s) => ({
+          key: `chart-song-${s.id}`,
+          title: s.title,
+          subtitle: s.artistName,
+        })),
+        ...catalogAlbums.slice(0, 5).map((a) => ({
+          key: `chart-album-${a.id}`,
+          title: a.title,
+          subtitle: a.artistName,
+        })),
+      ])}
+    />
   );
 }
 
@@ -367,18 +382,12 @@ export async function playCatalogSong(
   songId: string,
   appendLog: (m: string) => void,
 ) {
-  await Player.configurePlayer(false);
-  await Player.setQueue(songId, MusicItem.SONG);
-  const state = await Player.getCurrentState();
-  appendLog(`queue song — status: ${state.playbackStatus}`);
+  await queueAndPlay(songId, MusicItem.SONG, appendLog);
 }
 
 export async function playCatalogAlbum(
   albumId: string,
   appendLog: (m: string) => void,
 ) {
-  await Player.configurePlayer(false);
-  await Player.setQueue(albumId, MusicItem.ALBUM);
-  const state = await Player.getCurrentState();
-  appendLog(`queue album — status: ${state.playbackStatus}`);
+  await queueAndPlay(albumId, MusicItem.ALBUM, appendLog);
 }
