@@ -98,17 +98,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       setAuthStatus(AuthStatus.AUTHORIZED);
       setHasStoredSession(true);
-      if (devToken) {
-        await Auth.authorize(devToken);
-        appendLog("stored developer token for catalog REST");
-      }
       return true;
     } catch {
       setAuthStatus(AuthStatus.NOT_DETERMINED);
       setHasStoredSession(false);
       return false;
     }
-  }, [appendLog, devToken]);
+  }, [appendLog]);
 
   const authorize = useCallback(async () => {
     try {
