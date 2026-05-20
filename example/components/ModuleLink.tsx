@@ -12,7 +12,10 @@ export function PlaygroundCard() {
   return (
     <Link href="/playground" asChild>
       <Pressable
-        style={[styles.card, !authorized && styles.disabled]}
+        style={StyleSheet.flatten([
+          styles.card,
+          !authorized && styles.disabled,
+        ])}
         disabled={!authorized}
       >
         <Text style={styles.name}>Playground</Text>
