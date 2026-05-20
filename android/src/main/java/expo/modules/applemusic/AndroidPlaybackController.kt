@@ -27,13 +27,21 @@ internal class AndroidPlaybackController private constructor(
   private val appContext = context.applicationContext
   private val mainHandler = Handler(Looper.getMainLooper())
 
-  private val controller: MediaPlayerController by lazy {
+  @Volatile
+  private var controller: MediaPlayerController? = null
+
+  private fun ensureController(): MediaPlayerController {
+    val existing = controller
+    if (existing != null) {
+      return existing
+    }
     AppleMusicNativeLoader.ensureLoaded()
-    MediaPlayerControllerFactory.createLocalController(
+    return MediaPlayerControllerFactory.createLocalController(
       appContext,
       MusicKitTokenProvider(appContext),
     ).also { player ->
       player.addListener(globalErrorListener)
+      controller = player
     }
   }
 
@@ -91,11 +99,11 @@ internal class AndroidPlaybackController private constructor(
     }
 
   fun addListener(listener: MediaPlayerController.Listener) {
-    controller.addListener(listener)
+    ensureController().addListener(listener)
   }
 
   fun removeListener(listener: MediaPlayerController.Listener) {
-    controller.removeListener(listener)
+    controller?.removeListener(listener)
   }
 
   /** API parity with iOS `configureAudioSession`; playback focus is handled by [MediaPlayerController]. */
@@ -108,7 +116,8 @@ internal class AndroidPlaybackController private constructor(
    */
   suspend fun prepareQueue(provider: PlaybackQueueItemProvider) {
     requirePlaybackTokens()
-    val player = controller
+    AppleMusicRestStack.create(appContext).storefront.requireUserStorefront()
+    val player = ensureController()
     withContext(Dispatchers.Main) {
       suspendCancellableCoroutine { continuation ->
         lateinit var timeoutRunnable: Runnable
@@ -222,41 +231,43 @@ internal class AndroidPlaybackController private constructor(
   }
 
   fun play() {
-    mainHandler.post { controller.play() }
+    mainHandler.post { ensureController().play() }
   }
 
   fun pause() {
-    mainHandler.post { controller.pause() }
+    mainHandler.post { ensureController().pause() }
   }
 
   fun togglePlayback() {
     mainHandler.post {
-      when (controller.playbackState) {
-        com.apple.android.music.playback.model.PlaybackState.PLAYING -> controller.pause()
-        else -> controller.play()
+      val player = ensureController()
+      when (player.playbackState) {
+        com.apple.android.music.playback.model.PlaybackState.PLAYING -> player.pause()
+        else -> player.play()
       }
     }
   }
 
   fun skipToNext() {
-    mainHandler.post { controller.skipToNextItem() }
+    mainHandler.post { ensureController().skipToNextItem() }
   }
 
   fun skipToPrevious() {
-    mainHandler.post { controller.skipToPreviousItem() }
+    mainHandler.post { ensureController().skipToPreviousItem() }
   }
 
   fun restartCurrentEntry(onComplete: ((Double) -> Unit)? = null) {
     mainHandler.post {
-      controller.seekToPosition(0)
+      ensureController().seekToPosition(0)
       onComplete?.invoke(0.0)
     }
   }
 
   fun seekToTime(seconds: Double, onComplete: ((Double) -> Unit)? = null) {
     mainHandler.post {
-      controller.seekToPosition((seconds * 1000).toLong())
-      val actual = controller.currentPosition.coerceAtLeast(0) / 1000.0
+      val player = ensureController()
+      player.seekToPosition((seconds * 1000).toLong())
+      val actual = player.currentPosition.coerceAtLeast(0) / 1000.0
       onComplete?.invoke(actual)
     }
   }
@@ -286,7 +297,20 @@ internal class AndroidPlaybackController private constructor(
 
   fun warmUp() {
     AppleMusicNativeLoader.ensureLoaded()
-    controller
+    ensureController()
+  }
+
+  internal fun release() {
+    val player = controller ?: return
+    controller = null
+    mainHandler.post {
+      try {
+        player.removeListener(globalErrorListener)
+        player.release()
+      } catch (error: Exception) {
+        Log.w(TAG, "release playback controller failed", error)
+      }
+    }
   }
 
   fun clearSongCache() {
@@ -295,11 +319,12 @@ internal class AndroidPlaybackController private constructor(
   }
 
   fun currentState(): Map<String, Any?> {
-    val playbackStatus = AppleMusicJsonMapper.describePlaybackStatus(controller.playbackState)
-    val playbackTime = controller.currentPosition.coerceAtLeast(0) / 1000.0
+    val player = ensureController()
+    val playbackStatus = AppleMusicJsonMapper.describePlaybackStatus(player.playbackState)
+    val playbackTime = player.currentPosition.coerceAtLeast(0) / 1000.0
     val result =
       mutableMapOf<String, Any?>(
-        "playbackRate" to controller.playbackRate,
+        "playbackRate" to player.playbackRate,
         "playbackStatus" to playbackStatus,
         "playbackTime" to playbackTime,
       )
@@ -308,7 +333,7 @@ internal class AndroidPlaybackController private constructor(
   }
 
   fun fetchCurrentSongInfo(): Map<String, Any?>? {
-    val item: PlayerMediaItem = controller.currentItem?.item ?: return run {
+    val item: PlayerMediaItem = ensureController().currentItem?.item ?: return run {
       clearSongCache()
       null
     }
@@ -354,6 +379,13 @@ internal class AndroidPlaybackController private constructor(
       }
     }
 
+    fun resetInstance() {
+      synchronized(this) {
+        instance?.release()
+        instance = null
+      }
+    }
+
     fun mapPlaybackException(error: Exception): CodedException =
       when (error) {
         is CodedException -> error
@@ -363,7 +395,16 @@ internal class AndroidPlaybackController private constructor(
             error.message ?: "Media playback failed (type=${error.type}, code=${error.errorCode})",
             null,
           )
-        else -> CodedException("PLAYBACK_ERROR", error.message ?: "Playback failed", null)
+        else -> {
+          val message = error.message.orEmpty()
+          val hint =
+            if (error is java.io.FileNotFoundException && message.contains("api.music.apple.com")) {
+              "Apple Music API rejected the request (often an expired session). Call Auth.authorize(developerToken) again."
+            } else {
+              error.message ?: "Playback failed"
+            }
+          CodedException("PLAYBACK_ERROR", hint, null)
+        }
       }
   }
 }

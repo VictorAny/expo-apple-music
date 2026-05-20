@@ -90,7 +90,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const restoreSession = useCallback(async (): Promise<boolean> => {
     try {
-      await Auth.checkSubscription();
+      const subscription = await Auth.checkSubscription();
+      if (!subscription.canPlayCatalogContent) {
+        setAuthStatus(AuthStatus.NOT_DETERMINED);
+        setHasStoredSession(false);
+        return false;
+      }
       setAuthStatus(AuthStatus.AUTHORIZED);
       setHasStoredSession(true);
       if (devToken) {

@@ -14,6 +14,7 @@ internal object MusicKitAuthStorage {
       .putString(KEY_DEVELOPER_TOKEN, token)
       .apply()
     AuthenticatedSessionCache.invalidate()
+    AndroidPlaybackController.resetInstance()
   }
 
   fun getDeveloperToken(context: Context): String? =
@@ -28,6 +29,7 @@ internal object MusicKitAuthStorage {
       .putString(KEY_MUSIC_USER_TOKEN, token)
       .apply()
     AuthenticatedSessionCache.invalidate()
+    AndroidPlaybackController.resetInstance()
   }
 
   fun getMusicUserToken(context: Context): String? =
@@ -42,6 +44,7 @@ internal object MusicKitAuthStorage {
       .remove(KEY_MUSIC_USER_TOKEN)
       .apply()
     AuthenticatedSessionCache.invalidate()
+    AndroidPlaybackController.resetInstance()
   }
 
   fun clearDeveloperToken(context: Context) {
@@ -51,6 +54,7 @@ internal object MusicKitAuthStorage {
       .remove(KEY_DEVELOPER_TOKEN)
       .apply()
     AuthenticatedSessionCache.invalidate()
+    AndroidPlaybackController.resetInstance()
   }
 
   fun clearAll(context: Context) {
@@ -60,5 +64,6 @@ internal object MusicKitAuthStorage {
       .clear()
       .apply()
     AuthenticatedSessionCache.invalidate()
+    AndroidPlaybackController.resetInstance()
   }
 }
