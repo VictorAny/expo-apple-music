@@ -279,9 +279,7 @@ final class CatalogService {
     let storefront = try await StorefrontService.getStorefrontId()
     let path = "/v1/catalog/\(storefront)/\(type)"
     let json = try await AppleMusicRestClient.get(path: path, query: ["ids": trimmed.joined(separator: ",")])
-    guard let data = json["data"] as? [[String: Any]] else {
-      return []
-    }
+    let data = try AppleMusicRestClient.parseDataArray(from: json)
     return data.compactMap { resource in
       mapCatalogResource(type: type, resource: resource)
     }

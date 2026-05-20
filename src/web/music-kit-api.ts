@@ -1,5 +1,6 @@
 import type { AppleMusicApiResource } from '../mappers/apple-music-json-mapper';
 import type { MusicKitApiResponse, MusicKitInstance } from './musickit-types';
+import * as errors from './apple-music-errors';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -32,27 +33,47 @@ export function toMusicKitApiPath(appleMusicApiPath: string): string {
   return `/v1/${trimmed}`;
 }
 
+function isMusicKitApiBody(value: unknown): value is MusicKitApiResponse {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  return (
+    record.data !== undefined || record.results !== undefined || record.errors !== undefined
+  );
+}
+
+/** Reject Apple Music API error payloads (same policy as native REST clients). */
+export function throwIfApiErrors(json: MusicKitApiResponse): void {
+  const apiErrors = json.errors;
+  if (!Array.isArray(apiErrors) || apiErrors.length === 0) {
+    return;
+  }
+  const first = apiErrors[0];
+  const detail =
+    (first && typeof first.detail === 'string' && first.detail) ||
+    (first && typeof (first as { title?: string }).title === 'string' && (first as { title: string }).title) ||
+    'Apple Music API error';
+  throw errors.apiError(detail);
+}
+
 /** APISession returns `{ data: <Apple Music JSON body> }`; normalize to API shape. */
 export function unwrapMusicKitApiResponse(raw: unknown): MusicKitApiResponse {
   if (!raw || typeof raw !== 'object') {
-    return {};
+    throw errors.apiError('Invalid MusicKit API response');
   }
   const envelope = raw as Record<string, unknown>;
   const inner = envelope.data;
-  if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
-    const body = inner as MusicKitApiResponse;
-    if (body.data !== undefined || body.results !== undefined || body.errors !== undefined) {
-      return body;
-    }
+  if (inner && typeof inner === 'object' && !Array.isArray(inner) && isMusicKitApiBody(inner)) {
+    const body = inner;
+    throwIfApiErrors(body);
+    return body;
   }
-  if (
-    envelope.data !== undefined ||
-    envelope.results !== undefined ||
-    envelope.errors !== undefined
-  ) {
-    return envelope as MusicKitApiResponse;
+  if (isMusicKitApiBody(envelope)) {
+    throwIfApiErrors(envelope);
+    return envelope;
   }
-  return {};
+  throw errors.apiError('Invalid MusicKit API response');
 }
 
 export function parseStorefrontId(json: MusicKitApiResponse): string | null {

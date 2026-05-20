@@ -16,7 +16,7 @@ internal class LibraryRestClient(
           "/v1/me/library/playlists",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapPlaylist(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapPlaylist(it) }
     }
 
   suspend fun getLibrarySongs(limit: Int, offset: Int): List<Map<String, Any?>> =
@@ -26,13 +26,13 @@ internal class LibraryRestClient(
           "/v1/me/library/songs",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapSong(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapSong(it) }
     }
 
   suspend fun getPlaylistTracks(playlistId: String): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json = transport.getJson("/v1/me/library/playlists/$playlistId/tracks")
-      val data = json.optJSONArray("data") ?: JSONArray()
+      val data = requireDataArray(json)
       val songs = mutableListOf<Map<String, Any?>>()
       for (i in 0 until data.length()) {
         val resource = data.getJSONObject(i)
@@ -60,7 +60,7 @@ internal class LibraryRestClient(
           "/v1/me/library/artists",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapArtist(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapArtist(it) }
     }
 
   suspend fun getLibraryAlbums(limit: Int, offset: Int): List<Map<String, Any?>> =
@@ -70,7 +70,7 @@ internal class LibraryRestClient(
           "/v1/me/library/albums",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapAlbum(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapAlbum(it) }
     }
 
   data class LibrarySearchResult(
@@ -88,7 +88,7 @@ internal class LibraryRestClient(
           "/v1/me/library/music-videos",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapMusicVideo(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapMusicVideo(it) }
     }
 
   suspend fun searchLibrary(
@@ -170,7 +170,7 @@ internal class LibraryRestClient(
   suspend fun resolveLibrarySongCatalogIds(playlistId: String): List<String> =
     withContext(Dispatchers.IO) {
       val json = transport.getJson("/v1/me/library/playlists/$playlistId/tracks")
-      val data = json.optJSONArray("data") ?: JSONArray()
+      val data = requireDataArray(json)
       val ids = mutableListOf<String>()
       for (i in 0 until data.length()) {
         val resource = data.getJSONObject(i)

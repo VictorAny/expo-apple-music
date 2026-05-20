@@ -37,9 +37,7 @@ final class RecommendationsService {
       path: "/v1/me/recommendations",
       query: ["ids": ids.joined(separator: ",")]
     )
-    guard let data = json["data"] as? [[String: Any]] else {
-      return []
-    }
+    let data = try AppleMusicRestClient.parseDataArray(from: json)
     return data.map(RestJsonMapper.mapRecommendation)
   }
 

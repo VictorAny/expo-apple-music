@@ -10,7 +10,7 @@ import {
 import type { LibrarySearchType } from '../types/library-search';
 import * as errors from '../web/apple-music-errors';
 import type { AppleMusicRestTransport } from './apple-music-rest-transport';
-import { mapResourceArray } from './rest-json';
+import { mapResourceArray, mapTopLevelResourceArray, parseDataArray } from './rest-json';
 
 export type LibrarySearchResult = {
   songs: Record<string, unknown>[];
@@ -52,7 +52,7 @@ export class LibraryRestClient {
       limit: String(limit),
       offset: String(offset),
     });
-    return mapResourceArray(json.data, mapPlaylist);
+    return mapTopLevelResourceArray(json.data, mapPlaylist);
   }
 
   async getLibrarySongs(limit: number, offset: number) {
@@ -60,12 +60,12 @@ export class LibraryRestClient {
       limit: String(limit),
       offset: String(offset),
     });
-    return mapResourceArray(json.data, mapSong);
+    return mapTopLevelResourceArray(json.data, mapSong);
   }
 
   async getPlaylistTracks(playlistId: string) {
     const json = await this.transport.getJson(`/v1/me/library/playlists/${playlistId}/tracks`);
-    const data = Array.isArray(json.data) ? json.data : [];
+    const data = parseDataArray(json.data);
     return data
       .filter((item) => String((item as AppleMusicApiResource).type ?? '').includes('song'))
       .map((item) => mapSong(item as AppleMusicApiResource));
@@ -76,7 +76,7 @@ export class LibraryRestClient {
       limit: String(limit),
       offset: String(offset),
     });
-    return mapResourceArray(json.data, mapArtist);
+    return mapTopLevelResourceArray(json.data, mapArtist);
   }
 
   async getLibraryAlbums(limit: number, offset: number) {
@@ -84,7 +84,7 @@ export class LibraryRestClient {
       limit: String(limit),
       offset: String(offset),
     });
-    return mapResourceArray(json.data, mapAlbum);
+    return mapTopLevelResourceArray(json.data, mapAlbum);
   }
 
   async getLibraryMusicVideos(limit: number, offset: number) {
@@ -92,7 +92,7 @@ export class LibraryRestClient {
       limit: String(limit),
       offset: String(offset),
     });
-    return mapResourceArray(json.data, mapMusicVideo);
+    return mapTopLevelResourceArray(json.data, mapMusicVideo);
   }
 
   async searchLibrary(
@@ -145,7 +145,8 @@ export class LibraryRestClient {
       throw errors.unknownMediaType(mediaType);
     }
     const json = await this.transport.getJson(path);
-    const data = Array.isArray(json.data) ? json.data[0] : null;
+    const rows = parseDataArray(json.data);
+    const data = rows[0];
     if (!data) {
       throw errors.itemNotFound(mediaType, true);
     }
@@ -158,7 +159,7 @@ export class LibraryRestClient {
 
   async resolveLibrarySongCatalogIds(playlistId: string): Promise<string[]> {
     const json = await this.transport.getJson(`/v1/me/library/playlists/${playlistId}/tracks`);
-    const data = Array.isArray(json.data) ? json.data : [];
+    const data = parseDataArray(json.data);
     const ids: string[] = [];
     for (const item of data) {
       const resource = item as AppleMusicApiResource;

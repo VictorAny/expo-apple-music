@@ -53,8 +53,19 @@ enum AppleMusicRestClient {
 
   static func getDataArray(path: String, query: [String: String] = [:]) async throws -> [[String: Any]] {
     let json = try await get(path: path, query: query)
-    guard let data = json["data"] as? [[String: Any]] else {
+    return try parseDataArray(from: json)
+  }
+
+  /// Top-level list responses must include a `data` array (may be empty).
+  static func parseDataArray(from json: [String: Any], key: String = "data") throws -> [[String: Any]] {
+    guard json.keys.contains(key) else {
+      throw RestError.apiError("Apple Music API response missing \"\(key)\"")
+    }
+    if json[key] is NSNull {
       return []
+    }
+    guard let data = json[key] as? [[String: Any]] else {
+      throw RestError.apiError("Apple Music API response \"\(key)\" is not an array")
     }
     return data
   }

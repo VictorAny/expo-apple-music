@@ -104,7 +104,7 @@ internal class CatalogRestClient(
           "/v1/catalog/$storefrontId/$type",
           mapOf("ids" to trimmed.joinToString(",")),
         )
-      val data = json.optJSONArray("data") ?: JSONArray()
+      val data = requireDataArray(json)
       val items = mutableListOf<Map<String, Any?>>()
       for (i in 0 until data.length()) {
         val resource = data.getJSONObject(i)
@@ -232,7 +232,7 @@ internal class CatalogRestClient(
             "offset" to offset.toString(),
           ),
         )
-      val data = json.optJSONArray("data") ?: JSONArray()
+      val data = requireDataArray(json)
       val items = mutableListOf<Map<String, Any?>>()
       for (i in 0 until data.length()) {
         val resource = data.getJSONObject(i)
@@ -250,8 +250,8 @@ internal class CatalogRestClient(
     withContext(Dispatchers.IO) {
       val storefrontId = storefront.getStorefront()
       val json = transport.getJson("/v1/catalog/$storefrontId$pathSuffix")
-      val data = json.optJSONArray("data")
-      if (data == null || data.length() == 0) {
+      val data = requireDataArray(json)
+      if (data.length() == 0) {
         throw AppleMusicErrors.itemNotFound("Catalog item", false)
       }
       mapper(data.getJSONObject(0))

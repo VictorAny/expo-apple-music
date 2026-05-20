@@ -1,6 +1,6 @@
 import { mapRecommendation, mapReplaySummary } from '../mappers/apple-music-json-mapper';
 import type { AppleMusicRestTransport } from './apple-music-rest-transport';
-import { mapResourceArray } from './rest-json';
+import { mapTopLevelResourceArray } from './rest-json';
 
 /** Recommendations and Replay Apple Music REST. */
 export class RecommendationsRestClient {
@@ -12,7 +12,7 @@ export class RecommendationsRestClient {
       query.ids = ids.join(',');
     }
     const json = await this.transport.getJson('/v1/me/recommendations', query);
-    return mapResourceArray(json.data, mapRecommendation);
+    return mapTopLevelResourceArray(json.data, mapRecommendation);
   }
 
   async getReplay(year: number | null) {
@@ -21,6 +21,6 @@ export class RecommendationsRestClient {
       query['filter[year]'] = String(year);
     }
     const json = await this.transport.getJson('/v1/me/music-summaries', query);
-    return mapResourceArray(json.data, mapReplaySummary);
+    return mapTopLevelResourceArray(json.data, mapReplaySummary);
   }
 }

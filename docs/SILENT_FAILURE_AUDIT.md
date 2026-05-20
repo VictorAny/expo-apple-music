@@ -15,7 +15,11 @@ Bridge methods must **reject** with `AppleMusicError` (`code`, `message`, option
 | Android `AppleMusicRestTransport` | Non-2xx → `AppleMusicErrors` | ✅ |
 | Web `WebAppleMusicRestTransport` | Errors propagate to `callNative` | ✅ |
 | `Ratings.getRating` | HTTP 404 → `null` (no rating yet) | ✅ intentional |
-| iOS `getDataArray` | Missing `data` key on **successful** JSON → `[]` | ✅ empty collection |
+| iOS `getDataArray` / `parseDataArray` | Missing or non-array `data` on list responses → `RestError` | ✅ rejects invalid shape; `data: []` → empty |
+| TS `parseDataArray` / `mapTopLevelResourceArray` | Same policy on web REST stack | ✅ |
+| Android `requireDataArray` | Same policy on Kotlin REST clients | ✅ |
+| Web `unwrapMusicKitApiResponse` | Invalid envelope or `errors[]` in body → `CodedError` | ✅ |
+| Nested search `mapResourceArray` | Optional bucket (`results.songs?.data`) → `[]`; wrong type → reject | ✅ |
 | iOS `restCatalogSongResource` | Used only for queue id resolution fallback; failure → `nil` then `itemNotFound` | ✅ |
 | PlaybackController metadata | Queue entry mapped first; catalog fetch is fallback only | ✅ |
 

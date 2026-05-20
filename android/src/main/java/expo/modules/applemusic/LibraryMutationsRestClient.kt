@@ -61,7 +61,7 @@ internal class LibraryMutationsRestClient(
           "/v1/me/library/playlists",
           body = payload,
         )
-      val data = json.optJSONArray("data") ?: JSONArray()
+      val data = requireDataArray(json)
       if (data.length() == 0) {
         throw AppleMusicErrors.apiError("Create playlist returned no data")
       }

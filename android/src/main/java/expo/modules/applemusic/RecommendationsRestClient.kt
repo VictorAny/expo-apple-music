@@ -16,7 +16,7 @@ internal class RecommendationsRestClient(
           emptyMap()
         }
       val json = transport.getJson("/v1/me/recommendations", query)
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecommendation(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapRecommendation(it) }
     }
 
   suspend fun getReplay(year: Int?): List<Map<String, Any?>> =
@@ -28,6 +28,6 @@ internal class RecommendationsRestClient(
           emptyMap()
         }
       val json = transport.getJson("/v1/me/music-summaries", query)
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapReplaySummary(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapReplaySummary(it) }
     }
 }

@@ -1,5 +1,10 @@
+jest.mock('../apple-music-errors', () => ({
+  apiError: (message: string) => new Error(message),
+}));
+
 import {
   parseStorefrontId,
+  throwIfApiErrors,
   toMusicKitApiPath,
   unwrapMusicKitApiResponse,
 } from '../music-kit-api';
@@ -24,6 +29,25 @@ describe('unwrapMusicKitApiResponse', () => {
   it('passes through raw Apple Music API JSON', () => {
     const body = { data: [{ id: 'us' }] };
     expect(unwrapMusicKitApiResponse(body)).toEqual(body);
+  });
+
+  it('rejects invalid envelope', () => {
+    expect(() => unwrapMusicKitApiResponse(null)).toThrow(/Invalid MusicKit API response/);
+    expect(() => unwrapMusicKitApiResponse({ foo: 1 })).toThrow(/Invalid MusicKit API response/);
+  });
+
+  it('rejects Apple Music errors array in body', () => {
+    expect(() =>
+      unwrapMusicKitApiResponse({
+        errors: [{ detail: 'Invalid parameter' }],
+      }),
+    ).toThrow(/Invalid parameter/);
+  });
+});
+
+describe('throwIfApiErrors', () => {
+  it('no-ops when errors absent', () => {
+    expect(() => throwIfApiErrors({ data: [] })).not.toThrow();
   });
 });
 

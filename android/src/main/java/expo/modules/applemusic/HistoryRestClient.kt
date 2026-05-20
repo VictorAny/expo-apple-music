@@ -10,7 +10,7 @@ internal class HistoryRestClient(
   suspend fun getRecentlyPlayed(): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json = transport.getJson("/v1/me/recent/played", mapOf("limit" to "10"))
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecentlyPlayed(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapRecentlyPlayed(it) }
     }
 
   suspend fun getRecentlyPlayedTracks(limit: Int): List<Map<String, Any?>> =
@@ -20,7 +20,7 @@ internal class HistoryRestClient(
           "/v1/me/recent/played/tracks",
           mapOf("limit" to limit.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapSong(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapSong(it) }
     }
 
   suspend fun getHeavyRotation(limit: Int): List<Map<String, Any?>> =
@@ -30,7 +30,7 @@ internal class HistoryRestClient(
           "/v1/me/history/heavy-rotation",
           mapOf("limit" to limit.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecentResource(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapRecentResource(it) }
     }
 
   suspend fun getRecentlyPlayedStations(limit: Int): List<Map<String, Any?>> =
@@ -40,7 +40,7 @@ internal class HistoryRestClient(
           "/v1/me/recent/radio-stations",
           mapOf("limit" to limit.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapStation(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapStation(it) }
     }
 
   suspend fun getRecentlyAdded(limit: Int, offset: Int): List<Map<String, Any?>> =
@@ -50,6 +50,6 @@ internal class HistoryRestClient(
           "/v1/me/library/recently-added",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecentResource(it) }
+      mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapRecentResource(it) }
     }
 }

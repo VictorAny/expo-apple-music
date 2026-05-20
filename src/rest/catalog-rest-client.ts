@@ -10,7 +10,7 @@ import {
 import * as errors from '../web/apple-music-errors';
 import type { CatalogResourceType } from '../types/catalog-resource-type';
 import type { AppleMusicRestTransport } from './apple-music-rest-transport';
-import { mapResourceArray } from './rest-json';
+import { mapResourceArray, mapTopLevelResourceArray } from './rest-json';
 import { StorefrontRestClient } from './storefront-rest-client';
 
 export type CatalogSearchResult = {
@@ -190,7 +190,7 @@ export class CatalogRestClient {
       ids: trimmed.join(','),
     });
     const mapper = catalogResourceMapper(type);
-    return mapResourceArray(json.data, mapper);
+    return mapTopLevelResourceArray(json.data, mapper);
   }
 
   private async getCatalogRelationship(
@@ -203,7 +203,7 @@ export class CatalogRestClient {
       limit: String(limit),
       offset: String(offset),
     });
-    return mapResourceArray(json.data, mapper);
+    return mapTopLevelResourceArray(json.data, mapper);
   }
 
   async getCatalogAlbumTracks(
