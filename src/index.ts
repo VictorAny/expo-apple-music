@@ -64,7 +64,17 @@ export type { PlayerConfig, PlaybackError } from './modules/player';
 
 export type { AppleMusicError } from './utils/apple-music-error';
 
+export { isLibraryId } from './api/library-ids';
+
 export { isLibraryItem } from './utils/is-library-item';
+
+export {
+  DEFAULT_PAGINATION_LIMIT,
+  DEFAULT_PAGINATION_OFFSET,
+  normalizePaginationOptions,
+} from './api/pagination';
+
+export { normalizeNativeError } from './api/call-native';
 
 export { getErrorMessage } from './utils/get-error-message';
 

@@ -1,3 +1,1 @@
-export function isLibraryId(id: string): boolean {
-  return id.startsWith('l.') || id.startsWith('i.') || id.startsWith('p.');
-}
+export { isLibraryId } from '../api/library-ids';

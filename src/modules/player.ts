@@ -1,4 +1,6 @@
 import type { EventSubscription } from 'expo-modules-core';
+import { callNative } from '../api/call-native';
+import { assertLibraryId } from '../api/library-ids';
 import type { MusicItem } from '../types/music-item';
 import type { PlaybackState } from '../types/playback-state';
 import type { Song } from '../types/song';
@@ -28,15 +30,23 @@ interface PlayerEvents {
 
 class Player {
   public static async setQueue(itemId: string, type: MusicItem): Promise<void> {
-    await MusicModule.setPlaybackQueue(itemId, type);
+    await callNative('Player.setQueue', async () => {
+      await MusicModule.setPlaybackQueue(itemId, type);
+    });
   }
 
   public static async playLibrarySong(songId: string): Promise<void> {
-    await MusicModule.playLibrarySong(songId);
+    assertLibraryId(songId, 'songId');
+    await callNative('Player.playLibrarySong', async () => {
+      await MusicModule.playLibrarySong(songId);
+    });
   }
 
   public static async playLibraryPlaylist(playlistId: string, startingAt = -1): Promise<void> {
-    await MusicModule.playLibraryPlaylist(playlistId, startingAt);
+    assertLibraryId(playlistId, 'playlistId');
+    await callNative('Player.playLibraryPlaylist', async () => {
+      await MusicModule.playLibraryPlaylist(playlistId, startingAt);
+    });
   }
 
   public static skipToNextEntry(): void {
@@ -68,7 +78,9 @@ class Player {
   }
 
   public static async getCurrentState(): Promise<PlaybackState> {
-    return (await MusicModule.getCurrentState()) as PlaybackState;
+    return callNative('Player.getCurrentState', async () =>
+      (await MusicModule.getCurrentState()) as PlaybackState,
+    );
   }
 
   public static addListener(
@@ -84,7 +96,9 @@ class Player {
   }
 
   public static async configurePlayer(mixWithOthers = false): Promise<PlayerConfig> {
-    return (await MusicModule.configurePlayer(mixWithOthers)) as PlayerConfig;
+    return callNative('Player.configurePlayer', async () =>
+      (await MusicModule.configurePlayer(mixWithOthers)) as PlayerConfig,
+    );
   }
 }
 

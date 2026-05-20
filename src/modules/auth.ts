@@ -1,3 +1,4 @@
+import { callNative } from '../api/call-native';
 import type { AuthStatus } from '../types/auth-status';
 import type { AndroidAuthorizeOptions } from '../types/android-authorize-options';
 import type { CheckSubscription } from '../types/check-subscription';
@@ -33,12 +34,14 @@ class Auth {
     developerToken?: string,
     options?: AndroidAuthorizeOptions,
   ): Promise<AuthStatus> {
-    const status = await MusicModule.authorization(
-      developerToken ?? null,
-      options?.startScreenMessage ?? null,
-      options?.hideStartScreen ?? false,
-    );
-    return status as AuthStatus;
+    return callNative('Auth.authorize', async () => {
+      const status = await MusicModule.authorization(
+        developerToken ?? null,
+        options?.startScreenMessage ?? null,
+        options?.hideStartScreen ?? false,
+      );
+      return status as AuthStatus;
+    });
   }
 
   /**
@@ -49,12 +52,14 @@ class Auth {
    * Call after `authorize()` returns `authorized` to see if the user can play catalog content.
    */
   public static async checkSubscription(): Promise<CheckSubscription> {
-    return (await MusicModule.checkSubscription()) as CheckSubscription;
+    return callNative('Auth.checkSubscription', async () =>
+      (await MusicModule.checkSubscription()) as CheckSubscription,
+    );
   }
 
   /** User's Apple Music storefront country code (e.g. `us`). Requires prior authorization. */
   public static async getStorefront(): Promise<Storefront> {
-    return (await MusicModule.getStorefront()) as Storefront;
+    return callNative('Auth.getStorefront', async () => (await MusicModule.getStorefront()) as Storefront);
   }
 }
 

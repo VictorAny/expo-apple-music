@@ -43,7 +43,7 @@ Fixture-driven bridge mapping as one deep module: golden JSON → expected bridg
 
 ## 2. Shallow TypeScript domain modules
 
-**Status:** [ ] not started · [ ] in progress · [ ] done
+**Status:** [ ] not started · [ ] in progress · [x] done
 
 **Files**
 
@@ -65,6 +65,8 @@ Either **(a)** deepen JS: ID normalization, pagination defaults, `AppleMusicErro
 - Aligns with v1 `api/` direction in `docs/V1_PLAN.md` (not built yet)
 
 **Notes**
+
+- 2026-05-20: Option (a) — `src/api/` seam (`pagination`, `call-native`, `library-ids`); all domain modules use `callNative` + `paginationBridgePayload`; library-scoped calls validate `i.`/`l.`/`p.` prefixes; unit tests in `src/api/__tests__/`.
 
 ---
 
@@ -265,3 +267,4 @@ Web **Catalog** / **Library** / **History** call shared TS REST **adapter** (And
 | 2026-05-20 | 6 | Auth session: `AuthenticatedSession` + storefront cache; REST/catalog depend on session |
 | 2026-05-20 | 4 + 8 | Catalog REST slice: shared transport + `CatalogRestClient` (Android + TS/Web) |
 | 2026-05-20 | 4 + 8 | Completed: all domain REST clients + `AppleMusicRestStack`; removed `AppleMusicApiClient.kt` |
+| 2026-05-20 | 2 | JS domain depth: `src/api/` pagination + `callNative` + library id validation; modules wired |

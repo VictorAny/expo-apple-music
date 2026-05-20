@@ -1,3 +1,4 @@
+import { callNative } from '../api/call-native';
 import type {
   RecommendationsOptions,
   RecommendationsResponse,
@@ -12,7 +13,9 @@ class Recommendations {
    * Omit `ids` to load all recommendations (MusicKit on iOS, REST on Android).
    */
   public static async get(options?: RecommendationsOptions): Promise<RecommendationsResponse> {
-    return (await MusicModule.getRecommendations(options?.ids)) as RecommendationsResponse;
+    return callNative('Recommendations.get', async () =>
+      (await MusicModule.getRecommendations(options?.ids)) as RecommendationsResponse,
+    );
   }
 
   /**
@@ -20,7 +23,9 @@ class Recommendations {
    * Requires sufficient listening history; may 404 for ineligible accounts/years.
    */
   public static async getReplay(options?: ReplayOptions): Promise<ReplayResponse> {
-    return (await MusicModule.getReplay(options?.year)) as ReplayResponse;
+    return callNative('Recommendations.getReplay', async () =>
+      (await MusicModule.getReplay(options?.year)) as ReplayResponse,
+    );
   }
 }
 

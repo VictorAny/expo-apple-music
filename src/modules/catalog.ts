@@ -1,3 +1,5 @@
+import { callNative } from '../api/call-native';
+import { paginationBridgePayload } from '../api/pagination';
 import type { Album } from '../types/album';
 import type { AlbumsResponse } from '../types/albums-response';
 import type { CatalogAlbumTracksResponse } from '../types/catalog-album-tracks';
@@ -17,62 +19,76 @@ class Catalog {
     types: CatalogSearchType[],
     options?: PaginationOptions,
   ): Promise<CatalogSearch> {
-    return (await MusicModule.catalogSearch(term, types, options ?? {})) as CatalogSearch;
+    return callNative('Catalog.search', async () =>
+      (await MusicModule.catalogSearch(term, types, paginationBridgePayload(options))) as CatalogSearch,
+    );
   }
 
   public static async getSong(id: string): Promise<Song> {
-    return (await MusicModule.getCatalogSong(id)) as Song;
+    return callNative('Catalog.getSong', async () => (await MusicModule.getCatalogSong(id)) as Song);
   }
 
   public static async getAlbum(id: string): Promise<Album> {
-    return (await MusicModule.getCatalogAlbum(id)) as Album;
+    return callNative('Catalog.getAlbum', async () => (await MusicModule.getCatalogAlbum(id)) as Album);
   }
 
   public static async getArtist(id: string): Promise<Artist> {
-    return (await MusicModule.getCatalogArtist(id)) as Artist;
+    return callNative('Catalog.getArtist', async () => (await MusicModule.getCatalogArtist(id)) as Artist);
   }
 
   public static async getPlaylist(id: string): Promise<Playlist> {
-    return (await MusicModule.getCatalogPlaylist(id)) as Playlist;
+    return callNative('Catalog.getPlaylist', async () =>
+      (await MusicModule.getCatalogPlaylist(id)) as Playlist,
+    );
   }
 
   public static async getStation(id: string): Promise<Station> {
-    return (await MusicModule.getCatalogStation(id)) as Station;
+    return callNative('Catalog.getStation', async () => (await MusicModule.getCatalogStation(id)) as Station);
   }
 
   public static async getMusicVideo(id: string): Promise<MusicVideo> {
-    return (await MusicModule.getCatalogMusicVideo(id)) as MusicVideo;
+    return callNative('Catalog.getMusicVideo', async () =>
+      (await MusicModule.getCatalogMusicVideo(id)) as MusicVideo,
+    );
   }
 
   public static async getAlbumTracks(
     albumId: string,
     options?: PaginationOptions,
   ): Promise<CatalogAlbumTracksResponse> {
-    return (await MusicModule.getCatalogAlbumTracks(albumId, options ?? {})) as CatalogAlbumTracksResponse;
+    return callNative('Catalog.getAlbumTracks', async () =>
+      (await MusicModule.getCatalogAlbumTracks(albumId, paginationBridgePayload(options))) as CatalogAlbumTracksResponse,
+    );
   }
 
   public static async getArtistAlbums(
     artistId: string,
     options?: PaginationOptions,
   ): Promise<AlbumsResponse> {
-    return (await MusicModule.getCatalogArtistAlbums(artistId, options ?? {})) as AlbumsResponse;
+    return callNative('Catalog.getArtistAlbums', async () =>
+      (await MusicModule.getCatalogArtistAlbums(artistId, paginationBridgePayload(options))) as AlbumsResponse,
+    );
   }
 
   public static async getPlaylistTracks(
     playlistId: string,
     options?: PaginationOptions,
   ): Promise<CatalogAlbumTracksResponse> {
-    return (await MusicModule.getCatalogPlaylistTracks(
-      playlistId,
-      options ?? {},
-    )) as CatalogAlbumTracksResponse;
+    return callNative('Catalog.getPlaylistTracks', async () =>
+      (await MusicModule.getCatalogPlaylistTracks(
+        playlistId,
+        paginationBridgePayload(options),
+      )) as CatalogAlbumTracksResponse,
+    );
   }
 
   public static async getCharts(
     types: CatalogChartType[],
     options?: CatalogChartsOptions,
   ): Promise<CatalogCharts> {
-    return (await MusicModule.getCatalogCharts(types, options ?? {})) as CatalogCharts;
+    return callNative('Catalog.getCharts', async () =>
+      (await MusicModule.getCatalogCharts(types, options ?? {})) as CatalogCharts,
+    );
   }
 }
 
