@@ -20,363 +20,357 @@ public class ExpoAppleMusicModule: Module {
   public func definition() -> ModuleDefinition {
     Name("ExpoAppleMusic")
 
-    Events(
-      "onPlaybackStateChange",
-      "onCurrentSongChange",
-      "onPlaybackTimeUpdate",
-      "onPlaybackError"
-    )
+      Events(
+        "onPlaybackStateChange",
+        "onCurrentSongChange",
+        "onPlaybackTimeUpdate",
+        "onPlaybackError"
+      )
 
-    OnStartObserving {
-      let observer = PlaybackObserver(playbackController: self.playbackController)
-      observer.delegate = self
-      observer.startObserving()
-      self.playbackObserver = observer
-    }
-
-    OnStopObserving {
-      self.playbackObserver?.stopObserving()
-      self.playbackObserver = nil
-    }
-
-    AsyncFunction("authorization") { (developerToken: String?, _ startScreenMessage: String?, _ hideStartScreen: Bool?) -> String in
-      if let token = developerToken, !token.isEmpty {
-        MusicKitAuthStorage.saveDeveloperToken(token)
+      OnStartObserving {
+        let observer = PlaybackObserver(playbackController: self.playbackController)
+        observer.delegate = self
+        observer.startObserving()
+        self.playbackObserver = observer
       }
-      let status = await self.subscriptionService.requestAuthorization()
-      if status == .authorized, let token = developerToken, !token.isEmpty {
-        await self.subscriptionService.refreshMusicUserToken(developerToken: token)
-      }
-      return status.rawValue
-    }
 
-    AsyncFunction("checkSubscription") { () -> [String: Any] in
-      do {
-        let details = try await self.subscriptionService.checkSubscription()
-        return details.toDictionary()
-      } catch {
-        if let subError = SubscriptionService.wrapSubscriptionError(error) {
-          throw Exception(
-            name: subError.code,
-            description: subError.message,
-            code: subError.code
-          )
+      OnStopObserving {
+        self.playbackObserver?.stopObserving()
+        self.playbackObserver = nil
+      }
+
+      // MARK: - Auth
+
+      AsyncFunction("authorization") { (developerToken: String?, _ startScreenMessage: String?, _ hideStartScreen: Bool?) -> String in
+        if let token = developerToken, !token.isEmpty {
+          MusicKitAuthStorage.saveDeveloperToken(token)
         }
-        throw Exception(name: "ERROR", description: error.localizedDescription)
+        let status = await self.subscriptionService.requestAuthorization()
+        if status == .authorized, let token = developerToken, !token.isEmpty {
+          await self.subscriptionService.refreshMusicUserToken(developerToken: token)
+        }
+        return status.rawValue
       }
-    }
 
-    AsyncFunction("catalogSearch") {
-      (term: String, types: [String], options: [String: Any]) -> [String: Any] in
-      let searchOptions = CatalogService.SearchOptions(from: options as NSDictionary)
-      let result = try await self.catalogService.search(
-        term: term,
-        types: types,
-        options: searchOptions
-      )
-      return [
-        "songs": result.songs,
-        "albums": result.albums,
-        "artists": result.artists,
-        "playlists": result.playlists,
-        "stations": result.stations,
-        "musicVideos": result.musicVideos,
-      ]
-    }
-
-    AsyncFunction("getCatalogSong") { (id: String) -> [String: Any] in
-      try await self.catalogService.getSong(id: id)
-    }
-
-    AsyncFunction("getCatalogAlbum") { (id: String) -> [String: Any] in
-      try await self.catalogService.getAlbum(id: id)
-    }
-
-    AsyncFunction("getCatalogArtist") { (id: String) -> [String: Any] in
-      try await self.catalogService.getArtist(id: id)
-    }
-
-    AsyncFunction("getCatalogPlaylist") { (id: String) -> [String: Any] in
-      try await self.catalogService.getPlaylist(id: id)
-    }
-
-    AsyncFunction("getCatalogStation") { (id: String) -> [String: Any] in
-      try await self.catalogService.getStation(id: id)
-    }
-
-    AsyncFunction("getCatalogMusicVideo") { (id: String) -> [String: Any] in
-      try await self.catalogService.getMusicVideo(id: id)
-    }
-
-    AsyncFunction("getCatalogAlbumTracks") {
-      (albumId: String, options: [String: Any]) -> [String: Any] in
-      let searchOptions = CatalogService.SearchOptions(from: options as NSDictionary)
-      let songs = try await self.catalogService.getAlbumTracks(
-        albumId: albumId,
-        options: searchOptions
-      )
-      return ["songs": songs]
-    }
-
-    AsyncFunction("getCatalogArtistAlbums") {
-      (artistId: String, options: [String: Any]) -> [String: Any] in
-      let searchOptions = CatalogService.SearchOptions(from: options as NSDictionary)
-      let albums = try await self.catalogService.getArtistAlbums(
-        artistId: artistId,
-        options: searchOptions
-      )
-      return ["albums": albums]
-    }
-
-    AsyncFunction("getCatalogPlaylistTracks") {
-      (playlistId: String, options: [String: Any]) -> [String: Any] in
-      let searchOptions = CatalogService.SearchOptions(from: options as NSDictionary)
-      let songs = try await self.catalogService.getPlaylistTracks(
-        playlistId: playlistId,
-        options: searchOptions
-      )
-      return ["songs": songs]
-    }
-
-    AsyncFunction("getCatalogCharts") {
-      (types: [String], options: [String: Any]) -> [String: Any] in
-      let searchOptions = CatalogService.SearchOptions(from: options as NSDictionary)
-      let genre = options["genre"] as? String
-      let chart = options["chart"] as? String
-      let result = try await self.catalogService.getCharts(
-        types: types,
-        options: searchOptions,
-        genre: genre,
-        chart: chart
-      )
-      return [
-        "songs": result.songs,
-        "albums": result.albums,
-        "playlists": result.playlists,
-        "musicVideos": result.musicVideos,
-      ]
-    }
-
-    AsyncFunction("setPlaybackQueue") { (itemId: String, type: String) -> String in
-      try await self.queueService.setQueue(itemId: itemId, type: type)
-      return "Track(s) added to queue"
-    }
-
-    AsyncFunction("getStorefront") { () -> [String: Any] in
-      let id = try await StorefrontService.getStorefrontId()
-      return ["id": id]
-    }
-
-    AsyncFunction("getRecentlyPlayedResources") { () -> [String: Any] in
-      let tracks = try await self.historyService.getRecentlyPlayedResources()
-      return ["recentlyPlayedItems": tracks]
-    }
-
-    AsyncFunction("getRecentlyPlayedTracks") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = HistoryService.PaginationOptions(from: options as NSDictionary)
-      let songs = try await self.historyService.getRecentlyPlayedTracks(options: paginationOptions)
-      return ["songs": songs]
-    }
-
-    AsyncFunction("getLibraryArtists") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
-      let artists = try await self.libraryService.getArtists(options: paginationOptions)
-      return ["artists": artists]
-    }
-
-    AsyncFunction("getLibraryAlbums") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
-      let albums = try await self.libraryService.getAlbums(options: paginationOptions)
-      return ["albums": albums]
-    }
-
-    AsyncFunction("getHeavyRotation") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = HistoryService.PaginationOptions(from: options as NSDictionary)
-      let items = try await self.historyService.getHeavyRotation(limit: paginationOptions.limit)
-      return ["items": items]
-    }
-
-    AsyncFunction("getRecentlyPlayedStations") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = HistoryService.PaginationOptions(from: options as NSDictionary)
-      let stations = try await self.historyService.getRecentlyPlayedStations(
-        limit: paginationOptions.limit
-      )
-      return ["stations": stations]
-    }
-
-    AsyncFunction("getRecentlyAdded") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = HistoryService.PaginationOptions(from: options as NSDictionary)
-      let items = try await self.historyService.getRecentlyAdded(
-        limit: paginationOptions.limit,
-        offset: paginationOptions.offset
-      )
-      return ["items": items]
-    }
-
-    AsyncFunction("configurePlayer") { (mixWithOthers: Bool) -> [String: Any] in
-      try self.playbackController.configureAudioSession(mixWithOthers: mixWithOthers)
-      return ["mixWithOthers": mixWithOthers]
-    }
-
-    Function("play") {
-      Task {
+      AsyncFunction("checkSubscription") { () -> [String: Any] in
         do {
-          try await self.playbackController.play()
+          let details = try await self.subscriptionService.checkSubscription()
+          return details.toDictionary()
         } catch {
-          self.emitPlaybackError(error, operation: "play")
+          if let subError = SubscriptionService.wrapSubscriptionError(error) {
+            throw Exception(
+              name: subError.code,
+              description: subError.message,
+              code: subError.code
+            )
+          }
+          throw Exception(name: "ERROR", description: error.localizedDescription)
         }
       }
-    }
 
-    Function("pause") {
-      self.playbackController.pause()
-    }
+      AsyncFunction("getStorefront") { () -> [String: Any] in
+        let id = try await StorefrontService.getStorefrontId()
+        return BridgeResponses.storefront(id: id)
+      }
 
-    Function("skipToNextEntry") {
-      Task {
-        do {
-          try await self.playbackController.skipToNext()
-        } catch {
-          self.emitPlaybackError(error, operation: "skipToNext")
+      // MARK: - Catalog
+
+      AsyncFunction("catalogSearch") { (term: String, types: [String], options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeCatalog.catalogSearch(
+          service: self.catalogService,
+          term: term,
+          types: types,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getCatalogSong") { (id: String) -> [String: Any] in
+        try await self.catalogService.getSong(id: id)
+      }
+
+      AsyncFunction("getCatalogAlbum") { (id: String) -> [String: Any] in
+        try await self.catalogService.getAlbum(id: id)
+      }
+
+      AsyncFunction("getCatalogArtist") { (id: String) -> [String: Any] in
+        try await self.catalogService.getArtist(id: id)
+      }
+
+      AsyncFunction("getCatalogPlaylist") { (id: String) -> [String: Any] in
+        try await self.catalogService.getPlaylist(id: id)
+      }
+
+      AsyncFunction("getCatalogStation") { (id: String) -> [String: Any] in
+        try await self.catalogService.getStation(id: id)
+      }
+
+      AsyncFunction("getCatalogMusicVideo") { (id: String) -> [String: Any] in
+        try await self.catalogService.getMusicVideo(id: id)
+      }
+
+      AsyncFunction("getCatalogAlbumTracks") { (albumId: String, options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeCatalog.getCatalogAlbumTracks(
+          service: self.catalogService,
+          albumId: albumId,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getCatalogArtistAlbums") { (artistId: String, options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeCatalog.getCatalogArtistAlbums(
+          service: self.catalogService,
+          artistId: artistId,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getCatalogPlaylistTracks") { (playlistId: String, options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeCatalog.getCatalogPlaylistTracks(
+          service: self.catalogService,
+          playlistId: playlistId,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getCatalogCharts") { (types: [String], options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeCatalog.getCatalogCharts(
+          service: self.catalogService,
+          types: types,
+          options: options
+        )
+      }
+
+      // MARK: - Library
+
+      AsyncFunction("getUserPlaylists") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeLibrary.getUserPlaylists(
+          service: self.libraryService,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getLibrarySongs") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeLibrary.getLibrarySongs(
+          service: self.libraryService,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getPlaylistSongs") { (playlistId: String, options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeLibrary.getPlaylistSongs(
+          service: self.libraryService,
+          playlistId: playlistId
+        )
+      }
+
+      AsyncFunction("getLibraryArtists") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeLibrary.getLibraryArtists(
+          service: self.libraryService,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getLibraryAlbums") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeLibrary.getLibraryAlbums(
+          service: self.libraryService,
+          options: options as NSDictionary
+        )
+      }
+
+      // MARK: - History
+
+      AsyncFunction("getRecentlyPlayedResources") { () -> [String: Any] in
+        try await ExpoBridgeHistory.getRecentlyPlayedResources(service: self.historyService)
+      }
+
+      AsyncFunction("getRecentlyPlayedTracks") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeHistory.getRecentlyPlayedTracks(
+          service: self.historyService,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getHeavyRotation") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeHistory.getHeavyRotation(
+          service: self.historyService,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getRecentlyPlayedStations") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeHistory.getRecentlyPlayedStations(
+          service: self.historyService,
+          options: options as NSDictionary
+        )
+      }
+
+      AsyncFunction("getRecentlyAdded") { (options: [String: Any]) -> [String: Any] in
+        try await ExpoBridgeHistory.getRecentlyAdded(
+          service: self.historyService,
+          options: options as NSDictionary
+        )
+      }
+
+      // MARK: - Player
+
+      AsyncFunction("setPlaybackQueue") { (itemId: String, type: String) -> String in
+        try await self.queueService.setQueue(itemId: itemId, type: type)
+        return "Track(s) added to queue"
+      }
+
+      AsyncFunction("configurePlayer") { (mixWithOthers: Bool) -> [String: Any] in
+        try self.playbackController.configureAudioSession(mixWithOthers: mixWithOthers)
+        return BridgeResponses.configurePlayer(mixWithOthers: mixWithOthers)
+      }
+
+      Function("play") {
+        Task {
+          do {
+            try await self.playbackController.play()
+          } catch {
+            self.emitPlaybackError(error, operation: "play")
+          }
         }
       }
-    }
 
-    Function("skipToPreviousEntry") {
-      Task {
-        do {
-          try await self.playbackController.skipToPrevious()
-        } catch {
-          self.emitPlaybackError(error, operation: "skipToPrevious")
+      Function("pause") {
+        self.playbackController.pause()
+      }
+
+      Function("skipToNextEntry") {
+        Task {
+          do {
+            try await self.playbackController.skipToNext()
+          } catch {
+            self.emitPlaybackError(error, operation: "skipToNext")
+          }
         }
       }
-    }
 
-    Function("restartCurrentEntry") {
-      Task { @MainActor in
-        self.playbackController.restartCurrentEntry()
-        self.playbackTimeDidUpdate(0)
-      }
-    }
-
-    Function("seekToTime") { (time: Double) in
-      Task { @MainActor in
-        self.playbackController.seek(to: time)
-        self.playbackTimeDidUpdate(time)
-      }
-    }
-
-    Function("togglePlayerState") {
-      Task {
-        do {
-          try await self.playbackController.togglePlayback()
-        } catch {
-          self.emitPlaybackError(error, operation: "togglePlayback")
+      Function("skipToPreviousEntry") {
+        Task {
+          do {
+            try await self.playbackController.skipToPrevious()
+          } catch {
+            self.emitPlaybackError(error, operation: "skipToPrevious")
+          }
         }
       }
-    }
 
-    AsyncFunction("getCurrentState") { () -> [String: Any] in
-      let state = self.playbackController.state
-      let songInfo = await self.playbackController.fetchCurrentSongInfo()
-
-      var result: [String: Any] = [
-        "playbackRate": state.playbackRate,
-        "playbackStatus": MusicItemMapper.describePlaybackStatus(state.playbackStatus),
-        "playbackTime": self.playbackController.playbackTime,
-      ]
-      if let songInfo = songInfo {
-        result["currentSong"] = songInfo
+      Function("restartCurrentEntry") {
+        Task { @MainActor in
+          self.playbackController.restartCurrentEntry()
+          self.playbackTimeDidUpdate(0)
+        }
       }
-      return result
-    }
 
-    AsyncFunction("getUserPlaylists") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
-      let playlists = try await self.libraryService.getPlaylists(options: paginationOptions)
-      return ["playlists": playlists]
-    }
+      Function("seekToTime") { (time: Double) in
+        Task { @MainActor in
+          self.playbackController.seek(to: time)
+          self.playbackTimeDidUpdate(time)
+        }
+      }
 
-    AsyncFunction("getLibrarySongs") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
-      let songs = try await self.libraryService.getSongs(options: paginationOptions)
-      return ["songs": songs]
-    }
+      Function("togglePlayerState") {
+        Task {
+          do {
+            try await self.playbackController.togglePlayback()
+          } catch {
+            self.emitPlaybackError(error, operation: "togglePlayback")
+          }
+        }
+      }
 
-    AsyncFunction("getPlaylistSongs") {
-      (playlistId: String, options: [String: Any]) -> [String: Any] in
-      let songs = try await self.libraryService.getPlaylistSongs(playlistId: playlistId)
-      return ["songs": songs]
-    }
+      AsyncFunction("getCurrentState") { () -> [String: Any] in
+        let state = self.playbackController.state
+        let songInfo = await self.playbackController.fetchCurrentSongInfo()
 
-    AsyncFunction("playLibrarySong") { (songId: String) -> String in
-      try await self.queueService.playLibrarySong(songId: songId)
-      return "Library song added to queue"
-    }
+        var result: [String: Any] = [
+          "playbackRate": state.playbackRate,
+          "playbackStatus": MusicItemMapper.describePlaybackStatus(state.playbackStatus),
+          "playbackTime": self.playbackController.playbackTime,
+        ]
+        if let songInfo = songInfo {
+          result["currentSong"] = songInfo
+        }
+        return result
+      }
 
-    AsyncFunction("playLibraryPlaylist") { (playlistId: String, startingAt: Int) -> String in
-      try await self.queueService.playLibraryPlaylist(
-        playlistId: playlistId,
-        startingAt: startingAt
-      )
-      return "Library playlist added to queue"
-    }
+      AsyncFunction("playLibrarySong") { (songId: String) -> String in
+        try await self.queueService.playLibrarySong(songId: songId)
+        return "Library song added to queue"
+      }
 
-    AsyncFunction("getRating") { (resourceType: String, id: String) -> [String: Any]? in
-      try await self.ratingsService.getRating(resourceType: resourceType, id: id)
-    }
+      AsyncFunction("playLibraryPlaylist") { (playlistId: String, startingAt: Int) -> String in
+        try await self.queueService.playLibraryPlaylist(
+          playlistId: playlistId,
+          startingAt: startingAt
+        )
+        return "Library playlist added to queue"
+      }
 
-    AsyncFunction("setRating") {
-      (resourceType: String, id: String, value: Int) -> [String: Any] in
-      try await self.ratingsService.setRating(resourceType: resourceType, id: id, value: value)
-    }
+      // MARK: - Ratings
 
-    AsyncFunction("clearRating") { (resourceType: String, id: String) -> Void in
-      try await self.ratingsService.clearRating(resourceType: resourceType, id: id)
-    }
+      AsyncFunction("getRating") { (resourceType: String, id: String) -> [String: Any]? in
+        try await self.ratingsService.getRating(resourceType: resourceType, id: id)
+      }
 
-    AsyncFunction("addToFavorites") { (resourceIds: [String: [String]]) -> Void in
-      try await self.ratingsService.addToFavorites(resourceIds: resourceIds)
-    }
+      AsyncFunction("setRating") { (resourceType: String, id: String, value: Int) -> [String: Any] in
+        try await self.ratingsService.setRating(resourceType: resourceType, id: id, value: value)
+      }
 
-    AsyncFunction("removeFromFavorites") { (resourceIds: [String: [String]]) -> Void in
-      try await self.ratingsService.removeFromFavorites(resourceIds: resourceIds)
-    }
+      AsyncFunction("clearRating") { (resourceType: String, id: String) -> Void in
+        try await self.ratingsService.clearRating(resourceType: resourceType, id: id)
+      }
 
-    AsyncFunction("addToLibrary") { (resourceIds: [String: [String]]) -> Void in
-      try await self.libraryMutationsService.addToLibrary(resourceIds: resourceIds)
-    }
+      AsyncFunction("addToFavorites") { (resourceIds: [String: [String]]) -> Void in
+        try await self.ratingsService.addToFavorites(resourceIds: resourceIds)
+      }
 
-    AsyncFunction("createLibraryPlaylist") {
-      (options: [String: Any]) -> [String: Any] in
-      let name = options["name"] as? String ?? ""
-      let description = options["description"] as? String
-      let isPublic = options["isPublic"] as? Bool ?? false
-      let tracks = options["tracks"] as? [[String: String]]
-      return try await self.libraryMutationsService.createPlaylist(
-        name: name,
-        description: description,
-        isPublic: isPublic,
-        tracks: tracks
-      )
-    }
+      AsyncFunction("removeFromFavorites") { (resourceIds: [String: [String]]) -> Void in
+        try await self.ratingsService.removeFromFavorites(resourceIds: resourceIds)
+      }
 
-    AsyncFunction("addTracksToLibraryPlaylist") {
-      (playlistId: String, tracks: [[String: String]]) -> Void in
-      try await self.libraryMutationsService.addTracksToPlaylist(
-        playlistId: playlistId,
-        tracks: tracks
-      )
-    }
+      // MARK: - Library mutations
 
-    AsyncFunction("getRecommendations") { (ids: [String]?) -> [String: Any] in
-      let recommendations = try await self.recommendationsService.getRecommendations(ids: ids)
-      return ["recommendations": recommendations]
-    }
+      AsyncFunction("addToLibrary") { (resourceIds: [String: [String]]) -> Void in
+        try await self.libraryMutationsService.addToLibrary(resourceIds: resourceIds)
+      }
+
+      AsyncFunction("createLibraryPlaylist") { (options: [String: Any]) -> [String: Any] in
+        let name = options["name"] as? String ?? ""
+        let description = options["description"] as? String
+        let isPublic = options["isPublic"] as? Bool ?? false
+        let tracks = options["tracks"] as? [[String: String]]
+        return try await self.libraryMutationsService.createPlaylist(
+          name: name,
+          description: description,
+          isPublic: isPublic,
+          tracks: tracks
+        )
+      }
+
+      AsyncFunction("addTracksToLibraryPlaylist") { (playlistId: String, tracks: [[String: String]]) -> Void in
+        try await self.libraryMutationsService.addTracksToPlaylist(
+          playlistId: playlistId,
+          tracks: tracks
+        )
+      }
+
+      // MARK: - Recommendations
+
+      AsyncFunction("getRecommendations") { (ids: [String]?) -> [String: Any] in
+        try await ExpoBridgeRecommendations.getRecommendations(
+          service: self.recommendationsService,
+          ids: ids
+        )
+      }
 
     AsyncFunction("getReplay") { (year: Int?) -> [String: Any] in
-      let summaries = try await self.recommendationsService.getReplay(year: year)
-      return ["summaries": summaries]
+      try await ExpoBridgeRecommendations.getReplay(
+        service: self.recommendationsService,
+        year: year
+      )
     }
   }
 

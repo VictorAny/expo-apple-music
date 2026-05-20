@@ -192,7 +192,7 @@ No single **interface** for “what credentials exist?” Token checks scattered
 
 ## 7. Flat Expo bridge interface (~40 methods × 3 platforms)
 
-**Status:** [ ] not started · [ ] in progress · [ ] done
+**Status:** [ ] not started · [ ] in progress · [x] done
 
 **Files**
 
@@ -215,6 +215,8 @@ Group bridge by domain with shared envelope/pagination helpers — or codegen fr
 - Fewer iOS/Android/Web drift bugs
 
 **Notes**
+
+- 2026-05-20: `src/bridge/bridge-methods.ts` manifest; `BridgeResponses` + domain registration (`ios/bridge/`, `android/.../bridge/`, `src/bridge/handlers/`); shared `BridgePagination` on iOS; web module delegates via `createWebBridgeHandlers`.
 
 ---
 
@@ -271,3 +273,4 @@ Web **Catalog** / **Library** / **History** call shared TS REST **adapter** (And
 | 2026-05-20 | 4 + 8 | Completed: all domain REST clients + `AppleMusicRestStack`; removed `AppleMusicApiClient.kt` |
 | 2026-05-20 | 2 | JS domain depth: `src/api/` pagination + `callNative` + library id validation; modules wired |
 | 2026-05-20 | 5 | History seam: native History services; bridge `getRecentlyPlayedResources`; REST recently-added on History client |
+| 2026-05-20 | 7 | Domain-grouped Expo bridge: manifest, envelopes, per-domain register/handlers on iOS/Android/Web |

@@ -31,6 +31,11 @@ final class CatalogService {
       limit = dictionary["limit"] as? Int ?? 25
       offset = dictionary["offset"] as? Int ?? 0
     }
+
+    init(limit: Int, offset: Int) {
+      self.limit = limit
+      self.offset = offset
+    }
   }
 
   struct SearchResult {

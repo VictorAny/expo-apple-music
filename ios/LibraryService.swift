@@ -9,17 +9,7 @@ final class LibraryService {
 
   // MARK: - Options
 
-  struct PaginationOptions {
-    let limit: Int
-    let offset: Int
-
-    init(from dictionary: NSDictionary) {
-      limit = dictionary["limit"] as? Int ?? 25
-      offset = dictionary["offset"] as? Int ?? 0
-    }
-  }
-
-  func getArtists(options: PaginationOptions) async throws -> [[String: Any]] {
+  func getArtists(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Artist>()
     request.limit = options.limit
     request.offset = options.offset
@@ -27,7 +17,7 @@ final class LibraryService {
     return response.items.map(MusicItemMapper.map)
   }
 
-  func getAlbums(options: PaginationOptions) async throws -> [[String: Any]] {
+  func getAlbums(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Album>()
     request.limit = options.limit
     request.offset = options.offset
@@ -37,7 +27,7 @@ final class LibraryService {
 
   // MARK: - Playlists
 
-  func getPlaylists(options: PaginationOptions) async throws -> [[String: Any]] {
+  func getPlaylists(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Playlist>()
     request.limit = options.limit
     request.offset = options.offset
@@ -79,7 +69,7 @@ final class LibraryService {
 
   // MARK: - Songs
 
-  func getSongs(options: PaginationOptions) async throws -> [[String: Any]] {
+  func getSongs(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Song>()
     request.limit = options.limit
     request.offset = options.offset
