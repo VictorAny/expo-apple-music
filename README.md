@@ -10,7 +10,7 @@ Inspired by [`@lomray/react-native-apple-music`](https://github.com/Lomray-Softw
 npx expo install @wwdrew/expo-apple-music
 ```
 
-**Peer requirements:** Expo SDK 55 · iOS 16+ · Android with Apple Music app installed (see [Platform parity](#platform-parity)).
+**Peer requirements:** Expo SDK 55 · iOS 16+ · Android with Apple Music app installed · Web with MusicKit JS (see [Platform parity](#platform-parity)).
 
 ## Config plugin
 
@@ -55,31 +55,27 @@ Public API direction before 1.0: [docs/V1_PLAN.md](./docs/V1_PLAN.md). Attributi
 
 ## Platform parity
 
-The **same TypeScript API** is exposed on iOS and Android. Native implementations differ; a few capabilities are missing or approximate on Android.
+The **same TypeScript API** is exposed on **iOS, Android, and web**. Native implementations differ; a few capabilities are missing or approximate on Android and web.
 
-| Feature | iOS | Android | Notes |
-| --- | :---: | :---: | --- |
-| `Auth.authorize()` | ✅ | ✅ | Android requires a [developer JWT](./docs/AUTH.md) at runtime. iOS: optional JWT, recommended for catalog search. |
-| `Auth.checkSubscription()` | ✅ | ⚠️ | Android infers flags from token + library probe (no `MusicSubscription` API). |
-| `Catalog.search()` | ✅ | ✅ | All search types on both platforms; iOS uses **REST** when a dev JWT was passed to `authorize()`, else native MusicKit ([details](./docs/PLATFORM_IMPLEMENTATION.md#catalog)). |
-| `Catalog.get*` / relationship helpers / `getCharts()` | ✅ | ✅ | Catalog by ID, relationships, and charts via REST. |
-| `Player.setQueue()` / `playLibrary*` | ✅ | ✅ | Native playback queue (replaces interim `MusicKit` helpers). |
-| `Ratings.*` / `LibraryMutations.*` | ✅ | ✅ | REST write paths (ratings, favorites, add to library, playlists). Requires music user token; iOS needs developer JWT for REST mutations. |
-| `Recommendations.get` / `getReplay` | ✅ | ✅ | iOS uses MusicKit for `get()`; Replay is REST on both. |
-| `getUserPlaylists` / `getLibrarySongs` / `getPlaylistSongs` | ✅ | ✅ | Android uses REST (`/v1/me/library/...`). |
-| `History.getRecentlyPlayedResources()` | ✅ | ✅ | Android uses `GET /v1/me/recent/played` (API max **10** items per request). |
-| `setPlaybackQueue` — song | ✅ | ✅ | |
-| `setPlaybackQueue` — album | ✅ | ✅ | |
-| `setPlaybackQueue` — playlist | ✅ | ✅ | |
-| `setPlaybackQueue` — **station** (catalog) | ✅ | ❌ | Playback AAR queue builder supports songs, albums, and playlists only — no station container type. |
-| `setPlaybackQueue` — **station** (library) | ❌ | ❌ | Not supported on either platform (stations are not library items). |
-| `playLibrarySong` / `playLibraryPlaylist` | ✅ | ✅ | Android resolves library IDs to catalog playback IDs via REST before queueing. |
-| `Player.*` transport + hooks | ✅ | ✅ | Android uses `MediaPlayerController` (playback AAR). Test on a **physical ARM** device (no x86 natives). |
-| `configurePlayer()` | ✅ | ⚠️ | Android returns the same shape; audio-session / focus behavior is not fully mirrored. |
+| Feature | iOS | Android | Web | Notes |
+| --- | :---: | :---: | :---: | --- |
+| `Auth.authorize()` | ✅ | ✅ | ✅ | Android and web require a [developer JWT](./docs/AUTH.md). iOS: optional JWT, recommended for `Catalog.search`. |
+| `Auth.checkSubscription()` | ✅ | ⚠️ | ⚠️ | Android/web infer flags from auth + library probe (no `MusicSubscription` API). |
+| `Catalog.search()` | ✅ | ✅ | ✅ | iOS uses **REST** when a dev JWT was passed to `authorize()`, else native MusicKit ([details](./docs/PLATFORM_IMPLEMENTATION.md#catalog)). |
+| `Catalog.get*` / relationship helpers / `getCharts()` | ✅ | ✅ | ✅ | Catalog by ID, relationships, and charts via REST / MusicKit JS. |
+| `Library.getPlaylists` / `getSongs` / `getPlaylistTracks` / `getArtists` / `getAlbums` | ✅ | ✅ | ✅ | Library reads via REST (or native on iOS where applicable). |
+| `History.*` (recent, heavy rotation, recently added) | ✅ | ✅ | ✅ | Recent resources capped at **10** per request on Android (API limit). |
+| `Ratings.*` / `LibraryMutations.*` | ✅ | ✅ | ✅ | REST write paths. iOS needs developer JWT for REST mutations. |
+| `Recommendations.get` / `getReplay` | ✅ | ✅ | ✅ | iOS uses MusicKit for `get()` without `ids`; Replay is REST everywhere. |
+| `Player.setQueue()` — song / album / playlist | ✅ | ✅ | ⚠️ | Web uses MusicKit JS player; verify in Safari + Chrome before 1.0. |
+| `Player.setQueue()` — **station** (catalog) | ✅ | ❌ | ⚠️ | Android playback AAR has no station container; web station queue needs soak QA. |
+| `Player.playLibrarySong` / `playLibraryPlaylist` | ✅ | ✅ | ⚠️ | Android resolves library IDs to catalog playback IDs via REST before queueing. |
+| `Player.*` transport + hooks | ✅ | ✅ | ⚠️ | Web: MusicKit JS events; 30s+ session QA before 1.0 ([RELEASE_CHECKLIST](./docs/RELEASE_CHECKLIST.md)). |
+| `Player.configurePlayer()` | ✅ | ⚠️ | ⚠️ | Returns `PlayerConfig` shape; audio-session / focus behavior not fully mirrored on Android or web. |
 
 **Legend:** ✅ supported · ⚠️ supported with differences · ❌ not supported
 
-Implementation details: [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md). **iOS native vs REST matrix:** [docs/PLATFORM_IMPLEMENTATION.md](./docs/PLATFORM_IMPLEMENTATION.md). Terminology (catalog vs library): [CONTEXT.md](./CONTEXT.md).
+Coverage matrix: [docs/APPLE_MUSIC_API.md](./docs/APPLE_MUSIC_API.md). **Release gate:** [docs/RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md). Implementation: [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md), [docs/WEB_IMPLEMENTATION.md](./docs/WEB_IMPLEMENTATION.md). **iOS native vs REST:** [docs/PLATFORM_IMPLEMENTATION.md](./docs/PLATFORM_IMPLEMENTATION.md). Terminology: [CONTEXT.md](./CONTEXT.md).
 
 ## iOS setup
 
@@ -92,6 +88,13 @@ Implementation details: [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMEN
 1. Enable **MusicKit** for your app in the [Apple Developer portal](https://developer.apple.com) and issue a developer JWT (see [docs/CLI.md](./docs/CLI.md)).
 2. Call `Auth.authorize(developerToken)` — opens the Apple Music app via the MusicKit Authentication SDK.
 3. Run on a **physical ARM device** with Apple Music installed and an active subscription.
+
+## Web setup
+
+1. Enable **MusicKit** on your App ID (same portal toggle as iOS).
+2. Mint a developer JWT ([docs/CLI.md](./docs/CLI.md)); optional `origin` claim for localhost — see [docs/AUTH.md](./docs/AUTH.md).
+3. `cd example && npx expo start --web` with `EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` in `example/.env.local`.
+4. Test in **Safari and Chrome** with an Apple Music subscription; playback and hooks need manual QA before 1.0 ([docs/RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md)).
 
 ## License
 

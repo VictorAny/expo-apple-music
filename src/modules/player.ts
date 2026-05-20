@@ -95,6 +95,14 @@ class Player {
     musicEventEmitter.removeAllListeners(eventType);
   }
 
+  /**
+   * Configure audio session / mixing behavior.
+   *
+   * **iOS** — Full `AVAudioSession` behavior.
+   *
+   * **Android / web** — Returns the same `PlayerConfig` shape; session category,
+   * ducking, and focus behavior are not fully mirrored. Do not assume iOS parity.
+   */
   public static async configurePlayer(mixWithOthers = false): Promise<PlayerConfig> {
     return callNative('Player.configurePlayer', async () =>
       (await MusicModule.configurePlayer(mixWithOthers)) as PlayerConfig,

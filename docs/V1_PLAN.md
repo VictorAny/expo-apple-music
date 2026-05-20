@@ -26,24 +26,29 @@ Plan for completing `@wwdrew/expo-apple-music` before a **1.0.0** release. The p
 
 ## 2. What exists today (baseline)
 
-### Implemented (~15% of API intent)
+**Updated:** 2026-05-20. Source of truth for per-endpoint status: [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md).
 
-| Domain | Methods | iOS | Android | Web |
-|--------|---------|-----|---------|-----|
-| Auth | `authorize`, `checkSubscription` | ✅ | ✅ / ⚠️ | ❌ planned |
-| Catalog | `catalogSearch` (songs, albums) | ✅ | ✅ | ❌ |
-| Library | `getUserPlaylists`, `getLibrarySongs`, `getPlaylistSongs` | ✅ | ✅ | ❌ |
-| History | `getTracksFromLibrary` → recent **containers** only | ✅ | ✅ (max 10) | ❌ |
-| Playback | `setPlaybackQueue`, `playLibrary*`, `Player.*`, hooks | ✅ | ✅ / gaps | ❌ |
-| | | | stations ❌ | |
+### Implemented (~majority of v1 matrix; optional rows still ⬜)
 
-### Structural debt to fix in v1
+| Domain | Public API | iOS | Android | Web |
+|--------|------------|-----|---------|-----|
+| Auth | `Auth.authorize`, `checkSubscription`, `getStorefront` | ✅ | ✅ / ⚠️ sub | ✅ / ⚠️ sub |
+| Catalog | `Catalog.search`, `get*`, relationships, `getCharts` | ✅ | ✅ | ✅ |
+| Library | `Library.getSongs`, `getPlaylists`, `getPlaylistTracks`, `getArtists`, `getAlbums` | ✅ | ✅ | ✅ |
+| History | `History.getRecentlyPlayed*`, `getHeavyRotation`, `getRecentlyAdded` | ✅ | ✅ (recent cap 10) | ✅ |
+| Ratings / mutations | `Ratings.*`, `LibraryMutations.*` | ✅ | ✅ | ✅ |
+| Recommendations | `Recommendations.get`, `getReplay` | ✅ | ✅ | ✅ |
+| Playback | `Player.setQueue`, `playLibrary*`, transport, hooks | ✅ | ✅ / station ❌ | ⚠️ soak QA |
+| Public exports | Domain modules only (`src/index.ts`) | ✅ | ✅ | ✅ |
 
-1. **History filed under “library”** — `getTracksFromLibrary` is misleading; history is a separate Apple API group.
-2. **Per-method native glue** — `AppleMusicApiClient` grows ad hoc; no generic GET/POST or coverage tracking.
-3. **iOS-only paths for `/me/*`** — Android uses REST; iOS uses `MusicLibraryRequest` — two mappers, two bug surfaces.
-4. **Incomplete types** — no `Artist`, `Station`, `Rating`, pagination metadata, or relationship helpers.
-5. **Interim flat exports** — current `MusicKit` module is a pre-v1 convenience; v1 replaces it with domain modules (section 4).
+**Deferred (optional v1):** `Library.getMusicVideos`, `Library.search`, catalog batch GET by IDs — see [APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md) ⬜ / 🔜 rows.
+
+### Structural debt remaining for 1.0
+
+1. **Dual mappers on iOS** — some `/me/*` still native vs REST; Android/web are REST-only (parity audits in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)).
+2. **Web playback** — implemented via MusicKit JS; needs Safari + Chrome manual QA before 1.0.
+3. **Silent-failure audit** — ensure every bridge path rejects `AppleMusicError` (no empty `data` on HTTP/native failure).
+4. **Documentation sync** — README web column, [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md) definition-of-done checkboxes, release checklist.
 
 ---
 

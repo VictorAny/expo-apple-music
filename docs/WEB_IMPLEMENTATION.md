@@ -340,15 +340,15 @@ Use [docs/CLI.md](./CLI.md) for `example/.env.local`.
 
 ## Definition of done
 
-- [ ] `"web"` in `expo-module.config.json`; Metro resolves web native module
-- [ ] No public bridge method throws `UNSUPPORTED_PLATFORM` on web (except documented ❌ cases: library `station`, etc.)
-- [ ] All responses match existing TypeScript interfaces in `src/types/`
-- [ ] Data calls go through MusicKit JS (not raw unauthenticated `fetch` to Apple API)
-- [ ] `apple-music-json-mapper.ts` matches iOS/Android field names (spot-check against iOS simulator + Android device)
-- [ ] Playback + hooks work in Safari and Chrome with subscribed account
-- [ ] Example app runs `expo start --web` with shared UI
-- [ ] README platform parity table includes web column
-- [ ] [docs/AUTH.md](./AUTH.md) documents web auth (developer token required, no Android upsell options)
+- [x] `"web"` in `expo-module.config.json`; Metro resolves web native module (`src/native-module.web.ts`, `src/bridge/*`)
+- [x] No public bridge method throws `UNSUPPORTED_PLATFORM` on web (except documented ❌ cases: library `station`, etc.)
+- [ ] All responses match existing TypeScript interfaces in `src/types/` (spot-check in browser vs iOS + Android)
+- [x] Data calls go through MusicKit JS (not raw unauthenticated `fetch` to Apple API) — `WebAppleMusicRestTransport`
+- [ ] Mapper parity vs iOS/Android field names (spot-check against iOS simulator + Android device + web)
+- [ ] Playback + hooks work in Safari and Chrome with subscribed account (30s+ session)
+- [ ] Example app runs `expo start --web` with shared UI (manual QA)
+- [x] README platform parity table includes web column
+- [x] [docs/AUTH.md](./AUTH.md) documents web auth (developer token required, no Android upsell options)
 
 ---
 
