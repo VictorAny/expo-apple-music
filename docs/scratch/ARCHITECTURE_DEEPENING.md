@@ -132,7 +132,7 @@ Slice by CONTEXT domains: **Catalog**, **Library**, **History**, **Auth** — na
 
 ## 5. History seam (naming + transport split)
 
-**Status:** [ ] not started · [ ] in progress · [ ] done
+**Status:** [ ] not started · [ ] in progress · [x] done
 
 **Files**
 
@@ -155,6 +155,8 @@ One **History** native **module** per platform matching `History.*` in CONTEXT; 
 - Stops Library vs History confusion for humans/agents
 
 **Notes**
+
+- 2026-05-20: Bridge `getRecentlyPlayedResources` (renamed from `getTracksFromLibrary`); iOS `HistoryService` owns MusicKit + REST history; Android `AndroidHistoryService` + `HistoryRestClient` (incl. recently-added); library services library-only.
 
 ---
 
@@ -268,3 +270,4 @@ Web **Catalog** / **Library** / **History** call shared TS REST **adapter** (And
 | 2026-05-20 | 4 + 8 | Catalog REST slice: shared transport + `CatalogRestClient` (Android + TS/Web) |
 | 2026-05-20 | 4 + 8 | Completed: all domain REST clients + `AppleMusicRestStack`; removed `AppleMusicApiClient.kt` |
 | 2026-05-20 | 2 | JS domain depth: `src/api/` pagination + `callNative` + library id validation; modules wired |
+| 2026-05-20 | 5 | History seam: native History services; bridge `getRecentlyPlayedResources`; REST recently-added on History client |

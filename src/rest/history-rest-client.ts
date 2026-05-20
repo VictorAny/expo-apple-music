@@ -36,4 +36,12 @@ export class HistoryRestClient {
     });
     return mapResourceArray(json.data, mapStation);
   }
+
+  async getRecentlyAdded(limit: number, offset: number) {
+    const json = await this.transport.getJson('/v1/me/library/recently-added', {
+      limit: String(limit),
+      offset: String(offset),
+    });
+    return mapResourceArray(json.data, mapRecentResource);
+  }
 }

@@ -122,7 +122,7 @@ export class WebAppleMusicApiClient {
   }
 
   async getRecentlyAdded(limit: number, offset: number) {
-    return this.library.getRecentlyAdded(limit, offset);
+    return this.history.getRecentlyAdded(limit, offset);
   }
 
   async probeLibraryAccess(): Promise<boolean> {

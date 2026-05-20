@@ -42,4 +42,14 @@ internal class HistoryRestClient(
         )
       mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapStation(it) }
     }
+
+  suspend fun getRecentlyAdded(limit: Int, offset: Int): List<Map<String, Any?>> =
+    withContext(Dispatchers.IO) {
+      val json =
+        transport.getJson(
+          "/v1/me/library/recently-added",
+          mapOf("limit" to limit.toString(), "offset" to offset.toString()),
+        )
+      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecentResource(it) }
+    }
 }

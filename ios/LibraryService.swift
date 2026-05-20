@@ -19,21 +19,6 @@ final class LibraryService {
     }
   }
 
-  // MARK: - Recently Played
-
-  func getRecentlyPlayed() async throws -> [[String: Any]] {
-    let request = MusicRecentlyPlayedContainerRequest()
-    let response = try await request.response()
-    return response.items.map(MusicItemMapper.map)
-  }
-
-  func getRecentlyPlayedTracks(options: PaginationOptions) async throws -> [[String: Any]] {
-    var request = MusicRecentlyPlayedRequest<Song>()
-    request.limit = options.limit
-    let response = try await request.response()
-    return response.items.map(MusicItemMapper.map)
-  }
-
   func getArtists(options: PaginationOptions) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Artist>()
     request.limit = options.limit

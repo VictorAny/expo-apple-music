@@ -17,7 +17,8 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | **Catalog**        | Apple Music’s global store — all artists, albums, songs available on the service                   | The signed-in user’s personal collection                                        |
 | **Library**        | The authenticated user’s Apple Music account data — their songs, playlists, recently played, etc.  | Public/store search                                                             |
 | **Catalog search** | `Catalog.search()` — search the **store** (e.g. `"Beatles"` → songs/albums in Apple Music) | Searching “my playlists” or “my library” for an artist                          |
-| **Library APIs**   | `getUserPlaylists`, `getLibrarySongs`, `getPlaylistSongs`, `getTracksFromLibrary`                  | Catalog search                                                                  |
+| **Library APIs**   | `Library.getPlaylists`, `getSongs`, `getPlaylistTracks`                                            | Catalog search                                                                  |
+| **History APIs**   | `History.getRecentlyPlayedResources`, `getRecentlyPlayedTracks`, …                                 | Library collection reads                                                        |
 | **Auth**           | Sign the user into Apple Music and obtain permission/tokens to access **their** data               | Catalog browse without a user (developer token alone is not “auth” for library) |
 
 **Rule of thumb:** **Library** and **History** methods refer to the user’s account. **Catalog** methods refer to the Apple Music store.

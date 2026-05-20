@@ -15,7 +15,7 @@ class History {
   /** Recently played albums, playlists, and stations (mixed containers). */
   public static async getRecentlyPlayedResources(): Promise<TracksFromLibrary> {
     return callNative('History.getRecentlyPlayedResources', async () =>
-      (await MusicModule.getTracksFromLibrary()) as TracksFromLibrary,
+      (await MusicModule.getRecentlyPlayedResources()) as TracksFromLibrary,
     );
   }
 

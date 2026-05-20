@@ -3,7 +3,6 @@ import {
   mapAlbum,
   mapArtist,
   mapPlaylist,
-  mapRecentResource,
   mapSong,
   type AppleMusicApiResource,
 } from '../mappers/apple-music-json-mapper';
@@ -53,14 +52,6 @@ export class LibraryRestClient {
       offset: String(offset),
     });
     return mapResourceArray(json.data, mapAlbum);
-  }
-
-  async getRecentlyAdded(limit: number, offset: number) {
-    const json = await this.transport.getJson('/v1/me/library/recently-added', {
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return mapResourceArray(json.data, mapRecentResource);
   }
 
   async probeLibraryAccess(): Promise<boolean> {

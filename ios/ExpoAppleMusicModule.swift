@@ -167,14 +167,14 @@ public class ExpoAppleMusicModule: Module {
       return ["id": id]
     }
 
-    AsyncFunction("getTracksFromLibrary") { () -> [String: Any] in
-      let tracks = try await self.libraryService.getRecentlyPlayed()
+    AsyncFunction("getRecentlyPlayedResources") { () -> [String: Any] in
+      let tracks = try await self.historyService.getRecentlyPlayedResources()
       return ["recentlyPlayedItems": tracks]
     }
 
     AsyncFunction("getRecentlyPlayedTracks") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
-      let songs = try await self.libraryService.getRecentlyPlayedTracks(options: paginationOptions)
+      let paginationOptions = HistoryService.PaginationOptions(from: options as NSDictionary)
+      let songs = try await self.historyService.getRecentlyPlayedTracks(options: paginationOptions)
       return ["songs": songs]
     }
 
@@ -191,13 +191,13 @@ public class ExpoAppleMusicModule: Module {
     }
 
     AsyncFunction("getHeavyRotation") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let paginationOptions = HistoryService.PaginationOptions(from: options as NSDictionary)
       let items = try await self.historyService.getHeavyRotation(limit: paginationOptions.limit)
       return ["items": items]
     }
 
     AsyncFunction("getRecentlyPlayedStations") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let paginationOptions = HistoryService.PaginationOptions(from: options as NSDictionary)
       let stations = try await self.historyService.getRecentlyPlayedStations(
         limit: paginationOptions.limit
       )
@@ -205,7 +205,7 @@ public class ExpoAppleMusicModule: Module {
     }
 
     AsyncFunction("getRecentlyAdded") { (options: [String: Any]) -> [String: Any] in
-      let paginationOptions = LibraryService.PaginationOptions(from: options as NSDictionary)
+      let paginationOptions = HistoryService.PaginationOptions(from: options as NSDictionary)
       let items = try await self.historyService.getRecentlyAdded(
         limit: paginationOptions.limit,
         offset: paginationOptions.offset

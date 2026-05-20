@@ -131,7 +131,7 @@ export class ExpoAppleMusicModule extends NativeModule {
     return { id };
   }
 
-  async getTracksFromLibrary(): Promise<Record<string, unknown>> {
+  async getRecentlyPlayedResources(): Promise<Record<string, unknown>> {
     const tracks = await this.api.getRecentlyPlayed();
     return { recentlyPlayedItems: tracks };
   }

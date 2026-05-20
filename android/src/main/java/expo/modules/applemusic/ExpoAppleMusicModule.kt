@@ -36,6 +36,9 @@ class ExpoAppleMusicModule : Module() {
   private val libraryService: AndroidLibraryService
     get() = AndroidLibraryService(reactContext)
 
+  private val historyService: AndroidHistoryService
+    get() = AndroidHistoryService(reactContext)
+
   private val subscriptionService: AndroidSubscriptionService
     get() = AndroidSubscriptionService(reactContext)
 
@@ -213,14 +216,14 @@ class ExpoAppleMusicModule : Module() {
       mapOf("id" to libraryService.getStorefrontId())
     }
 
-    AsyncFunction("getTracksFromLibrary") Coroutine { ->
-      val tracks = libraryService.getRecentlyPlayed()
+    AsyncFunction("getRecentlyPlayedResources") Coroutine { ->
+      val tracks = historyService.getRecentlyPlayedResources()
       mapOf("recentlyPlayedItems" to tracks)
     }
 
     AsyncFunction("getRecentlyPlayedTracks") Coroutine { options: Map<String, Any?> ->
       val pagination = PaginationOptions.fromMap(options)
-      val songs = libraryService.getRecentlyPlayedTracks(pagination)
+      val songs = historyService.getRecentlyPlayedTracks(pagination)
       mapOf("songs" to songs)
     }
 
@@ -238,19 +241,19 @@ class ExpoAppleMusicModule : Module() {
 
     AsyncFunction("getHeavyRotation") Coroutine { options: Map<String, Any?> ->
       val pagination = PaginationOptions.fromMap(options)
-      val items = libraryService.getHeavyRotation(pagination)
+      val items = historyService.getHeavyRotation(pagination)
       mapOf("items" to items)
     }
 
     AsyncFunction("getRecentlyPlayedStations") Coroutine { options: Map<String, Any?> ->
       val pagination = PaginationOptions.fromMap(options)
-      val stations = libraryService.getRecentlyPlayedStations(pagination)
+      val stations = historyService.getRecentlyPlayedStations(pagination)
       mapOf("stations" to stations)
     }
 
     AsyncFunction("getRecentlyAdded") Coroutine { options: Map<String, Any?> ->
       val pagination = PaginationOptions.fromMap(options)
-      val items = libraryService.getRecentlyAdded(pagination)
+      val items = historyService.getRecentlyAdded(pagination)
       mapOf("items" to items)
     }
 

@@ -62,16 +62,6 @@ internal class LibraryRestClient(
       mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapAlbum(it) }
     }
 
-  suspend fun getRecentlyAdded(limit: Int, offset: Int): List<Map<String, Any?>> =
-    withContext(Dispatchers.IO) {
-      val json =
-        transport.getJson(
-          "/v1/me/library/recently-added",
-          mapOf("limit" to limit.toString(), "offset" to offset.toString()),
-        )
-      mapResourceArray(json.optJSONArray("data")) { AppleMusicJsonMapper.mapRecentResource(it) }
-    }
-
   suspend fun probeLibraryAccess(): Boolean =
     withContext(Dispatchers.IO) {
       try {

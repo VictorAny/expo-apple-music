@@ -67,7 +67,7 @@ The **same TypeScript API** is exposed on iOS and Android. Native implementation
 | `Ratings.*` / `LibraryMutations.*` | ✅ | ✅ | REST write paths (ratings, favorites, add to library, playlists). Requires music user token; iOS needs developer JWT for REST mutations. |
 | `Recommendations.get` / `getReplay` | ✅ | ✅ | iOS uses MusicKit for `get()`; Replay is REST on both. |
 | `getUserPlaylists` / `getLibrarySongs` / `getPlaylistSongs` | ✅ | ✅ | Android uses REST (`/v1/me/library/...`). |
-| `getTracksFromLibrary()` | ✅ | ✅ | Android uses `GET /v1/me/recent/played` (API max **10** items per request). |
+| `History.getRecentlyPlayedResources()` | ✅ | ✅ | Android uses `GET /v1/me/recent/played` (API max **10** items per request). |
 | `setPlaybackQueue` — song | ✅ | ✅ | |
 | `setPlaybackQueue` — album | ✅ | ✅ | |
 | `setPlaybackQueue` — playlist | ✅ | ✅ | |
