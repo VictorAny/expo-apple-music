@@ -70,7 +70,7 @@ Either **(a)** deepen JS: ID normalization, pagination defaults, `AppleMusicErro
 
 ## 3. iOS Catalog transport seam (MusicKit vs REST)
 
-**Status:** [ ] not started · [ ] in progress · [ ] done
+**Status:** [ ] not started · [ ] in progress · [x] done
 
 **Files**
 
@@ -93,6 +93,8 @@ Small **Catalog** **interface** (“search store”) with two **adapters**: nati
 - REST **adapter** can align with Android catalog paths
 
 **Notes**
+
+- 2026-05-20: `CatalogSearchStore` protocol; `MusicKitCatalogSearchStore` / `RestCatalogSearchStore` adapters; `CatalogSearchStoreFactory` picks transport from `MusicKitAuthStorage.hasDeveloperToken()`; `CatalogService.search` delegates; 404 heuristics live in MusicKit adapter.
 
 ---
 
@@ -253,4 +255,4 @@ Web **Catalog** / **Library** / **History** call shared TS REST **adapter** (And
 
 | Date | # | Outcome |
 | ---- | - | ------- |
-| | | |
+| 2026-05-20 | 3 | Catalog search transport seam: protocol + MusicKit/REST adapters + factory |
