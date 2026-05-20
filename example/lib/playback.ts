@@ -9,5 +9,6 @@ export async function queueAndPlay(
   await Player.setQueue(itemId, type);
   Player.play();
   const state = await Player.getCurrentState();
-  appendLog(`playing — status: ${state.playbackStatus}`);
+  const track = state.currentSong?.title ?? itemId;
+  appendLog(`playing "${track}" — status: ${state.playbackStatus}`);
 }

@@ -1,5 +1,6 @@
 package expo.modules.applemusic
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.apple.android.music.playback.controller.MediaPlayerController
@@ -15,12 +16,17 @@ internal interface AndroidPlaybackObserverDelegate {
 }
 
 internal class AndroidPlaybackObserver(
-  private val playback: AndroidPlaybackController,
+  context: Context,
 ) {
+  private val appContext = context.applicationContext
+  private val playback: AndroidPlaybackController
+    get() = AndroidPlaybackController.getInstance(appContext)
+
   private val mainHandler = Handler(Looper.getMainLooper())
   private var observing = false
   private var lastReportedStatus: String? = null
   private var timeRunnable: Runnable? = null
+  private var pendingSongEmitRunnable: Runnable? = null
 
   var delegate: AndroidPlaybackObserverDelegate? = null
 
@@ -44,11 +50,20 @@ internal class AndroidPlaybackObserver(
         previous: PlayerQueueItem?,
         current: PlayerQueueItem?,
       ) {
-        mainHandler.postDelayed({ emitCurrentSong() }, 100)
+        scheduleEmitCurrentSong()
       }
 
       override fun onMetadataUpdated(player: MediaPlayerController, item: PlayerQueueItem) {
-        emitCurrentSong()
+        scheduleEmitCurrentSong()
+      }
+
+      override fun onPlaybackQueueItemsAdded(
+        player: MediaPlayerController,
+        queueInsertionType: Int,
+        containerIndex: Int,
+        itemCount: Int,
+      ) {
+        if (itemCount > 0) scheduleEmitCurrentSong()
       }
 
       override fun onPlaybackError(player: MediaPlayerController, error: MediaPlayerException) {
@@ -70,13 +85,6 @@ internal class AndroidPlaybackObserver(
         items: MutableList<PlayerQueueItem>,
       ) {
       }
-      override fun onPlaybackQueueItemsAdded(
-        player: MediaPlayerController,
-        queueInsertionType: Int,
-        containerIndex: Int,
-        itemCount: Int,
-      ) {
-      }
       override fun onPlaybackRepeatModeChanged(player: MediaPlayerController, mode: Int) {}
       override fun onPlaybackShuffleModeChanged(player: MediaPlayerController, mode: Int) {}
     }
@@ -86,13 +94,14 @@ internal class AndroidPlaybackObserver(
     observing = true
     playback.addListener(listener)
     emitStateIfChanged()
-    emitCurrentSong()
+    scheduleEmitCurrentSong()
   }
 
   fun stopObserving() {
     if (!observing) return
     observing = false
     playback.removeListener(listener)
+    cancelPendingSongEmit()
     stopTimeUpdates()
     lastReportedStatus = null
   }
@@ -105,9 +114,31 @@ internal class AndroidPlaybackObserver(
     delegate?.onPlaybackStateChange(state)
   }
 
-  private fun emitCurrentSong() {
-    val song = playback.fetchCurrentSongInfo() ?: return
-    delegate?.onCurrentSongChange(mapOf("currentSong" to song))
+  private fun scheduleEmitCurrentSong() {
+    cancelPendingSongEmit()
+    emitCurrentSong(attempt = 0)
+  }
+
+  private fun cancelPendingSongEmit() {
+    pendingSongEmitRunnable?.let { mainHandler.removeCallbacks(it) }
+    pendingSongEmitRunnable = null
+  }
+
+  private fun emitCurrentSong(attempt: Int) {
+    val song = playback.fetchCurrentSongInfo()
+    if (song != null) {
+      cancelPendingSongEmit()
+      delegate?.onCurrentSongChange(mapOf("currentSong" to song))
+      return
+    }
+    if (!observing || attempt >= 4) return
+    val runnable =
+      Runnable {
+        pendingSongEmitRunnable = null
+        emitCurrentSong(attempt + 1)
+      }
+    pendingSongEmitRunnable = runnable
+    mainHandler.postDelayed(runnable, 150L * (attempt + 1))
   }
 
   private fun manageTimeUpdates(playing: Boolean) {

@@ -72,7 +72,7 @@ class ExpoAppleMusicModule : Module() {
     )
 
     OnStartObserving {
-      val observer = AndroidPlaybackObserver(playbackController)
+      val observer = AndroidPlaybackObserver(reactContext)
       observer.delegate =
         object : AndroidPlaybackObserverDelegate {
           override fun onPlaybackStateChange(body: Map<String, Any?>) {

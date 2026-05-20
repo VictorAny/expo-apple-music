@@ -30,6 +30,9 @@ internal class AndroidPlaybackController private constructor(
   @Volatile
   private var controller: MediaPlayerController? = null
 
+  private val externalListeners =
+    mutableSetOf<MediaPlayerController.Listener>()
+
   private fun ensureController(): MediaPlayerController {
     val existing = controller
     if (existing != null) {
@@ -41,6 +44,7 @@ internal class AndroidPlaybackController private constructor(
       MusicKitTokenProvider(appContext),
     ).also { player ->
       player.addListener(globalErrorListener)
+      externalListeners.forEach { player.addListener(it) }
       controller = player
     }
   }
@@ -99,10 +103,12 @@ internal class AndroidPlaybackController private constructor(
     }
 
   fun addListener(listener: MediaPlayerController.Listener) {
+    externalListeners.add(listener)
     ensureController().addListener(listener)
   }
 
   fun removeListener(listener: MediaPlayerController.Listener) {
+    externalListeners.remove(listener)
     controller?.removeListener(listener)
   }
 
@@ -300,12 +306,15 @@ internal class AndroidPlaybackController private constructor(
     ensureController()
   }
 
-  internal fun release() {
+  /** Releases the native player and clears caches; keeps this singleton for observer re-attach. */
+  internal fun releaseMediaPlayer() {
+    clearSongCache()
     val player = controller ?: return
     controller = null
     mainHandler.post {
       try {
         player.removeListener(globalErrorListener)
+        externalListeners.forEach { player.removeListener(it) }
         player.release()
       } catch (error: Exception) {
         Log.w(TAG, "release playback controller failed", error)
@@ -342,7 +351,10 @@ internal class AndroidPlaybackController private constructor(
       item.subscriptionStoreId?.takeIf { it.isNotEmpty() }
         ?: item.a()?.takeIf { !it.isNullOrEmpty() }
 
-    if (currentId == null) return cachedSongInfo
+    if (currentId == null) {
+      val fallback = AppleMusicJsonMapper.mapPlayerMediaItem(item)
+      return fallback.takeIf { (it["title"] as? String)?.isNotEmpty() == true } ?: cachedSongInfo
+    }
 
     if (currentId == cachedSongId && cachedSongInfo != null) {
       return cachedSongInfo
@@ -381,8 +393,7 @@ internal class AndroidPlaybackController private constructor(
 
     fun resetInstance() {
       synchronized(this) {
-        instance?.release()
-        instance = null
+        instance?.releaseMediaPlayer()
       }
     }
 
