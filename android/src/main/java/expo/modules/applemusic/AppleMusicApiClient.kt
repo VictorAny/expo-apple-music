@@ -457,6 +457,7 @@ internal class AppleMusicApiClient(
           body = body,
         )
       AppleMusicJsonMapper.mapRating(json)
+        ?: throw AppleMusicErrors.apiError("Invalid Apple Music API response")
     }
 
   suspend fun clearRating(resourceType: String, id: String): Unit =
