@@ -23,7 +23,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "expo.modules.applemusic.example"
+      "bundleIdentifier": "com.wwdrew.applemusic.example",
+      "deploymentTarget": "16.0"
     },
     "android": {
       "adaptiveIcon": {
@@ -31,7 +32,7 @@
         "backgroundColor": "#ffffff"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "expo.modules.applemusic.example"
+      "package": "com.wwdrew.applemusic.example"
     },
     "scheme": "expo-apple-music-example",
     "web": {

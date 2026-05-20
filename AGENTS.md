@@ -2,7 +2,9 @@
 
 Read [CONTEXT.md](./CONTEXT.md) for **catalog vs library** terminology and **Android implementation tiers** before changing native or public API behavior.
 
-For **auth** (`authorize`, developer token, `AuthStatus`, Android requirements), read [docs/AUTH.md](./docs/AUTH.md).
+For **auth** (`authorize`, developer token, `AuthStatus`, platform requirements), read [docs/AUTH.md](./docs/AUTH.md).
+
+For **iOS** (portal, signing, entitlements, developer JWT, release checklist), read [docs/IOS_SETUP.md](./docs/IOS_SETUP.md).
 
 For **repo CLI** (`npm run dev-token`, verify JWT), read [docs/CLI.md](./docs/CLI.md).
 

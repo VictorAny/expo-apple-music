@@ -20,10 +20,20 @@ enum StorefrontService {
   }
 
   static func getStorefrontId() async throws -> String {
-    let data = try await AppleMusicRestClient.getDataArray(path: "/v1/me/storefront")
-    guard let id = data.first?["id"] as? String else {
-      throw StorefrontError.invalidResponse
+    if MusicKitAuthStorage.hasRestTokens() {
+      let data = try await AppleMusicRestClient.getDataArray(path: "/v1/me/storefront")
+      if let id = data.first?["id"] as? String, !id.isEmpty {
+        return id
+      }
     }
-    return id
+    return localeStorefrontId()
+  }
+
+  /// Fallback when MusicKit auto-token or `/v1/me/storefront` is unavailable (catalog REST only).
+  static func localeStorefrontId() -> String {
+    if let region = Locale.current.region?.identifier, !region.isEmpty {
+      return region.lowercased()
+    }
+    return "us"
   }
 }

@@ -40,9 +40,11 @@ public class ExpoAppleMusicModule: Module {
     }
 
     AsyncFunction("authorization") { (developerToken: String?, _ startScreenMessage: String?, _ hideStartScreen: Bool?) -> String in
+      if let token = developerToken, !token.isEmpty {
+        MusicKitAuthStorage.saveDeveloperToken(token)
+      }
       let status = await self.subscriptionService.requestAuthorization()
       if status == .authorized, let token = developerToken, !token.isEmpty {
-        MusicKitAuthStorage.saveDeveloperToken(token)
         await self.subscriptionService.refreshMusicUserToken(developerToken: token)
       }
       return status.rawValue

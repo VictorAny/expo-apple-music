@@ -55,10 +55,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [lastPlaylistId, setLastPlaylistId] = useState<string | null>(null);
 
-  const devToken =
-    Platform.OS === "android" || Platform.OS === "web"
-      ? process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN
-      : undefined;
+  const devToken = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
 
   const appendLog = useCallback((message: string) => {
     setLog((prev) => `${message}\n${prev}`.slice(0, 4000));
@@ -71,23 +68,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await Auth.checkSubscription();
       setAuthStatus(AuthStatus.AUTHORIZED);
       setHasStoredSession(true);
+      if (devToken) {
+        await Auth.authorize(devToken);
+        appendLog("stored developer token for catalog REST");
+      }
       return true;
     } catch {
       setAuthStatus(AuthStatus.NOT_DETERMINED);
       setHasStoredSession(false);
       return false;
     }
-  }, []);
+  }, [appendLog, devToken]);
 
   const authorize = useCallback(async () => {
     try {
+      if (!devToken) {
+        appendLog(
+          "warning: no EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN — iOS catalog search will 404. Run: npm run dev-token -- --write-env example/.env.local",
+        );
+      }
       const status = await Auth.authorize(devToken, {
         startScreenMessage:
           "Start screen message for <b>Expo Apple Music Example App</b>",
       });
       setAuthStatus(status);
       setHasStoredSession(status === AuthStatus.AUTHORIZED);
-      appendLog(`authorize: ${status}`);
+      appendLog(
+        `authorize: ${status}${devToken ? " (developer token saved)" : ""}`,
+      );
     } catch (error) {
       appendLog(`authorize error: ${String(error)}`);
     }

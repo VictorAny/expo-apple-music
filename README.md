@@ -26,19 +26,19 @@ export default {
 };
 ```
 
-Sets `NSAppleMusicUsageDescription` on iOS. On **Android** and **web**, pass a MusicKit developer JWT to `Auth.authorize(token)` at runtime (see [docs/AUTH.md](./docs/AUTH.md)).
+Sets `NSAppleMusicUsageDescription` on iOS. Pass an optional MusicKit **developer JWT** to `Auth.authorize(token)` on iOS for reliable catalog search (REST); Android and web require it. See [docs/AUTH.md](./docs/AUTH.md) and **[docs/IOS_SETUP.md](./docs/IOS_SETUP.md)** (signing, portal, entitlements, release checklist).
 
-Android **package visibility** for the Apple Music app comes from this module’s library manifest (merged at build time). The plugin does **not** add MusicKit entitlements on iOS — enable **MusicKit** on your App ID in the [Apple Developer portal](https://developer.apple.com) manually. See [Lomray issue #14](https://github.com/Lomray-Software/react-native-apple-music/issues/14).
+Android **package visibility** for the Apple Music app comes from this module’s library manifest (merged at build time).
+
+**iOS:** Enable **MusicKit** on your App ID (App Services) in the [Apple Developer portal](https://developer.apple.com). Do **not** add `com.apple.developer.applemusickit` / `musickit` to entitlements — that breaks automatic signing ([Apple DTS](https://developer.apple.com/forums/thread/799000)).
 
 ## Usage
 
 ```ts
 import { Auth, AuthStatus, Catalog, CatalogSearchType, Player } from '@wwdrew/expo-apple-music';
 
-// iOS — developerToken is ignored
-const status = await Auth.authorize();
-
-// Android / web — requires a MusicKit developer JWT
+// iOS: optional developer JWT (recommended for Catalog.search — see docs/IOS_SETUP.md)
+// Android / web: developer JWT required
 const status = await Auth.authorize(developerToken);
 
 if (status === AuthStatus.AUTHORIZED) {
@@ -47,9 +47,9 @@ if (status === AuthStatus.AUTHORIZED) {
 }
 ```
 
-**Auth details** (return values, developer token, Android requirements, upsell options): **[docs/AUTH.md](./docs/AUTH.md)**.
-
-**CLI tools** (repo only — generate/verify developer JWTs): **[docs/CLI.md](./docs/CLI.md)**.
+**iOS setup** (signing, MusicKit in the portal, JWT, release): **[docs/IOS_SETUP.md](./docs/IOS_SETUP.md)**  
+**Auth details**: **[docs/AUTH.md](./docs/AUTH.md)**  
+**CLI** (mint JWTs locally): **[docs/CLI.md](./docs/CLI.md)**
 
 Public API direction before 1.0: [docs/V1_PLAN.md](./docs/V1_PLAN.md). Attribution: [ATTRIBUTION.md](./ATTRIBUTION.md).
 
@@ -59,9 +59,9 @@ The **same TypeScript API** is exposed on iOS and Android. Native implementation
 
 | Feature | iOS | Android | Notes |
 | --- | :---: | :---: | --- |
-| `Auth.authorize()` | ✅ | ✅ | Android requires a [developer JWT](./docs/AUTH.md) at runtime. |
+| `Auth.authorize()` | ✅ | ✅ | Android requires a [developer JWT](./docs/AUTH.md) at runtime. iOS: optional JWT, recommended for catalog search. |
 | `Auth.checkSubscription()` | ✅ | ⚠️ | Android infers flags from token + library probe (no `MusicSubscription` API). |
-| `Catalog.search()` | ✅ | ✅ | All search types on both platforms; iOS uses native MusicKit search. |
+| `Catalog.search()` | ✅ | ✅ | All search types on both platforms; iOS uses **REST** when a dev JWT was passed to `authorize()`, else native MusicKit ([details](./docs/PLATFORM_IMPLEMENTATION.md#catalog)). |
 | `Catalog.get*` / relationship helpers / `getCharts()` | ✅ | ✅ | Catalog by ID, relationships, and charts via REST. |
 | `Player.setQueue()` / `playLibrary*` | ✅ | ✅ | Native playback queue (replaces interim `MusicKit` helpers). |
 | `Ratings.*` / `LibraryMutations.*` | ✅ | ✅ | REST write paths (ratings, favorites, add to library, playlists). Requires music user token; iOS needs developer JWT for REST mutations. |
@@ -80,6 +80,12 @@ The **same TypeScript API** is exposed on iOS and Android. Native implementation
 **Legend:** ✅ supported · ⚠️ supported with differences · ❌ not supported
 
 Implementation details: [docs/ANDROID_IMPLEMENTATION.md](./docs/ANDROID_IMPLEMENTATION.md). **iOS native vs REST matrix:** [docs/PLATFORM_IMPLEMENTATION.md](./docs/PLATFORM_IMPLEMENTATION.md). Terminology (catalog vs library): [CONTEXT.md](./CONTEXT.md).
+
+## iOS setup
+
+1. Portal: explicit App ID → **MusicKit** (App Services). No MusicKit keys in entitlements — [docs/IOS_SETUP.md](./docs/IOS_SETUP.md).
+2. Mint a developer JWT for dev: [docs/CLI.md](./docs/CLI.md) → pass to `Auth.authorize(token)` (recommended for `Catalog.search`).
+3. `npx expo prebuild` when changing plugins; clean build after entitlement mistakes.
 
 ## Android setup
 

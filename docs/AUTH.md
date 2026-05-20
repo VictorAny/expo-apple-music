@@ -7,10 +7,7 @@ How `Auth.authorize()` and `Auth.checkSubscription()` work on **iOS**, **Android
 ```ts
 import { Auth, AuthStatus } from '@wwdrew/expo-apple-music';
 
-// iOS — developer token argument is ignored
-const status = await Auth.authorize();
-
-// Android / web — pass a MusicKit developer JWT from your backend or dev tooling
+// developerToken: optional on iOS (but recommended for Catalog.search); required on Android / web
 const status = await Auth.authorize(developerToken, {
   hideStartScreen: false,
   startScreenMessage: '<b>My App</b> wants to connect to Apple Music.',
@@ -21,6 +18,8 @@ if (status === AuthStatus.AUTHORIZED) {
 }
 ```
 
+iOS portal, signing, entitlements, JWT, and release: **[IOS_SETUP.md](./IOS_SETUP.md)**.
+
 ---
 
 ## `Auth.authorize(developerToken?, options?)`
@@ -29,7 +28,7 @@ Requests access to the user’s Apple Music account.
 
 | Argument | iOS | Android | Web |
 | -------- | --- | ------- | --- |
-| `developerToken` | Optional — when provided, stored for REST (`Music-User-Token` is fetched and persisted) | **Required** — pass a MusicKit developer JWT | **Required** — same as Android |
+| `developerToken` | Optional — when provided, stored for REST; **catalog search uses REST** (skips MusicKit auto-token); music user token fetched when authorized | **Required** — pass a MusicKit developer JWT | **Required** — same as Android |
 | `options` | Ignored | Optional upsell / deeplink behavior | Ignored |
 
 Returns `Promise<AuthStatus>` — same string union on both platforms.
@@ -90,7 +89,7 @@ type AndroidAuthorizeOptions = {
 
 ---
 
-## Developer token (Android)
+## Developer token (MusicKit JWT)
 
 A **developer token** is a **signed JWT** you create with your MusicKit **private key** from the Apple Developer portal. It identifies **your app** to Apple’s services.
 
@@ -101,7 +100,7 @@ A **developer token** is a **signed JWT** you create with your MusicKit **privat
 | **Used for** | Starting Android auth; catalog REST | Library REST (`/v1/me/...`) |
 | **Passed to** | `Auth.authorize(token)` or config plugin | Stored natively on Android after `authorized` |
 
-**iOS `authorize()` does not take a developer token** — the first argument is ignored on iOS.
+On **iOS**, the developer token is optional for `authorize()` (media-library permission still works without it). When provided, it is stored for REST and **catalog search** uses the Apple Music API with that JWT instead of MusicKit auto-token (useful when provisioning does not yet include MusicKit).
 
 ### Providing the token
 
@@ -219,6 +218,20 @@ There is **no** `Auth.isAvailable()` — use `authorize()` + `checkSubscription(
 
 ---
 
+## iOS troubleshooting (MusicKit / signing)
+
+**Full walkthrough:** **[IOS_SETUP.md](./IOS_SETUP.md)** (portal, entitlements mistakes, signing, developer JWT, release checklist).
+
+Short version: MusicKit is an **App Service** on your App ID — not a MusicKit row in Xcode Capabilities and **not** an entitlement you expect inside the provisioning profile ([Apple DTS](https://developer.apple.com/forums/thread/799000)). Do **not** add `com.apple.developer.applemusickit` / `musickit` to entitlements; that breaks automatic signing. For reliable `Catalog.search`, pass a developer JWT from your backend or [CLI.md](./CLI.md) and call `Auth.authorize(token)` so catalog uses REST.
+
+| Symptom | What to do |
+| ------- | ---------- |
+| Xcode: profile missing `applemusickit` / `musickit` | Remove those keys from entitlements — see **Entitlements** in [IOS_SETUP.md](./IOS_SETUP.md). |
+| Catalog search `404` / “Client not found” | Pass developer JWT + `authorize()`; restart Metro after `.env.local` — see **Developer JWT** in [IOS_SETUP.md](./IOS_SETUP.md). |
+| Profile “won’t create” after adding MusicKit to entitlements | Remove bogus entitlement keys; MusicKit is not provisioned that way. |
+
+---
+
 ## Config plugin reference
 
 ```ts
@@ -233,5 +246,6 @@ type ExpoAppleMusicPluginProps = {
 ## Related
 
 - [README.md](../README.md) — install
+- [IOS_SETUP.md](./IOS_SETUP.md) — **iOS**: signing, Apple Developer portal, JWT, release checklist
 - [CONTEXT.md](../CONTEXT.md) — catalog vs library, Android tiers
 - [ATTRIBUTION.md](../ATTRIBUTION.md) — inspiration and license (no migration guide)

@@ -116,16 +116,18 @@ final class PlaybackObserver {
         )
         
         // Only hop to main thread for the UI callback
+        let delegate = weakDelegate
+        let observer = weakSelf
         await MainActor.run {
-          weakDelegate?.playbackStateDidChange(info)
-          
+          delegate?.playbackStateDidChange(info)
+
           // Manage time updates based on playback state
           if currentStatus == .playing {
-            weakSelf?.startTimeUpdates()
+            observer?.startTimeUpdates()
           } else {
-            weakSelf?.stopTimeUpdates()
+            observer?.stopTimeUpdates()
             let time = playbackController.playbackTime
-            weakDelegate?.playbackTimeDidUpdate(time.isNaN ? 0 : time)
+            delegate?.playbackTimeDidUpdate(time.isNaN ? 0 : time)
           }
         }
       }
@@ -161,8 +163,9 @@ final class PlaybackObserver {
         guard !Task.isCancelled else { break }
         
         // Only hop to main thread for the UI callback
+        let delegate = weakDelegate
         await MainActor.run {
-          weakDelegate?.currentSongDidChange(songInfo)
+          delegate?.currentSongDidChange(songInfo)
         }
       }
     }
@@ -184,8 +187,9 @@ final class PlaybackObserver {
         let safeTime = time.isNaN ? 0 : time
 
         // Minimal main thread work - just the delegate call
+        let delegate = weakDelegate
         await MainActor.run {
-          weakDelegate?.playbackTimeDidUpdate(safeTime)
+          delegate?.playbackTimeDidUpdate(safeTime)
         }
 
         try? await Task.sleep(nanoseconds: UInt64(timeUpdateInterval * 1_000_000_000))

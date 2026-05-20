@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useApp } from "../context/AppContext";
 import { theme } from "../lib/theme";
 
@@ -14,10 +14,11 @@ export function AuthBanner() {
           Session restored — most demos work without re-authorizing.
         </Text>
       ) : null}
-      {Platform.OS === "android" && !devToken ? (
+      {!devToken ? (
         <Text style={styles.hint}>
-          Android needs EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN in .env.local
-          (see docs/CLI.md).
+          Set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN in example/.env.local
+          (npm run dev-token — see docs/CLI.md). Required on Android/web; on iOS
+          avoids MusicKit provisioning for catalog search.
         </Text>
       ) : null}
     </View>

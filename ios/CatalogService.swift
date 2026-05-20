@@ -9,11 +9,14 @@ final class CatalogService {
 
   enum CatalogServiceError: LocalizedError {
     case notFound(String)
+    case configurationRequired(String)
 
     var errorDescription: String? {
       switch self {
       case .notFound(let item):
         return "\(item) not found"
+      case .configurationRequired(let message):
+        return message
       }
     }
   }
@@ -40,6 +43,47 @@ final class CatalogService {
   }
 
   func search(term: String, types: [String], options: SearchOptions) async throws -> SearchResult {
+    if MusicKitAuthStorage.hasDeveloperToken() {
+      return try await searchViaRest(term: term, types: types, options: options)
+    }
+    do {
+      return try await searchViaMusicKit(term: term, types: types, options: options)
+    } catch {
+      if MusicKitAuthStorage.hasDeveloperToken() {
+        return try await searchViaRest(term: term, types: types, options: options)
+      }
+      if isMusicKitClientNotRegistered(error) {
+        throw CatalogServiceError.configurationRequired(Self.missingDeveloperTokenMessage)
+      }
+      throw error
+    }
+  }
+
+  private static let missingDeveloperTokenMessage =
+    "Apple Music catalog search needs a developer JWT on this device. "
+    + "From the repo root: npm run dev-token -- --write-env example/.env.local "
+    + "then restart Metro (npx expo start --clear), rebuild, and tap Authorize. "
+    + "See docs/CLI.md. (Native MusicKit auto-token returned 404 for this bundle ID.)"
+
+  private func isMusicKitClientNotRegistered(_ error: Error) -> Bool {
+    let ns = error as NSError
+    if ns.domain == "ICError", ns.code == -8200 { return true }
+    if ns.localizedDescription.contains("Client not found") { return true }
+    if ns.localizedDescription.contains("developerTokenRequestFailed") { return true }
+    if let underlying = ns.userInfo[NSUnderlyingErrorKey] as? NSError,
+      underlying.domain == "AMSErrorDomain",
+      underlying.code == 301
+    {
+      return true
+    }
+    return false
+  }
+
+  private func searchViaMusicKit(
+    term: String,
+    types: [String],
+    options: SearchOptions
+  ) async throws -> SearchResult {
     let searchTypes = types.compactMap { typeString -> MusicCatalogSearchable.Type? in
       switch typeString {
       case "songs": return Song.self
@@ -66,6 +110,60 @@ final class CatalogService {
       stations: response.stations.map(MusicItemMapper.map),
       musicVideos: response.musicVideos.map(MusicItemMapper.map)
     )
+  }
+
+  private func searchViaRest(
+    term: String,
+    types: [String],
+    options: SearchOptions
+  ) async throws -> SearchResult {
+    let storefront = try await StorefrontService.getStorefrontId()
+    let typeParam = Array(Set(types.compactMap { catalogSearchTypeParam($0) })).sorted().joined(
+      separator: ",")
+    let typesQuery = typeParam.isEmpty ? "songs,albums" : typeParam
+
+    let json = try await AppleMusicRestClient.get(
+      path: "/v1/catalog/\(storefront)/search",
+      query: [
+        "term": term,
+        "types": typesQuery,
+        "limit": "\(options.limit)",
+        "offset": "\(options.offset)",
+      ]
+    )
+
+    let results = json["results"] as? [String: Any] ?? [:]
+
+    return SearchResult(
+      songs: parseSearchBucket(results: results, key: "songs", mapper: RestJsonMapper.mapSong),
+      albums: parseSearchBucket(results: results, key: "albums", mapper: RestJsonMapper.mapAlbum),
+      artists: parseSearchBucket(results: results, key: "artists", mapper: RestJsonMapper.mapArtist),
+      playlists: parseSearchBucket(
+        results: results, key: "playlists", mapper: RestJsonMapper.mapPlaylist),
+      stations: parseSearchBucket(results: results, key: "stations", mapper: RestJsonMapper.mapStation),
+      musicVideos: parseSearchBucket(
+        results: results, key: "music-videos", mapper: RestJsonMapper.mapMusicVideo)
+    )
+  }
+
+  private func catalogSearchTypeParam(_ type: String) -> String? {
+    switch type {
+    case "songs", "albums", "artists", "playlists", "stations", "music-videos": return type
+    default: return nil
+    }
+  }
+
+  private func parseSearchBucket(
+    results: [String: Any],
+    key: String,
+    mapper: ([String: Any]) -> [String: Any]
+  ) -> [[String: Any]] {
+    guard let bucket = results[key] as? [String: Any],
+      let data = bucket["data"] as? [[String: Any]]
+    else {
+      return []
+    }
+    return data.map(mapper)
   }
 
   // MARK: - Fetch Single Items
@@ -168,12 +266,12 @@ final class CatalogService {
     let results = json["results"] as? [String: Any] ?? [:]
 
     return ChartsResult(
-      songs: parseChartsEntries(results, key: "songs", typeContains: "song", mapper: RestJsonMapper.mapSong),
-      albums: parseChartsEntries(results, key: "albums", typeContains: "album", mapper: RestJsonMapper.mapAlbum),
+      songs: parseChartsEntries(results: results, key: "songs", typeContains: "song", mapper: RestJsonMapper.mapSong),
+      albums: parseChartsEntries(results: results, key: "albums", typeContains: "album", mapper: RestJsonMapper.mapAlbum),
       playlists: parseChartsEntries(
-        results, key: "playlists", typeContains: "playlist", mapper: RestJsonMapper.mapPlaylist),
+        results: results, key: "playlists", typeContains: "playlist", mapper: RestJsonMapper.mapPlaylist),
       musicVideos: parseChartsEntries(
-        results, key: "music-videos", typeContains: "music-video", mapper: RestJsonMapper.mapMusicVideo)
+        results: results, key: "music-videos", typeContains: "music-video", mapper: RestJsonMapper.mapMusicVideo)
     )
   }
 

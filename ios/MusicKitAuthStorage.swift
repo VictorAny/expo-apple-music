@@ -32,8 +32,13 @@ enum MusicKitAuthStorage {
     UserDefaults.standard.removeObject(forKey: developerTokenKey)
   }
 
-  static func hasRestTokens: Bool {
+  static func hasDeveloperToken() -> Bool {
     guard let developer = getDeveloperToken(), !developer.isEmpty else { return false }
+    return true
+  }
+
+  static func hasRestTokens() -> Bool {
+    guard hasDeveloperToken() else { return false }
     guard let user = getMusicUserToken(), !user.isEmpty else { return false }
     return true
   }

@@ -7,6 +7,7 @@ import {
   type Album,
 } from "@wwdrew/expo-apple-music";
 import { useState } from "react";
+import { Platform } from "react-native";
 import { ApiScreen } from "../components/ApiScreen";
 import { ItemRow } from "../components/ItemRow";
 import { useApp } from "../context/AppContext";
@@ -16,6 +17,7 @@ import { NeedSearchHint, RunButton, SelectedSongHint } from "./helpers";
 export function SearchDemo() {
   const {
     appendLog,
+    devToken,
     setCatalogSongs,
     setCatalogAlbums,
     setCatalogArtists,
@@ -27,6 +29,12 @@ export function SearchDemo() {
   } = useApp();
 
   async function runSearch() {
+    if (Platform.OS === "ios" && !devToken?.trim()) {
+      appendLog(
+        "iOS search blocked: set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN in example/.env.local (npm run dev-token -- --write-env example/.env.local), restart Metro, Authorize",
+      );
+      return;
+    }
     try {
       const result = await Catalog.search(
         "Beatles",
@@ -55,6 +63,11 @@ export function SearchDemo() {
   return (
     <ApiScreen
       actions={<RunButton title='Search "Beatles"' onPress={() => void runSearch()} />}
+      hint={
+        Platform.OS === "ios" && !devToken?.trim()
+          ? "iOS needs example/.env.local with EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN (see docs/CLI.md)."
+          : undefined
+      }
     >
       {catalogSongs.map((song) => (
         <ItemRow

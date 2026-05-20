@@ -35,7 +35,10 @@ enum AppleMusicRestClient {
     query: [String: String] = [:],
     body: [String: Any]? = nil
   ) async throws -> [String: Any] {
-    if method == .get, !MusicKitAuthStorage.hasRestTokens {
+    if method == .get, MusicKitAuthStorage.hasDeveloperToken() {
+      return try await requestViaUrlSession(method: method, path: path, query: query, body: body)
+    }
+    if method == .get, !MusicKitAuthStorage.hasRestTokens() {
       return try await getViaMusicDataRequest(path: path, query: query)
     }
     return try await requestViaUrlSession(method: method, path: path, query: query, body: body)
@@ -80,10 +83,18 @@ enum AppleMusicRestClient {
     body: [String: Any]?
   ) async throws -> [String: Any] {
     guard let developerToken = MusicKitAuthStorage.getDeveloperToken(),
-      let userToken = MusicKitAuthStorage.getMusicUserToken(),
-      !developerToken.isEmpty,
-      !userToken.isEmpty
+      !developerToken.isEmpty
     else {
+      if method == .get {
+        return try await getViaMusicDataRequest(path: path, query: query)
+      }
+      throw RestError.apiError("Apple Music REST requires a stored developer token")
+    }
+
+    let userToken = MusicKitAuthStorage.getMusicUserToken()
+    let requiresUserToken = path.hasPrefix("/v1/me/")
+
+    if requiresUserToken, userToken == nil || userToken?.isEmpty == true {
       if method == .get {
         return try await getViaMusicDataRequest(path: path, query: query)
       }
@@ -103,7 +114,9 @@ enum AppleMusicRestClient {
     var urlRequest = URLRequest(url: url)
     urlRequest.httpMethod = method.rawValue
     urlRequest.setValue("Bearer \(developerToken)", forHTTPHeaderField: "Authorization")
-    urlRequest.setValue(userToken, forHTTPHeaderField: "Music-User-Token")
+    if let userToken, !userToken.isEmpty {
+      urlRequest.setValue(userToken, forHTTPHeaderField: "Music-User-Token")
+    }
     if let body {
       urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
       urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)

@@ -4,9 +4,15 @@ Command-line helpers for **local development** of this package. They are **not**
 
 | Script | Command | Purpose |
 | ------ | ------- | ------- |
-| Developer JWT | `npm run dev-token` | Sign or verify MusicKit **developer** tokens for Android `Auth.authorize()` |
+| Developer JWT | `npm run dev-token` | Sign or verify MusicKit **developer** tokens (`Auth.authorize` on every platform) |
 
 Implementation: [`scripts/generate-developer-token.mjs`](../scripts/generate-developer-token.mjs)
+
+---
+
+## iOS (`Catalog.search` and local dev)
+
+On **iOS**, a developer JWT is optional for `Auth.authorize()` (media library permission can succeed without it). For **reliable** `Catalog.search`, pass a JWT minted with this CLI — the module uses REST catalog search when a token is stored. See [docs/IOS_SETUP.md](./IOS_SETUP.md).
 
 ---
 
@@ -67,11 +73,13 @@ npm run dev-token -- --write-env example/.env.local
 # 2. Restart Metro so Expo picks up the new env
 cd example && npx expo start --clear
 
-# 3. Run Android and tap Authorize
+# 3. Run the native app and tap Authorize
+cd example && npx expo run:ios
+# or
 cd example && npx expo run:android
 ```
 
-The example reads `process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` and passes it to `Auth.authorize(token)`.
+The example reads `process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` and passes it to `Auth.authorize(token)`. On **iOS**, that enables REST catalog search; on **Android** it is required.
 
 ### Override credentials without editing `.env.music`
 

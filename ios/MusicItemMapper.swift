@@ -121,17 +121,28 @@ enum MusicItemMapper {
   }
 
   static func catalogPlaybackId(from song: Song) -> String {
-    if let playId = song.playParameters?.id {
-      return musicItemId(playId)
+    if let playId = catalogPlaybackId(from: song.playParameters) {
+      return playId
     }
     return musicItemId(song.id)
   }
 
   static func catalogPlaybackId(from musicVideo: MusicVideo) -> String {
-    if let playId = musicVideo.playParameters?.id {
-      return musicItemId(playId)
+    if let playId = catalogPlaybackId(from: musicVideo.playParameters) {
+      return playId
     }
     return musicItemId(musicVideo.id)
+  }
+
+  /// MusicKit no longer exposes `PlayParameters.id`; decode Codable payload (parity with RestJsonMapper).
+  private static func catalogPlaybackId(from playParameters: PlayParameters?) -> String? {
+    guard let playParameters,
+          let data = try? JSONEncoder().encode(playParameters),
+          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else { return nil }
+    if let id = json["id"] as? String, !id.isEmpty { return id }
+    if let catalogId = json["catalogId"] as? String, !catalogId.isEmpty { return catalogId }
+    return nil
   }
 
   /// MusicKit `duration` is seconds; bridge uses milliseconds (matches `durationInMillis` from REST).
@@ -140,11 +151,10 @@ enum MusicItemMapper {
   }
 
   private static func playlistTrackCount(_ playlist: Playlist) -> Int {
-    let reported = playlist.trackCount
-    if reported > 0 {
-      return reported
+    if let count = playlist.tracks?.count, count > 0 {
+      return count
     }
-    return playlist.tracks?.count ?? 0
+    return playlist.entries?.count ?? 0
   }
 
   // MARK: - Private Helpers
