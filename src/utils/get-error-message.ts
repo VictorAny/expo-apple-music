@@ -1,8 +1,10 @@
+import { AppleMusicErrorCode } from '../constants/apple-music-error-codes';
 import { isAppleMusicError } from './apple-music-error';
 
 export const getErrorMessage = (error: unknown, fallback = 'Unknown error'): string => {
   if (isAppleMusicError(error)) {
-    const prefix = error.code && error.code !== 'ERROR' ? `${error.code}: ` : '';
+    const prefix =
+      error.code && error.code !== AppleMusicErrorCode.error ? `${error.code}: ` : '';
     const operation = error.operation ? ` (${error.operation})` : '';
     return `${prefix}${error.message}${operation}`;
   }

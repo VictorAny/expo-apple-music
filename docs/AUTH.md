@@ -20,6 +20,8 @@ if (status === AuthStatus.AUTHORIZED) {
 
 iOS portal, signing, entitlements, JWT, and release: **[IOS_SETUP.md](./IOS_SETUP.md)**.
 
+Bridge rejection codes (`permissionDenied`, `MISSING_DEVELOPER_TOKEN`, …): **[ERROR_CODES.md](./ERROR_CODES.md)**.
+
 ---
 
 ## `Auth.authorize(developerToken?, options?)`

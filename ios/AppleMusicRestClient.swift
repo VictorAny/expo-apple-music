@@ -18,13 +18,24 @@ enum AppleMusicRestClient {
   enum RestError: LocalizedError {
     case invalidURL
     case invalidResponse
+    case permissionDenied(String)
     case apiError(String)
 
     var errorDescription: String? {
       switch self {
       case .invalidURL: return "Invalid Apple Music API URL"
       case .invalidResponse: return "Invalid Apple Music API response"
+      case .permissionDenied(let message): return message
       case .apiError(let message): return message
+      }
+    }
+
+    var bridgeCode: String {
+      switch self {
+      case .permissionDenied:
+        return AppleMusicErrorCodes.permissionDenied
+      case .invalidURL, .invalidResponse, .apiError:
+        return AppleMusicErrorCodes.error
       }
     }
   }
@@ -140,7 +151,7 @@ enum AppleMusicRestClient {
     let (data, response) = try await URLSession.shared.data(for: urlRequest)
     if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
       if http.statusCode == 403 {
-        throw RestError.apiError(
+        throw RestError.permissionDenied(
           "Apple Music authorization required or subscription needed (403)"
         )
       }

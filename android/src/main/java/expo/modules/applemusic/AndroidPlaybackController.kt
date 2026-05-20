@@ -203,7 +203,7 @@ internal class AndroidPlaybackController private constructor(
             } else {
               continuation.resumeWithException(
                 CodedException(
-                  "PLAYBACK_ERROR",
+                  AppleMusicErrorCodes.PLAYBACK_ERROR,
                   "Playback queue stayed empty after prepare",
                   null,
                 ),
@@ -402,7 +402,7 @@ internal class AndroidPlaybackController private constructor(
         is CodedException -> error
         is MediaPlayerException ->
           CodedException(
-            "PLAYBACK_ERROR",
+            AppleMusicErrorCodes.PLAYBACK_ERROR,
             error.message ?: "Media playback failed (type=${error.type}, code=${error.errorCode})",
             null,
           )
@@ -414,7 +414,7 @@ internal class AndroidPlaybackController private constructor(
             } else {
               error.message ?: "Playback failed"
             }
-          CodedException("PLAYBACK_ERROR", hint, null)
+          CodedException(AppleMusicErrorCodes.PLAYBACK_ERROR, hint, null)
         }
       }
   }

@@ -10,7 +10,7 @@ internal object AndroidDeveloperToken {
     }
 
     throw CodedException(
-      "MISSING_DEVELOPER_TOKEN",
+      AppleMusicErrorCodes.MISSING_DEVELOPER_TOKEN,
       "Android MusicKit auth requires a developer JWT. Pass Auth.authorize(developerToken).",
       null,
     )

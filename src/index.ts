@@ -72,6 +72,8 @@ export type { PlayerConfig, PlaybackError } from './modules/player';
 
 export type { AppleMusicError } from './utils/apple-music-error';
 
+export * from './constants/apple-music-error-codes';
+
 export { isLibraryId } from './api/library-ids';
 
 export { isLibraryItem } from './utils/is-library-item';

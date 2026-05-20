@@ -64,7 +64,7 @@ public class ExpoAppleMusicModule: Module {
               code: subError.code
             )
           }
-          throw Exception(name: "ERROR", description: error.localizedDescription)
+          throw AppleMusicBridgeError.exception(from: error)
         }
       }
 

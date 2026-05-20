@@ -1,3 +1,4 @@
+import { AppleMusicErrorCode } from '../constants/apple-music-error-codes';
 import type { AppleMusicError } from '../utils/apple-music-error';
 import { asThrownAppleMusicError, isAppleMusicError } from '../utils/apple-music-error';
 
@@ -26,12 +27,12 @@ export function normalizeNativeError(operation: string, error: unknown): AppleMu
         ? error
         : 'Unknown Apple Music error';
 
-  return { code: 'ERROR', message, operation };
+  return { code: AppleMusicErrorCode.error, message, operation };
 }
 
 export function invalidLibraryIdError(label: string, id: string): AppleMusicError {
   return {
-    code: 'INVALID_LIBRARY_ID',
+    code: AppleMusicErrorCode.invalidLibraryId,
     message: `Expected a library resource id (i., l., or p. prefix) for ${label}, got "${id}"`,
   };
 }
