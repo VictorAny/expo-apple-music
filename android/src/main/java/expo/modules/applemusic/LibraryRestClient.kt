@@ -33,14 +33,14 @@ internal class LibraryRestClient(
     withContext(Dispatchers.IO) {
       val json = transport.getJson("/v1/me/library/playlists/$playlistId/tracks")
       val data = requireDataArray(json)
-      val songs = mutableListOf<Map<String, Any?>>()
-      for (i in 0 until data.length()) {
-        val resource = data.getJSONObject(i)
-        if (resource.optString("type", "").contains("song")) {
-          songs.add(AppleMusicJsonMapper.mapSong(resource))
+      buildList {
+        for (i in 0 until data.length()) {
+          val resource = data.getJSONObject(i)
+          if (resource.optString("type", "").contains("song")) {
+            add(AppleMusicJsonMapper.mapSong(resource))
+          }
         }
       }
-      songs
     }
 
   private fun librarySearchTypeParam(type: String): String? =
@@ -171,12 +171,12 @@ internal class LibraryRestClient(
     withContext(Dispatchers.IO) {
       val json = transport.getJson("/v1/me/library/playlists/$playlistId/tracks")
       val data = requireDataArray(json)
-      val ids = mutableListOf<String>()
-      for (i in 0 until data.length()) {
-        val resource = data.getJSONObject(i)
-        if (!resource.optString("type", "").contains("song")) continue
-        AppleMusicJsonMapper.catalogPlaybackId(resource)?.let { ids.add(it) }
+      buildList {
+        for (i in 0 until data.length()) {
+          val resource = data.getJSONObject(i)
+          if (!resource.optString("type", "").contains("song")) continue
+          AppleMusicJsonMapper.catalogPlaybackId(resource)?.let { add(it) }
+        }
       }
-      ids
     }
 }

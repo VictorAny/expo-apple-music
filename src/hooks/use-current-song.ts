@@ -16,15 +16,20 @@ const useCurrentSong = (): { song?: Song; error?: Error } => {
       .then((state) => setCurrentSong(state.currentSong))
       .catch((err) => setError(new Error(getErrorMessage(err))));
 
-    const applySong = (state: PlaybackState) => {
+    const applyFromState = (state: PlaybackState) => {
       if (state?.currentSong) {
         setError(undefined);
         setCurrentSong(state.currentSong);
       }
     };
 
-    const songListener = Player.addListener('onCurrentSongChange', applySong);
-    const stateListener = Player.addListener('onPlaybackStateChange', applySong);
+    const songListener = Player.addListener('onCurrentSongChange', (event) => {
+      if (event?.currentSong) {
+        setError(undefined);
+        setCurrentSong(event.currentSong);
+      }
+    });
+    const stateListener = Player.addListener('onPlaybackStateChange', applyFromState);
 
     return () => {
       songListener.remove();

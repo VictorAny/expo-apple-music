@@ -10,8 +10,13 @@ export interface PlayerConfig {
   mixWithOthers: boolean;
 }
 
-interface PlaybackTimeUpdate {
+export interface PlaybackTimeUpdate {
   playbackTime: number;
+}
+
+/** Payload for `onCurrentSongChange` (iOS/Android/web). */
+export interface CurrentSongChangeEvent {
+  currentSong?: Song;
 }
 
 export interface PlaybackError {
@@ -21,9 +26,10 @@ export interface PlaybackError {
   operation: 'play' | 'togglePlayback' | 'skipToNext' | 'skipToPrevious';
 }
 
-interface PlayerEvents {
+/** Native player event payloads keyed by event name. */
+export interface PlayerEventMap {
   onPlaybackStateChange: PlaybackState;
-  onCurrentSongChange: Song;
+  onCurrentSongChange: CurrentSongChangeEvent;
   onPlaybackTimeUpdate: PlaybackTimeUpdate;
   onPlaybackError: PlaybackError;
 }
@@ -83,15 +89,14 @@ class Player {
     );
   }
 
-  public static addListener(
-    eventType: keyof PlayerEvents,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    listener: (eventData: any) => void,
+  public static addListener<K extends keyof PlayerEventMap>(
+    eventType: K,
+    listener: (eventData: PlayerEventMap[K]) => void,
   ): EventSubscription {
     return musicEventEmitter.addListener(eventType, listener);
   }
 
-  public static removeAllListeners(eventType: keyof PlayerEvents): void {
+  public static removeAllListeners(eventType: keyof PlayerEventMap): void {
     musicEventEmitter.removeAllListeners(eventType);
   }
 

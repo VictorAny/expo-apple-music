@@ -129,12 +129,14 @@ internal object AppleMusicJsonMapper {
     val attributes = resource.optJSONObject("attributes") ?: JSONObject()
     val title =
       attributes.optJSONObject("title")?.optString("stringForDisplay", "").orEmpty()
-    val resourceTypes = mutableListOf<String>()
-    attributes.optJSONArray("resourceTypes")?.let { array ->
-      for (i in 0 until array.length()) {
-        resourceTypes.add(array.optString(i))
-      }
-    }
+    val resourceTypes =
+      attributes.optJSONArray("resourceTypes")?.let { array ->
+        buildList(array.length()) {
+          for (i in 0 until array.length()) {
+            add(array.optString(i))
+          }
+        }
+      } ?: emptyList()
     val contents = mapRecommendationContents(resource)
     return mapOf(
       "id" to resource.optString("id", ""),
@@ -151,19 +153,17 @@ internal object AppleMusicJsonMapper {
     val topSongs = mapRelationshipResources(resource, "top-songs", ::mapSong)
     val topAlbums = mapRelationshipResources(resource, "top-albums", ::mapAlbum)
     val topArtists = mapRelationshipResources(resource, "top-artists", ::mapArtist)
-    val result =
-      mutableMapOf<String, Any?>(
-        "id" to resource.optString("id", ""),
-        "type" to resource.optString("type", ""),
-        "name" to attributes.optString("name", ""),
-        "topSongs" to topSongs,
-        "topAlbums" to topAlbums,
-        "topArtists" to topArtists,
-      )
-    if (attributes.has("year")) {
-      result["year"] = attributes.optInt("year")
+    return buildMap {
+      put("id", resource.optString("id", ""))
+      put("type", resource.optString("type", ""))
+      put("name", attributes.optString("name", ""))
+      put("topSongs", topSongs)
+      put("topAlbums", topAlbums)
+      put("topArtists", topArtists)
+      if (attributes.has("year")) {
+        put("year", attributes.optInt("year"))
+      }
     }
-    return result
   }
 
   private data class RecommendationContents(
@@ -173,24 +173,34 @@ internal object AppleMusicJsonMapper {
   )
 
   private fun mapRecommendationContents(resource: JSONObject): RecommendationContents {
-    val playlists = mutableListOf<Map<String, Any?>>()
-    val albums = mutableListOf<Map<String, Any?>>()
-    val stations = mutableListOf<Map<String, Any?>>()
     val data =
       resource
         .optJSONObject("relationships")
         ?.optJSONObject("contents")
         ?.optJSONArray("data")
-    if (data == null) {
-      return RecommendationContents(playlists, albums, stations)
+        ?: return RecommendationContents(emptyList(), emptyList(), emptyList())
+    val playlists = buildList {
+      for (i in 0 until data.length()) {
+        val item = data.getJSONObject(i)
+        if (item.optString("type", "").contains("playlist")) {
+          add(mapPlaylist(item))
+        }
+      }
     }
-    for (i in 0 until data.length()) {
-      val item = data.getJSONObject(i)
-      val type = item.optString("type", "")
-      when {
-        type.contains("playlist") -> playlists.add(mapPlaylist(item))
-        type.contains("album") -> albums.add(mapAlbum(item))
-        type.contains("station") -> stations.add(mapStation(item))
+    val albums = buildList {
+      for (i in 0 until data.length()) {
+        val item = data.getJSONObject(i)
+        if (item.optString("type", "").contains("album")) {
+          add(mapAlbum(item))
+        }
+      }
+    }
+    val stations = buildList {
+      for (i in 0 until data.length()) {
+        val item = data.getJSONObject(i)
+        if (item.optString("type", "").contains("station")) {
+          add(mapStation(item))
+        }
       }
     }
     return RecommendationContents(playlists, albums, stations)
@@ -207,11 +217,11 @@ internal object AppleMusicJsonMapper {
         ?.optJSONObject(relationshipKey)
         ?.optJSONArray("data")
         ?: return emptyList()
-    val result = ArrayList<Map<String, Any?>>(data.length())
-    for (i in 0 until data.length()) {
-      result.add(mapper(data.getJSONObject(i)))
+    return buildList(data.length()) {
+      for (i in 0 until data.length()) {
+        add(mapper(data.getJSONObject(i)))
+      }
     }
-    return result
   }
 
   fun describePlaybackStatus(state: Int): String =

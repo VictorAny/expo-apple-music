@@ -331,14 +331,12 @@ internal class AndroidPlaybackController private constructor(
     val player = ensureController()
     val playbackStatus = AppleMusicJsonMapper.describePlaybackStatus(player.playbackState)
     val playbackTime = player.currentPosition.coerceAtLeast(0) / 1000.0
-    val result =
-      mutableMapOf<String, Any?>(
-        "playbackRate" to player.playbackRate,
-        "playbackStatus" to playbackStatus,
-        "playbackTime" to playbackTime,
-      )
-    fetchCurrentSongInfo()?.let { result["currentSong"] = it }
-    return result
+    return buildMap {
+      put("playbackRate", player.playbackRate)
+      put("playbackStatus", playbackStatus)
+      put("playbackTime", playbackTime)
+      fetchCurrentSongInfo()?.let { put("currentSong", it) }
+    }
   }
 
   fun fetchCurrentSongInfo(): Map<String, Any?>? {

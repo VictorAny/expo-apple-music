@@ -68,7 +68,13 @@ export type { CatalogByIdsResult } from './modules/catalog';
 
 export type { RecentlyPlayedTracksResponse } from './modules/history';
 
-export type { PlayerConfig, PlaybackError } from './modules/player';
+export type {
+  PlayerConfig,
+  PlaybackError,
+  PlaybackTimeUpdate,
+  CurrentSongChangeEvent,
+  PlayerEventMap,
+} from './modules/player';
 
 export type { AppleMusicError } from './utils/apple-music-error';
 

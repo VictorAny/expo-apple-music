@@ -108,7 +108,7 @@ export class WebPlaybackObserver {
       return;
     }
     const state = await this.playback.currentState();
-    emitter.emit('onCurrentSongChange', state.currentSong ?? null);
+    emitter.emit('onCurrentSongChange', { currentSong: state.currentSong });
   }
 
   private async emitTimeUpdate(emitter: PlaybackEmitter): Promise<void> {

@@ -25,16 +25,16 @@ internal fun mapResourceArray(
   mapper: (JSONObject) -> Map<String, Any?>,
 ): List<Map<String, Any?>> {
   if (array == null) return emptyList()
-  val result = ArrayList<Map<String, Any?>>(array.length())
-  for (i in 0 until array.length()) {
-    result.add(mapper(array.getJSONObject(i)))
+  return buildList(array.length()) {
+    for (i in 0 until array.length()) {
+      add(mapper(array.getJSONObject(i)))
+    }
   }
-  return result
 }
 
 /** Parse required top-level `data`, then map resources. */
 internal fun mapTopLevelResourceArray(
   json: JSONObject,
-  mapper: (JSONObject) -> Map<String, Any?>,
   key: String = "data",
+  mapper: (JSONObject) -> Map<String, Any?>,
 ): List<Map<String, Any?>> = mapResourceArray(requireDataArray(json, key), mapper)

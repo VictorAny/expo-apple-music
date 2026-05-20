@@ -320,8 +320,8 @@ export function AddListenerDemo() {
       Player.addListener("onPlaybackStateChange", (state) => {
         appendLog(`event onPlaybackStateChange: ${state.playbackStatus}`);
       }),
-      Player.addListener("onCurrentSongChange", (song) => {
-        appendLog(`event onCurrentSongChange: ${song.title}`);
+      Player.addListener("onCurrentSongChange", (event) => {
+        appendLog(`event onCurrentSongChange: ${event.currentSong?.title ?? "(none)"}`);
       }),
     ];
     appendLog("Listening for onPlaybackStateChange and onCurrentSongChange");

@@ -95,6 +95,10 @@ final class LibraryService {
   }
 
   func search(term: String, types: [String], options: BridgePagination) async throws -> LibrarySearchResult {
+    if options.offset > 0 {
+      return try await searchViaRest(term: term, types: types, options: options)
+    }
+
     let searchTypes = types.compactMap { Self.librarySearchableType($0) }
     let resolvedTypes: [any MusicLibrarySearchable.Type]
     if searchTypes.isEmpty {
@@ -105,7 +109,6 @@ final class LibraryService {
 
     var request = MusicLibrarySearchRequest(term: term, types: resolvedTypes)
     request.limit = options.limit
-    request.offset = options.offset
     let response = try await request.response()
 
     return LibrarySearchResult(
@@ -115,6 +118,62 @@ final class LibraryService {
       playlists: response.playlists.map(MusicItemMapper.map),
       musicVideos: response.musicVideos.map(MusicItemMapper.map)
     )
+  }
+
+  /// MusicKit `MusicLibrarySearchRequest` has no `offset`; REST matches Android pagination.
+  private func searchViaRest(
+    term: String,
+    types: [String],
+    options: BridgePagination
+  ) async throws -> LibrarySearchResult {
+    let typeParam = Array(Set(types.compactMap { Self.librarySearchRestTypeParam($0) })).sorted().joined(
+      separator: ",")
+    let typesQuery = typeParam.isEmpty ? "library-songs,library-albums" : typeParam
+
+    let json = try await AppleMusicRestClient.get(
+      path: "/v1/me/library/search",
+      query: [
+        "term": term,
+        "types": typesQuery,
+        "limit": "\(options.limit)",
+        "offset": "\(options.offset)",
+      ]
+    )
+
+    let results = json["results"] as? [String: Any] ?? [:]
+    return LibrarySearchResult(
+      songs: parseLibrarySearchBucket(results: results, key: "library-songs", mapper: RestJsonMapper.mapSong),
+      albums: parseLibrarySearchBucket(results: results, key: "library-albums", mapper: RestJsonMapper.mapAlbum),
+      artists: parseLibrarySearchBucket(results: results, key: "library-artists", mapper: RestJsonMapper.mapArtist),
+      playlists: parseLibrarySearchBucket(
+        results: results, key: "library-playlists", mapper: RestJsonMapper.mapPlaylist),
+      musicVideos: parseLibrarySearchBucket(
+        results: results, key: "library-music-videos", mapper: RestJsonMapper.mapMusicVideo)
+    )
+  }
+
+  private func parseLibrarySearchBucket(
+    results: [String: Any],
+    key: String,
+    mapper: ([String: Any]) -> [String: Any]
+  ) -> [[String: Any]] {
+    guard let bucket = results[key] as? [String: Any],
+      let data = bucket["data"] as? [[String: Any]]
+    else {
+      return []
+    }
+    return data.map(mapper)
+  }
+
+  private static func librarySearchRestTypeParam(_ type: String) -> String? {
+    switch type {
+    case "library-songs", "songs": return "library-songs"
+    case "library-albums", "albums": return "library-albums"
+    case "library-artists", "artists": return "library-artists"
+    case "library-playlists", "playlists": return "library-playlists"
+    case "library-music-videos", "music-videos", "musicVideos": return "library-music-videos"
+    default: return nil
+    }
   }
 
   private static func librarySearchableType(_ type: String) -> (any MusicLibrarySearchable.Type)? {

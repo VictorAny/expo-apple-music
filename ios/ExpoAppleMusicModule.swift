@@ -69,8 +69,10 @@ public class ExpoAppleMusicModule: Module {
       }
 
       AsyncFunction("getStorefront") { () -> [String: Any] in
-        let id = try await StorefrontService.getStorefrontId()
-        return BridgeResponses.storefront(id: id)
+        try await AppleMusicBridgeError.rethrow {
+          let id = try await StorefrontService.getStorefrontId()
+          return BridgeResponses.storefront(id: id)
+        }
       }
 
       // MARK: - Catalog
@@ -85,27 +87,39 @@ public class ExpoAppleMusicModule: Module {
       }
 
       AsyncFunction("getCatalogSong") { (id: String) -> [String: Any] in
-        try await self.catalogService.getSong(id: id)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.catalogService.getSong(id: id)
+        }
       }
 
       AsyncFunction("getCatalogAlbum") { (id: String) -> [String: Any] in
-        try await self.catalogService.getAlbum(id: id)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.catalogService.getAlbum(id: id)
+        }
       }
 
       AsyncFunction("getCatalogArtist") { (id: String) -> [String: Any] in
-        try await self.catalogService.getArtist(id: id)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.catalogService.getArtist(id: id)
+        }
       }
 
       AsyncFunction("getCatalogPlaylist") { (id: String) -> [String: Any] in
-        try await self.catalogService.getPlaylist(id: id)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.catalogService.getPlaylist(id: id)
+        }
       }
 
       AsyncFunction("getCatalogStation") { (id: String) -> [String: Any] in
-        try await self.catalogService.getStation(id: id)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.catalogService.getStation(id: id)
+        }
       }
 
       AsyncFunction("getCatalogMusicVideo") { (id: String) -> [String: Any] in
-        try await self.catalogService.getMusicVideo(id: id)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.catalogService.getMusicVideo(id: id)
+        }
       }
 
       AsyncFunction("getCatalogAlbumTracks") { (albumId: String, options: [String: Any]) -> [String: Any] in
@@ -238,8 +252,10 @@ public class ExpoAppleMusicModule: Module {
       // MARK: - Player
 
       AsyncFunction("setPlaybackQueue") { (itemId: String, type: String) -> String in
-        try await self.queueService.setQueue(itemId: itemId, type: type)
-        return "Track(s) added to queue"
+        try await AppleMusicBridgeError.rethrow {
+          try await self.queueService.setQueue(itemId: itemId, type: type)
+          return "Track(s) added to queue"
+        }
       }
 
       AsyncFunction("configurePlayer") { (mixWithOthers: Bool) -> [String: Any] in
@@ -321,64 +337,84 @@ public class ExpoAppleMusicModule: Module {
       }
 
       AsyncFunction("playLibrarySong") { (songId: String) -> String in
-        try await self.queueService.playLibrarySong(songId: songId)
-        return "Library song added to queue"
+        try await AppleMusicBridgeError.rethrow {
+          try await self.queueService.playLibrarySong(songId: songId)
+          return "Library song added to queue"
+        }
       }
 
       AsyncFunction("playLibraryPlaylist") { (playlistId: String, startingAt: Int) -> String in
-        try await self.queueService.playLibraryPlaylist(
-          playlistId: playlistId,
-          startingAt: startingAt
-        )
-        return "Library playlist added to queue"
+        try await AppleMusicBridgeError.rethrow {
+          try await self.queueService.playLibraryPlaylist(
+            playlistId: playlistId,
+            startingAt: startingAt
+          )
+          return "Library playlist added to queue"
+        }
       }
 
       // MARK: - Ratings
 
       AsyncFunction("getRating") { (resourceType: String, id: String) -> [String: Any]? in
-        try await self.ratingsService.getRating(resourceType: resourceType, id: id)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.ratingsService.getRating(resourceType: resourceType, id: id)
+        }
       }
 
       AsyncFunction("setRating") { (resourceType: String, id: String, value: Int) -> [String: Any] in
-        try await self.ratingsService.setRating(resourceType: resourceType, id: id, value: value)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.ratingsService.setRating(resourceType: resourceType, id: id, value: value)
+        }
       }
 
       AsyncFunction("clearRating") { (resourceType: String, id: String) -> Void in
-        try await self.ratingsService.clearRating(resourceType: resourceType, id: id)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.ratingsService.clearRating(resourceType: resourceType, id: id)
+        }
       }
 
       AsyncFunction("addToFavorites") { (resourceIds: [String: [String]]) -> Void in
-        try await self.ratingsService.addToFavorites(resourceIds: resourceIds)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.ratingsService.addToFavorites(resourceIds: resourceIds)
+        }
       }
 
       AsyncFunction("removeFromFavorites") { (resourceIds: [String: [String]]) -> Void in
-        try await self.ratingsService.removeFromFavorites(resourceIds: resourceIds)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.ratingsService.removeFromFavorites(resourceIds: resourceIds)
+        }
       }
 
       // MARK: - Library mutations
 
       AsyncFunction("addToLibrary") { (resourceIds: [String: [String]]) -> Void in
-        try await self.libraryMutationsService.addToLibrary(resourceIds: resourceIds)
+        try await AppleMusicBridgeError.rethrow {
+          try await self.libraryMutationsService.addToLibrary(resourceIds: resourceIds)
+        }
       }
 
       AsyncFunction("createLibraryPlaylist") { (options: [String: Any]) -> [String: Any] in
-        let name = options["name"] as? String ?? ""
-        let description = options["description"] as? String
-        let isPublic = options["isPublic"] as? Bool ?? false
-        let tracks = options["tracks"] as? [[String: String]]
-        return try await self.libraryMutationsService.createPlaylist(
-          name: name,
-          description: description,
-          isPublic: isPublic,
-          tracks: tracks
-        )
+        try await AppleMusicBridgeError.rethrow {
+          let name = options["name"] as? String ?? ""
+          let description = options["description"] as? String
+          let isPublic = options["isPublic"] as? Bool ?? false
+          let tracks = options["tracks"] as? [[String: String]]
+          return try await self.libraryMutationsService.createPlaylist(
+            name: name,
+            description: description,
+            isPublic: isPublic,
+            tracks: tracks
+          )
+        }
       }
 
       AsyncFunction("addTracksToLibraryPlaylist") { (playlistId: String, tracks: [[String: String]]) -> Void in
-        try await self.libraryMutationsService.addTracksToPlaylist(
-          playlistId: playlistId,
-          tracks: tracks
-        )
+        try await AppleMusicBridgeError.rethrow {
+          try await self.libraryMutationsService.addTracksToPlaylist(
+            playlistId: playlistId,
+            tracks: tracks
+          )
+        }
       }
 
       // MARK: - Recommendations

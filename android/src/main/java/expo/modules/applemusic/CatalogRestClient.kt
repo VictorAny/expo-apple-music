@@ -105,13 +105,12 @@ internal class CatalogRestClient(
           mapOf("ids" to trimmed.joinToString(",")),
         )
       val data = requireDataArray(json)
-      val items = mutableListOf<Map<String, Any?>>()
-      for (i in 0 until data.length()) {
-        val resource = data.getJSONObject(i)
-        val mapped = mapCatalogResource(type, resource) ?: continue
-        items.add(mapped)
+      buildList {
+        for (i in 0 until data.length()) {
+          val resource = data.getJSONObject(i)
+          mapCatalogResource(type, resource)?.let { add(it) }
+        }
       }
-      items
     }
 
   private fun mapCatalogResource(type: String, resource: JSONObject): Map<String, Any?>? {
@@ -196,13 +195,13 @@ internal class CatalogRestClient(
           .ifEmpty { "songs,albums" }
 
       val query =
-        mutableMapOf(
-          "types" to typeParam,
-          "limit" to limit.toString(),
-          "offset" to offset.toString(),
-        )
-      genre?.takeIf { it.isNotBlank() }?.let { query["genre"] = it }
-      chart?.takeIf { it.isNotBlank() }?.let { query["chart"] = it }
+        buildMap {
+          put("types", typeParam)
+          put("limit", limit.toString())
+          put("offset", offset.toString())
+          genre?.takeIf { it.isNotBlank() }?.let { put("genre", it) }
+          chart?.takeIf { it.isNotBlank() }?.let { put("chart", it) }
+        }
 
       val json = transport.getJson("/v1/catalog/$storefrontId/charts", query)
       val results = json.optJSONObject("results") ?: JSONObject()
@@ -233,14 +232,14 @@ internal class CatalogRestClient(
           ),
         )
       val data = requireDataArray(json)
-      val items = mutableListOf<Map<String, Any?>>()
-      for (i in 0 until data.length()) {
-        val resource = data.getJSONObject(i)
-        if (resource.optString("type", "").contains(typeContains)) {
-          items.add(mapper(resource))
+      buildList {
+        for (i in 0 until data.length()) {
+          val resource = data.getJSONObject(i)
+          if (resource.optString("type", "").contains(typeContains)) {
+            add(mapper(resource))
+          }
         }
       }
-      items
     }
 
   private suspend fun getCatalogResource(
@@ -264,18 +263,18 @@ internal class CatalogRestClient(
     mapper: (JSONObject) -> Map<String, Any?>,
   ): List<Map<String, Any?>> {
     val charts = results.optJSONArray(resultsKey) ?: return emptyList()
-    val items = mutableListOf<Map<String, Any?>>()
-    for (i in 0 until charts.length()) {
-      val chart = charts.optJSONObject(i) ?: continue
-      val data = chart.optJSONArray("data") ?: continue
-      for (j in 0 until data.length()) {
-        val resource = data.getJSONObject(j)
-        if (resource.optString("type", "").contains(typeContains)) {
-          items.add(mapper(resource))
+    return buildList {
+      for (i in 0 until charts.length()) {
+        val chart = charts.optJSONObject(i) ?: continue
+        val data = chart.optJSONArray("data") ?: continue
+        for (j in 0 until data.length()) {
+          val resource = data.getJSONObject(j)
+          if (resource.optString("type", "").contains(typeContains)) {
+            add(mapper(resource))
+          }
         }
       }
     }
-    return items
   }
 
   private fun catalogChartTypeParam(type: String): String? =
