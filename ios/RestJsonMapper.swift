@@ -1,5 +1,6 @@
 // RestJsonMapper.swift
 // Maps Apple Music API JSON objects to bridge dictionaries (matches Android mapper).
+// Golden REST cases: fixtures/*.json + fixtures/expected/*.json — see docs/BRIDGE_CONTRACT.md.
 
 import Foundation
 

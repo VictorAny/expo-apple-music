@@ -14,6 +14,7 @@
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",
     "dev-token": "node scripts/generate-developer-token.mjs",
+    "sync:fixtures": "node scripts/sync-android-fixtures.mjs",
     "open:ios": "xed example/ios",
     "open:android": "open -a \"Android Studio\" example/android"
   },

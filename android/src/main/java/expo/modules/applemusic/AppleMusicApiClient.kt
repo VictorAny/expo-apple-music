@@ -432,7 +432,7 @@ internal class AppleMusicApiClient(
     withContext(Dispatchers.IO) {
       try {
         val json = getJson("/v1/me/ratings/$resourceType/$id")
-        mapRating(json)
+        AppleMusicJsonMapper.mapRating(json)
       } catch (error: expo.modules.kotlin.exception.CodedException) {
         if (error.message?.contains("(404)") == true) {
           return@withContext null
@@ -456,7 +456,7 @@ internal class AppleMusicApiClient(
           "/v1/me/ratings/$resourceType/$id",
           body = body,
         )
-      mapRating(json)
+      AppleMusicJsonMapper.mapRating(json)
     }
 
   suspend fun clearRating(resourceType: String, id: String): Unit =
@@ -675,13 +675,5 @@ internal class AppleMusicApiClient(
       return query
     }
 
-    private fun mapRating(json: JSONObject): Map<String, Any?> {
-      val data = json.getJSONArray("data").getJSONObject(0)
-      val attributes = data.getJSONObject("attributes")
-      return mapOf(
-        "id" to data.getString("id"),
-        "value" to attributes.getInt("value"),
-      )
-    }
   }
 }

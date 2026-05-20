@@ -4,6 +4,7 @@ import {
   mapArtist,
   mapMusicVideo,
   mapPlaylist,
+  mapRating,
   mapRecentlyPlayed,
   mapRecentResource,
   mapRecommendation,
@@ -61,16 +62,6 @@ function mapResourceArray<T>(
     return [];
   }
   return data.map((item) => mapper(item as AppleMusicApiResource));
-}
-
-function mapRating(json: MusicKitApiResponse): Record<string, unknown> {
-  const data = Array.isArray(json.data) ? json.data[0] : null;
-  const resource = data as AppleMusicApiResource | null;
-  const attributes = resource?.attributes ?? {};
-  return {
-    id: resource?.id ?? '',
-    value: Number(attributes.value ?? 0),
-  };
 }
 
 function buildIdsQuery(resourceIds: Record<string, string[]>): Record<string, string> {

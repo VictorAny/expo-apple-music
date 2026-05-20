@@ -112,6 +112,19 @@ internal object AppleMusicJsonMapper {
       "duration" to (item.duration / 1000).toString(),
     )
 
+  /** Maps ratings API envelope (`data[0].attributes.value`). */
+  fun mapRating(json: JSONObject): Map<String, Any?>? {
+    val data = json.optJSONArray("data") ?: return null
+    if (data.length() == 0) return null
+    val item = data.getJSONObject(0)
+    val attributes = item.optJSONObject("attributes") ?: return null
+    if (!attributes.has("value")) return null
+    return mapOf(
+      "id" to item.optString("id", ""),
+      "value" to attributes.getInt("value"),
+    )
+  }
+
   fun mapRecommendation(resource: JSONObject): Map<String, Any?> {
     val attributes = resource.optJSONObject("attributes") ?: JSONObject()
     val title =

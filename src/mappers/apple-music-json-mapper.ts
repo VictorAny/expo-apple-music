@@ -187,6 +187,27 @@ function mapRecommendationContents(resource: AppleMusicApiResource) {
   return { playlists, albums, stations };
 }
 
+/** Maps `GET/PUT /v1/me/ratings/...` envelope — same shape on iOS REST, Android, and web. */
+export function mapRating(
+  response: { data?: AppleMusicApiResource[] },
+): { id: string; value: number } | null {
+  const first = response.data?.[0];
+  if (!first) {
+    return null;
+  }
+  const attributes = first.attributes ?? {};
+  const raw = attributes.value;
+  const value =
+    typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : Number.NaN;
+  if (Number.isNaN(value)) {
+    return null;
+  }
+  return {
+    id: first.id ?? '',
+    value,
+  };
+}
+
 export function mapReplaySummary(resource: AppleMusicApiResource) {
   const attributes = resource.attributes ?? {};
   const topSongs = mapRelationshipResources(resource, 'top-songs', mapSong);

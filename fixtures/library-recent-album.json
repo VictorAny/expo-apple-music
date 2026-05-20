@@ -1,0 +1,11 @@
+{
+  "id": "l.album456",
+  "type": "library-albums",
+  "attributes": {
+    "name": "Abbey Road",
+    "artistName": "The Beatles",
+    "artwork": {
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Music/{w}x{h}bb.jpg"
+    }
+  }
+}

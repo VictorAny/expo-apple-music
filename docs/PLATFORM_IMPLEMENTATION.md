@@ -13,6 +13,8 @@ How each **public JS method** is implemented on iOS vs Android. The TypeScript A
 | `MusicItemMapper` | MusicKit types (native) |
 | `RestJsonMapper` | `api.music.apple.com` JSON (REST) |
 
+**Bridge contract (fixture tests):** [BRIDGE_CONTRACT.md](./BRIDGE_CONTRACT.md) — golden `fixtures/` + `fixtures/expected/`; TS and Kotlin adapters must stay aligned.
+
 ---
 
 ## Auth
