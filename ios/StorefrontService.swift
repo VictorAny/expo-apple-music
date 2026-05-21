@@ -19,6 +19,14 @@ enum StorefrontService {
     }
   }
 
+  /// Catalog REST paths — cached storefront or device locale (no music user token).
+  static func getCatalogStorefront() -> String {
+    if let cached = AuthenticatedSessionCache.cachedStorefrontId() {
+      return cached
+    }
+    return localeStorefrontId()
+  }
+
   static func getStorefrontId(musicUserToken: String) async throws -> String {
     if let cached = AuthenticatedSessionCache.cachedStorefrontId() {
       return cached

@@ -77,6 +77,10 @@ enum RestJsonMapper {
     ]
   }
 
+  static func mapRecentlyPlayed(_ resource: [String: Any]) -> [String: Any] {
+    mapRecentResource(resource)
+  }
+
   static func mapPlaylist(_ resource: [String: Any]) -> [String: Any] {
     let attributes = resource["attributes"] as? [String: Any] ?? [:]
     var trackCount = 0

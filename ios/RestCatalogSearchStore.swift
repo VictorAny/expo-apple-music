@@ -11,7 +11,7 @@ struct RestCatalogSearchStore: CatalogSearchStore {
     types: [String],
     options: CatalogService.SearchOptions
   ) async throws -> CatalogService.SearchResult {
-    let storefront = try await StorefrontService.getStorefrontId()
+    let storefront = StorefrontService.getCatalogStorefront()
     let typeParam = Array(Set(types.compactMap { catalogSearchTypeParam($0) })).sorted().joined(
       separator: ",")
     let typesQuery = typeParam.isEmpty ? "songs,albums" : typeParam

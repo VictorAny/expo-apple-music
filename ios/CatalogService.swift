@@ -138,7 +138,7 @@ final class CatalogService {
     genre: String?,
     chart: String?
   ) async throws -> ChartsResult {
-    let storefront = try await StorefrontService.getStorefrontId()
+    let storefront = StorefrontService.getCatalogStorefront()
     var query: [String: String] = [
       "types": types.isEmpty ? "songs,albums" : types.joined(separator: ","),
       "limit": "\(options.limit)",
@@ -188,7 +188,7 @@ final class CatalogService {
     typeContains: String,
     mapper: ([String: Any]) -> [String: Any]
   ) async throws -> [[String: Any]] {
-    let storefront = try await StorefrontService.getStorefrontId()
+    let storefront = StorefrontService.getCatalogStorefront()
     let fullPath = "/v1/catalog/\(storefront)\(path)"
     let query = [
       "limit": "\(options.limit)",
@@ -226,7 +226,7 @@ final class CatalogService {
 
   /// REST catalog song resource — used when MusicKit lookup by playback id misses (e.g. after REST search).
   private func restCatalogSongResource(id: String) async throws -> [String: Any]? {
-    let storefront = try await StorefrontService.getStorefrontId()
+    let storefront = StorefrontService.getCatalogStorefront()
     let path = "/v1/catalog/\(storefront)/songs/\(id)"
     do {
       let json = try await AppleMusicRestClient.get(path: path)
@@ -276,7 +276,7 @@ final class CatalogService {
     if trimmed.isEmpty {
       return []
     }
-    let storefront = try await StorefrontService.getStorefrontId()
+    let storefront = StorefrontService.getCatalogStorefront()
     let path = "/v1/catalog/\(storefront)/\(type)"
     let json = try await AppleMusicRestClient.get(path: path, query: ["ids": trimmed.joined(separator: ",")])
     let data = try AppleMusicRestClient.parseDataArray(from: json)
