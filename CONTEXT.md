@@ -37,11 +37,12 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 
 | Method                | Domain              | Purpose                                                       |
 | --------------------- | ------------------- | ------------------------------------------------------------- |
-| `authorize()`         | Auth                | User signs in / grants access                                 |
-| `checkSubscription()` | Auth / subscription | Can they play catalog, become subscriber, cloud library, etc. |
-| `getStorefront()`     | Auth                | User’s storefront id (e.g. `us`)                              |
+| `authorize(developerToken?, options?)` | Auth | User sign-in; returns `AuthorizeResult` with optional `musicUserToken` |
+| `refreshDeveloperToken(developerToken)` | Auth | Update stored developer JWT without user UI |
+| `checkSubscription(musicUserToken)` | Auth / subscription | Can they play catalog, become subscriber, cloud library, etc. |
+| `getStorefront(musicUserToken)` | Auth | User’s storefront id (e.g. `us`) |
 
-**Auth documentation:** [docs/AUTH.md](./docs/AUTH.md) — developer JWT (Android), `AuthStatus` return values, platform requirements, config plugin, upsell options.
+**Auth documentation:** [docs/AUTH.md](./docs/AUTH.md) — developer JWT, `AuthorizeResult`, `AuthStatus`, platform requirements.
 
 ### Catalog — store (`Catalog`)
 
@@ -144,7 +145,7 @@ These need auth + REST client + JSON mapping to existing TS types.
 ### Tier 1 — important, after tier 0
 
 - `Catalog.search()` — **store** search (not “my playlists”)
-- `Auth.checkSubscription()` — approximate mapping from auth/API
+- `Auth.checkSubscription(musicUserToken)` — approximate mapping from auth/API
 - Catalog playback: `setPlaybackQueue` + `Player.*` + playback events/hooks
 
 ### Tier 2 — later

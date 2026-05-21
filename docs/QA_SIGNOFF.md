@@ -9,13 +9,14 @@ Check each box, note device/browser + date, then tag `v1.0.0`.
 ## iOS (physical device, iOS 16+, MusicKit on App ID)
 
 - [ ] `Auth.authorize(developerToken)` → `authorized`
-- [ ] `Catalog.search` with JWT (REST path)
+- [ ] `Catalog.search` (native MusicKit path when App ID registered)
 - [ ] Tap search result → `Player.setQueue` + `play` (catalog song)
 - [ ] `Library.getSongs` → play a library song
 - [ ] `History.getRecentlyPlayedTracks` → play a recent track
 - [ ] Transport: pause, resume, skip (if queue has entries)
 - [ ] No spurious `[PlaybackController]` 404 logs during playback
-- [ ] (Optional) `Catalog.search` **without** JWT — native path or clear configuration error
+- [ ] (Optional) `Catalog.search` **without** JWT — native path; or REST fallback after `authorize(developerToken)`
+- [ ] (Optional) `Auth.refreshDeveloperToken(developerToken)` — no user re-auth UI
 
 **Signed:** _______________ **Date:** _______________
 

@@ -30,10 +30,10 @@ Requests access to the user’s Apple Music account.
 
 | Argument | iOS | Android | Web |
 | -------- | --- | ------- | --- |
-| `developerToken` | Optional — when provided, stored for REST; **catalog search uses REST** (skips MusicKit auto-token); music user token fetched when authorized | **Required** — pass a MusicKit developer JWT | **Required** — same as Android |
+| `developerToken` | Optional — when provided, stored for REST; native `Catalog.search` still preferred | **Required** — pass a MusicKit developer JWT | **Required** — same as Android |
 | `options` | Ignored | Optional upsell / deeplink behavior | Ignored |
 
-Returns `Promise<AuthStatus>` — same string union on both platforms.
+Returns `Promise<AuthorizeResult>`: `{ status: AuthStatus, musicUserToken?: string }`. Store `musicUserToken` in your app (not persisted by native).
 
 ### Platform requirements
 
@@ -62,7 +62,7 @@ The module’s Android library manifest declares `<queries>` for `com.apple.andr
 2. The MusicKit Authentication SDK may show a **connect / upsell** screen (unless `hideStartScreen: true`).
 3. The user is sent to the **Apple Music** app to approve access.
 4. Apple Music returns via deeplink; the module maps the SDK result to `AuthStatus`.
-5. The **developer JWT** passed to `authorize()` is saved in app-private native storage (for playback and REST). On `authorized`, the **music user token** is saved there too (not yet exposed to JavaScript).
+5. The **developer JWT** passed to `authorize()` is saved in app-private native storage (for playback and REST). On `authorized`, the **music user token** is returned to JavaScript in `AuthorizeResult` (your app stores it; native does not persist it).
 
 There is **no web-based login** on Android native MusicKit — only the Apple Music app or Play Store install flow.
 
@@ -116,7 +116,7 @@ type AndroidAuthorizeOptions = {
 
 ## Developer token (MusicKit JWT)
 
-A **developer token** is a **signed JWT** that identifies **your app** to Apple’s services. This library **accepts** a token string when you call `Auth.authorize(developerToken)` (and can sync updates via `Auth.refreshDeveloperToken()`). It does **not** mint, host, or rotate tokens for you.
+A **developer token** is a **signed JWT** that identifies **your app** to Apple’s services. This library **accepts** a token string when you call `Auth.authorize(developerToken)` (and can sync updates via `Auth.refreshDeveloperToken(developerToken)`). It does **not** mint, host, or rotate tokens for you.
 
 | | Developer JWT | Music user token |
 | - | ------------- | ---------------- |
@@ -209,7 +209,7 @@ Same values on **iOS** and **Android**. Import `AuthStatus` for constants.
 
 | Value | Meaning | Typical cause |
 | ----- | ------- | ------------- |
-| `authorized` | User completed auth; Android music user token stored natively | Success |
+| `authorized` | User completed auth; `musicUserToken` in `AuthorizeResult` when available | Success |
 | `denied` | User did not complete auth (dismissed upsell, cancelled in Apple Music, declined iOS prompt) | User action |
 | `notDetermined` | Permission not requested yet | iOS before first `authorize()` |
 | `restricted` | Account cannot use Apple Music for this flow | Android: no/expired subscription; iOS: parental / device restrictions |
@@ -233,10 +233,13 @@ The MusicKit Authentication SDK uses its own error codes; this module normalizes
 ```ts
 import { Auth, AuthStatus } from '@wwdrew/expo-apple-music';
 
-const status = await Auth.authorize(developerToken);
+const { status, musicUserToken } = await Auth.authorize(developerToken);
 
 switch (status) {
   case AuthStatus.AUTHORIZED:
+    if (musicUserToken) {
+      // Store in your app state (e.g. Zustand)
+    }
     break;
   case AuthStatus.DENIED:
     // User closed upsell or Apple Music, or declined iOS prompt
@@ -268,12 +271,14 @@ switch (status) {
 
 On **Android and web**, the call returns best-effort flags inferred from authorization + library access (see [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md#checksubscription-on-web)).
 
+Requires `musicUserToken` from `authorize()` (first parameter).
+
 Typical flow after auth:
 
 ```ts
-if (status !== AuthStatus.AUTHORIZED) return;
+if (status !== AuthStatus.AUTHORIZED || !musicUserToken) return;
 
-const sub = await Auth.checkSubscription();
+const sub = await Auth.checkSubscription(musicUserToken);
 if (!sub.canPlayCatalogContent) {
   // Prompt subscription / trial
 }

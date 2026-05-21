@@ -135,7 +135,7 @@ For **this npm package**, use [QA_SIGNOFF.md](./QA_SIGNOFF.md) (iOS section). Th
 |---------|----------------|-------------|
 | Xcode: provisioning profile does not include `…applemusickit` / `…musickit` | Entitlements file claims a key profiles do not carry. | Remove MusicKit keys from entitlements; MusicKit is App Services only. See section 3. |
 | Automatic signing cannot create a profile | Same as above, or wrong team / bundle ID. | Fix entitlements first; verify Team and bundle ID. |
-| `404` / “Client not found” / `developerTokenRequestFailed` on search | Auto-token path; bundle ID not accepted yet by token service. | Pass developer JWT to `authorize()` and ensure env is loaded; see section 6. |
+| `404` / “Client not found” / `developerTokenRequestFailed` on search | Auto-token path; bundle ID not accepted yet by token service. | Enable MusicKit on App ID; or pass developer JWT via `authorize()` / `refreshDeveloperToken()` for REST fallback (section 6). |
 | `authorize` works but search fails | JWT not in JS bundle or not persisted. | `npx expo start --clear`, rebuild, tap Authorize again; confirm `example/.env.local` exists. |
 | “Bundle ID already exists” when creating App ID | ID exists on your team (use existing) or globally (pick a new ID). | Edit existing App ID for MusicKit, or change bundle ID everywhere. |
 

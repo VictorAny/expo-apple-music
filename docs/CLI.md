@@ -12,7 +12,7 @@ Implementation: [`scripts/generate-developer-token.mjs`](../scripts/generate-dev
 
 ## iOS (`Catalog.search` and local dev)
 
-On **iOS**, a developer JWT is optional for `Auth.authorize()` (media library permission can succeed without it). For **reliable** `Catalog.search`, pass a JWT minted with this CLI — the module uses REST catalog search when a token is stored. See [docs/IOS_SETUP.md](./IOS_SETUP.md).
+On **iOS**, a developer JWT is optional for `Auth.authorize()` (media library permission can succeed without it). Native `Catalog.search` is preferred; pass a CLI JWT only for REST fallback or Android/web. See [docs/IOS_SETUP.md](./IOS_SETUP.md).
 
 ---
 
@@ -87,7 +87,7 @@ cd example && npx expo run:android
 cd example && npx expo start --web
 ```
 
-The example reads `process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` and passes it to `Auth.authorize(token)`. On **iOS**, that enables REST catalog search; on **Android** it is required.
+The example reads `process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` and passes it to `Auth.authorize(token)`. On **Android** and **web** it is required; on **iOS** it is optional (stored for REST fallback).
 
 ### Override credentials without editing `.env.music`
 

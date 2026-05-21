@@ -4,7 +4,7 @@
  * @see {@link https://github.com/wwdrew/expo-apple-music/blob/main/docs/AUTH.md} for platform mapping and handling guide.
  */
 export const AuthStatus = {
-  /** User completed authorization. On Android, the music user token is stored natively. */
+  /** User completed authorization. Use `AuthorizeResult.musicUserToken` (app-owned, not persisted by native). */
   AUTHORIZED: 'authorized',
   /** User dismissed the flow or declined access (includes Android upsell / Apple Music cancel). */
   DENIED: 'denied',

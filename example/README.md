@@ -17,7 +17,7 @@ Dev playground for [`@wwdrew/expo-apple-music`](../README.md).
    ```
 4. Tap **Authorize**, then use **Catalog → Search.**
 
-Without `EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN`, iOS search may hit Apple’s auto-token 404 until the bundle ID is fully registered for MusicKit — the JWT forces REST search.
+Without `EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN`, iOS `Catalog.search` uses native MusicKit when your App ID is registered; a JWT is only needed for REST fallback (see [docs/IOS_SETUP.md](../docs/IOS_SETUP.md)).
 
 ## Android
 

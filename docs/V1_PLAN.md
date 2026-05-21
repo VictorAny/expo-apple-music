@@ -108,7 +108,7 @@ Plan for completing `@wwdrew/expo-apple-music` before a **1.0.0** release. The p
 - Catalog: relationships (album tracks, …), charts
 - `Auth.getStorefront()` and any call with no MusicKit equivalent
 
-**Requirement:** Persist **music user token** (+ developer JWT when provided) for REST writes and gap-fill reads. See [PLATFORM_IMPLEMENTATION.md](./PLATFORM_IMPLEMENTATION.md) for the per-method matrix.
+**Requirement:** App passes **music user token** per user-scoped call; **developer JWT** stored natively when provided to `authorize()` / `refreshDeveloperToken()`. See [PLATFORM_IMPLEMENTATION.md](./PLATFORM_IMPLEMENTATION.md) for the per-method matrix.
 
 **Rationale:** Avoid reimplementing 80+ Swift request types while keeping one TS contract; maintain `MusicItemMapper` and `RestJsonMapper` in lockstep with Kotlin/TS mappers.
 
@@ -135,7 +135,7 @@ The interim `MusicKit` default export and flat helpers (`catalogSearch`, `getLib
 
 | Module | Apple API area | Example |
 |--------|----------------|---------|
-| `Auth` | Tokens, subscription | `authorize()`, `checkSubscription()`, `getStorefront()` |
+| `Auth` | Tokens, subscription | `authorize()`, `refreshDeveloperToken()`, `checkSubscription(musicUserToken)`, `getStorefront(musicUserToken)` |
 | `Catalog` | `/v1/catalog/{storefront}/...` | `search()`, `getSong()`, `getAlbum()`, `getArtist()`, charts |
 | `Library` | `/v1/me/library/...` | `getSongs()`, `getArtists()`, `getAlbums()`, `getPlaylists()`, `getPlaylistTracks()` |
 | `History` | `/v1/me/recent/...` | `getRecentlyPlayedTracks()`, `getRecentlyPlayedResources()`, `getHeavyRotation()`, `getRecentlyAdded()` |

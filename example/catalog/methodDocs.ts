@@ -27,7 +27,12 @@ type DocOverride = Partial<
   Omit<MethodDoc, "moduleId" | "methodId" | "signature" | "summary">
 >;
 
-const AUTH_OPTIONAL = new Set(["auth:authorize", "auth:checkSubscription", "auth:getStorefront"]);
+const AUTH_OPTIONAL = new Set([
+  "auth:authorize",
+  "auth:refreshDeveloperToken",
+  "auth:checkSubscription",
+  "auth:getStorefront",
+]);
 
 const OVERRIDES: Record<string, Record<string, DocOverride>> = {
   auth: {
@@ -46,12 +51,31 @@ const OVERRIDES: Record<string, Record<string, DocOverride>> = {
           description: "Android-only upsell screen options. Ignored on iOS and web.",
         },
       ],
-      returns: "AuthStatus — authorized | denied | notDetermined | restricted | unknown",
+      returns: "AuthorizeResult — { status, musicUserToken? }",
       requiresAuth: false,
       platformNotes: {
-        ios: "Optional JWT; pass one for reliable Catalog.search via REST.",
+        ios: "Developer JWT optional; native Catalog.search preferred. Store musicUserToken in your app.",
         android: "Developer JWT required. Opens Apple Music app for approval.",
         web: "Developer JWT required. Opens MusicKit authorize popup — allow popups for your origin.",
+      },
+    },
+    refreshDeveloperToken: {
+      description:
+        "Sync a new developer JWT to native/web without opening the Apple Music sign-in UI. Use when your app rotates the token.",
+      params: [
+        {
+          name: "developerToken",
+          type: "string",
+          description: "Fresh MusicKit developer JWT from your app.",
+          required: true,
+        },
+      ],
+      returns: "void",
+      requiresAuth: false,
+      platformNotes: {
+        ios: "Updates stored JWT for REST fallback paths only.",
+        android: "Updates stored JWT for REST and playback.",
+        web: "Re-configures MusicKit JS with the new developer token.",
       },
     },
   },
