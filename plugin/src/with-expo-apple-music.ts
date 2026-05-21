@@ -5,8 +5,8 @@ import {
   withXcodeProject,
 } from "@expo/config-plugins";
 
-/** MusicKit APIs used by this module require iOS 16+. */
-const IOS_DEPLOYMENT_TARGET = "16.0";
+/** MusicKit APIs used by this module require iOS 16.4+ (Expo SDK 56 minimum). */
+const IOS_DEPLOYMENT_TARGET = "16.4";
 
 const withIosDeploymentTargetPodfile =
   IOSConfig.BuildProperties.createBuildPodfilePropsConfigPlugin(
