@@ -46,6 +46,7 @@ internal class AndroidPlaybackController private constructor(
   }
 
   private fun ensureController(): MediaPlayerController {
+    AndroidDeveloperToken.requireStored(appContext)
     val token = MusicKitAuthStorage.getMusicUserToken(appContext)
     if (!token.isNullOrEmpty()) {
       return ensurePlaybackController(token)
@@ -148,8 +149,33 @@ internal class AndroidPlaybackController private constructor(
 
   fun addListener(listener: MediaPlayerController.Listener) {
     externalListeners.add(listener)
-    ensureController().addListener(listener)
+    val player = controller
+    if (player != null) {
+      player.addListener(listener)
+      return
+    }
+    if (hasStoredDeveloperToken()) {
+      ensureController().addListener(listener)
+    }
   }
+
+  /**
+   * After [MusicKitAuthStorage.saveDeveloperToken], attach listeners registered before a JWT existed.
+   */
+  internal fun attachPendingListenersAfterDeveloperTokenStored() {
+    if (!hasStoredDeveloperToken() || externalListeners.isEmpty()) return
+    ensureController()
+  }
+
+  private fun hasStoredDeveloperToken(): Boolean =
+    !MusicKitAuthStorage.getDeveloperToken(appContext).isNullOrBlank()
+
+  private fun idlePlaybackState(): Map<String, Any?> =
+    mapOf(
+      "playbackRate" to 1.0,
+      "playbackStatus" to "stopped",
+      "playbackTime" to 0.0,
+    )
 
   fun removeListener(listener: MediaPlayerController.Listener) {
     externalListeners.remove(listener)
@@ -366,7 +392,10 @@ internal class AndroidPlaybackController private constructor(
   }
 
   fun currentState(): Map<String, Any?> {
-    val player = ensureController()
+    if (!hasStoredDeveloperToken()) {
+      return idlePlaybackState()
+    }
+    val player = controller ?: ensureController()
     val playbackStatus = AppleMusicJsonMapper.describePlaybackStatus(player.playbackState)
     val playbackTime = player.currentPosition.coerceAtLeast(0) / 1000.0
     return buildMap {
@@ -378,7 +407,8 @@ internal class AndroidPlaybackController private constructor(
   }
 
   fun fetchCurrentSongInfo(): Map<String, Any?>? {
-    val item: PlayerMediaItem = ensureController().currentItem?.item ?: return run {
+    val player = controller ?: return null
+    val item: PlayerMediaItem = player.currentItem?.item ?: return run {
       clearSongCache()
       null
     }

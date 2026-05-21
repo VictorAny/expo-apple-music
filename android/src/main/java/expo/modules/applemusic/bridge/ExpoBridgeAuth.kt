@@ -21,7 +21,9 @@ internal fun ModuleDefinitionBuilder.registerAuthBridge(
   AsyncFunction("setDeveloperToken") { token: String ->
     val trimmed = token.trim()
     require(trimmed.isNotEmpty()) { "Developer token must not be empty" }
-    MusicKitAuthStorage.saveDeveloperToken(reactContext(), trimmed)
+    val context = reactContext()
+    MusicKitAuthStorage.saveDeveloperToken(context, trimmed)
+    AndroidPlaybackController.getInstance(context).attachPendingListenersAfterDeveloperTokenStored()
   }
 
   AsyncFunction("authorization") Coroutine {
@@ -32,6 +34,7 @@ internal fun ModuleDefinitionBuilder.registerAuthBridge(
     val context = reactContext()
     val token = AndroidDeveloperToken.require(developerToken)
     MusicKitAuthStorage.saveDeveloperToken(context, token)
+    AndroidPlaybackController.getInstance(context).attachPendingListenersAfterDeveloperTokenStored()
     val message = startScreenMessage?.trim()?.takeIf { it.isNotEmpty() }
     val result =
       authLauncher().launch(

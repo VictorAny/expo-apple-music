@@ -20,6 +20,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { Platform } from "react-native";
 
 type AppContextValue = {
   authStatus: string;
@@ -131,6 +132,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       appendLog(`authorize error: ${formatApiError(error)}`);
     }
   }, [appendLog, applyAuthorizeResult]);
+
+  useEffect(() => {
+    if (Platform.OS !== "android" && Platform.OS !== "web") {
+      return;
+    }
+    const env = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN?.trim();
+    if (!env) {
+      return;
+    }
+    void Auth.setDeveloperToken(env)
+      .then(() => appendLog("developer JWT synced to native"))
+      .catch((error) =>
+        appendLog(`setDeveloperToken error: ${formatApiError(error)}`),
+      );
+  }, [appendLog]);
 
   useEffect(() => {
     const sub = Player.addListener("onPlaybackError", (err) => {
