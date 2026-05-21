@@ -35,13 +35,27 @@ Android **package visibility** for the Apple Music app comes from this module’
 ## Usage
 
 ```ts
-import { Auth, AuthStatus, Catalog, CatalogSearchType, Player } from '@wwdrew/expo-apple-music';
+import {
+  AppleMusic,
+  Auth,
+  AuthStatus,
+  Catalog,
+  CatalogSearchType,
+  Player,
+} from '@wwdrew/expo-apple-music';
 
-// iOS: optional developer JWT (recommended for Catalog.search — see docs/IOS_SETUP.md)
-// Android / web: developer JWT required
-const status = await Auth.authorize(developerToken);
+AppleMusic.configure({
+  getDeveloperToken: async () => {
+    const { token } = await fetch('https://your.app/api/apple-music/developer-token').then((r) =>
+      r.json(),
+    );
+    return token;
+  },
+});
 
-if (status === AuthStatus.AUTHORIZED) {
+const { status, musicUserToken } = await Auth.authorize();
+
+if (status === AuthStatus.AUTHORIZED && musicUserToken) {
   await Catalog.search('Beatles', [CatalogSearchType.SONGS, CatalogSearchType.ALBUMS]);
   Player.play();
 }
@@ -59,9 +73,9 @@ The **same TypeScript API** is exposed on **iOS, Android, and web**. Native impl
 
 | Feature | iOS | Android | Web | Notes |
 | --- | :---: | :---: | :---: | --- |
-| `Auth.authorize()` | ✅ | ✅ | ✅ | Android and web require a [developer JWT](./docs/AUTH.md). iOS: optional JWT, recommended for `Catalog.search`. |
+| `Auth.authorize()` | ✅ | ✅ | ✅ | Android/web need a [developer JWT](./docs/AUTH.md) (provider or argument). iOS: JWT optional for auth. |
 | `Auth.checkSubscription()` | ✅ | ⚠️ | ⚠️ | Android/web infer flags from auth + library probe (no `MusicSubscription` API). |
-| `Catalog.search()` | ✅ | ✅ | ✅ | iOS uses **REST** when a dev JWT was passed to `authorize()`, else native MusicKit ([details](./docs/PLATFORM_IMPLEMENTATION.md#catalog)). |
+| `Catalog.search()` | ✅ | ✅ | ✅ | iOS: **native MusicKit first**; REST fallback only if auto-token fails ([details](./docs/PLATFORM_IMPLEMENTATION.md#catalog)). |
 | `Catalog.get*` / relationship helpers / `getCharts()` | ✅ | ✅ | ✅ | Catalog by ID, relationships, and charts via REST / MusicKit JS. |
 | `Library.getPlaylists` / `getSongs` / `getPlaylistTracks` / `getArtists` / `getAlbums` / `getMusicVideos` / `search` | ✅ | ✅ | ✅ | Library reads via REST (or native on iOS where applicable). |
 | `Catalog.getByIds(type, ids)` | ✅ REST | ✅ REST | ✅ REST | Batch catalog resources (`GET ...?ids=`). |

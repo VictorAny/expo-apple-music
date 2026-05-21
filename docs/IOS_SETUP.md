@@ -77,20 +77,13 @@ That sets `NSAppleMusicUsageDescription`. Re-run `npx expo prebuild` when you ch
 
 ---
 
-## 6. Developer JWT (strongly recommended for `Catalog.search` on iOS)
+## 6. Developer JWT on iOS (optional for auth; fallback for catalog search)
 
-`Auth.authorize()` only needs the user’s consent for **media library access**. That can succeed **without** Apple accepting your bundle ID for **automatic developer token** (MusicKit’s “client” registration).
+`Auth.authorize()` only needs the user’s consent for **media library access**. That can succeed **without** a manual developer JWT.
 
-`Catalog.search()` without a stored developer JWT uses native `MusicCatalogSearchRequest`, which asks Apple’s **Media API Token Service** for a developer token tied to your bundle ID. If that registration is missing or delayed, you get:
+**`Catalog.search` uses native MusicKit first** (`MusicCatalogSearchRequest` + Apple’s automatic developer token for your bundle ID). Enable **MusicKit** on your App ID in the Developer portal so auto-token registration succeeds.
 
-```text
-Media API Token Service … Not Found (404) … not registered as a valid client identifier
-```
-
-**Reliable approach for development and many production apps:** mint a **MusicKit developer JWT** (same as Android) and pass it to `Auth.authorize(developerToken)` on iOS. The module:
-
-- Persists the JWT in native storage when provided.
-- Uses **REST** catalog search (`GET /v1/catalog/{storefront}/search`) when a developer token is present, avoiding the failing auto-token path.
+If auto-token fails (404 “client not registered”), the module falls back to **REST** catalog search **only when** a developer JWT was stored (e.g. via `Auth.authorize(token)` or `AppleMusic.configure`). Mint tokens with [CLI.md](./CLI.md); rotate with [AUTH.md](./AUTH.md#developer-token-rotation) — do not bake long-lived JWTs into the binary.
 
 ### 6.1 Repo / example app
 

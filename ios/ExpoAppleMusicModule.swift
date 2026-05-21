@@ -41,6 +41,10 @@ public class ExpoAppleMusicModule: Module {
 
       // MARK: - Auth
 
+      AsyncFunction("setDeveloperToken") { (token: String) in
+        MusicKitAuthStorage.saveDeveloperToken(token)
+      }
+
       AsyncFunction("authorization") { (developerToken: String?, _ startScreenMessage: String?, _ hideStartScreen: Bool?) -> [String: Any?] in
         if let token = developerToken, !token.isEmpty {
           MusicKitAuthStorage.saveDeveloperToken(token)

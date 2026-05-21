@@ -15,6 +15,10 @@ function requireDeveloperToken(developerToken: string | null | undefined): strin
 
 export function createAuthBridge(api: WebAppleMusicApiClient, subscription: WebSubscriptionService) {
   return {
+    async setDeveloperToken(token: string) {
+      await configureMusicKit(requireDeveloperToken(token));
+    },
+
     async authorization(
       developerToken: string | null,
       _startScreenMessage: string | null,

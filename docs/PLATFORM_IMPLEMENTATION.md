@@ -31,7 +31,7 @@ How each **public JS method** is implemented on iOS vs Android. The TypeScript A
 
 | JS API | iOS | Android |
 |--------|-----|---------|
-| `Catalog.search()` | **Native** `MusicCatalogSearchRequest` when no dev JWT is stored; **REST** `GET .../catalog/{storefront}/search` when `Auth.authorize(developerToken)` saved a JWT | REST search |
+| `Catalog.search()` | **Native** `MusicCatalogSearchRequest` first; **REST** fallback only when native auto-token fails and a developer JWT is stored | REST search |
 | `Catalog.getSong` / `getAlbum` / `getArtist` / `getPlaylist` / `getStation` / `getMusicVideo` | **Native** `MusicCatalogResourceRequest` | REST catalog resource |
 | `Catalog.getAlbumTracks` | REST relationship | REST |
 | `Catalog.getArtistAlbums` | REST relationship | REST |

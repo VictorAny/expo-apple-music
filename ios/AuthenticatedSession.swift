@@ -30,11 +30,6 @@ struct AuthenticatedSession {
     hasDeveloperToken && hasMusicUserToken
   }
 
-  /// Catalog search uses Apple Music API when a developer JWT is stored (optional on iOS).
-  var prefersRestCatalogSearch: Bool {
-    hasDeveloperToken
-  }
-
   /// GET may use MusicKit `MusicDataRequest` when stored REST tokens are incomplete.
   var canUseMusicKitAutoTokenForGet: Bool {
     !hasRestTokens

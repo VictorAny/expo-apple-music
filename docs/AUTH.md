@@ -123,21 +123,65 @@ A **developer token** is a **signed JWT** you create with your MusicKit **privat
 | **What** | App credentials | Per-user token after sign-in |
 | **Who creates it** | Your server (or dev tooling) | Returned by `authorize()` on success |
 | **Used for** | Starting Android auth; catalog REST | Library REST (`/v1/me/...`) |
-| **Passed to** | `Auth.authorize(token)` or config plugin | Stored natively on Android after `authorized` |
+| **Passed to** | `Auth.authorize(token?)` and/or `AppleMusic.configure({ getDeveloperToken })` | App-owned: first arg on user-scoped APIs (see below) |
 
-On **iOS**, the developer token is optional for `authorize()` (media-library permission still works without it). When provided, it is stored for REST and **catalog search** uses the Apple Music API with that JWT instead of MusicKit auto-token (useful when provisioning does not yet include MusicKit).
+On **iOS**, the developer token is **optional** for `authorize()` (media-library permission can succeed without it). **`Catalog.search` uses native MusicKit first**; REST is only a fallback when auto-token fails and a developer JWT is already stored. Enable **MusicKit** on your App ID so native catalog search works without a manual JWT.
+
+Apple caps JWT lifetime at **~6 months** — there is no infinite expiry. Do **not** bake a long-lived JWT into the app binary; rotate via a provider (below).
+
+### Developer token rotation
+
+Register how your app obtains a fresh JWT. The library caches it, checks `exp` (with a refresh buffer), and syncs to native / MusicKit JS.
+
+```ts
+import {
+  AppleMusic,
+  Auth,
+  useAppleMusicDeveloperToken,
+} from '@wwdrew/expo-apple-music';
+
+AppleMusic.configure({
+  getDeveloperToken: async () => {
+    // Remote Config, your HTTPS endpoint, Firebase Callable, etc.
+    const res = await fetch('https://your.app/api/apple-music/developer-token');
+    const { token } = await res.json();
+    return token;
+  },
+  refreshBufferSeconds: 300, // optional, default 5 minutes before exp
+});
+
+// Optional: refresh on app startup
+function Root() {
+  useAppleMusicDeveloperToken();
+  // ...
+}
+
+await Auth.authorize(); // uses provider on Android/web; iOS optional
+await Auth.refreshDeveloperToken(); // force fetch + sync anytime
+```
+
+| API | Purpose |
+| --- | ------- |
+| `AppleMusic.configure({ getDeveloperToken })` | Register your async supplier (required for provider-driven apps) |
+| `Auth.authorize(developerToken?)` | User sign-in; resolves token from argument → cache → provider |
+| `Auth.refreshDeveloperToken()` | Force new JWT from provider and `setDeveloperToken` on native/web |
+| `useAppleMusicDeveloperToken()` | Hook: call provider once on mount (when configured) |
+| `getCachedDeveloperToken()` / `isDeveloperTokenExpired(token)` | Inspect cache for UI or custom retry logic |
+
+**Security:** The JWT is not as sensitive as your `.p8` private key, but it still authenticates your app — treat cached tokens like credentials (Keychain if you persist them yourself). Never ship the `.p8` in the client.
+
+**Signing:** Something you control must sign JWTs (Cloud Function, CI, admin script). Remote Config only **distributes** an already-signed string.
 
 ### Native session (iOS / Android)
 
-After `authorize()`, native code reads an **`AuthenticatedSession`** snapshot (developer JWT, music user token, and transport flags) instead of querying storage ad hoc. `MusicKitAuthStorage` only persists tokens; REST (`AppleMusicRestTransport` / domain `*RestClient`s), catalog search transport, and storefront resolution use the session. Storefront id is cached in memory until tokens change.
+The module **persists the developer JWT** in native storage when provided (for REST, Android auth, and optional iOS REST fallback). The **music user token is not persisted** — your app passes it per call.
 
-### Providing the token
+### Providing the token (one-off)
 
-**Runtime (production and apps)**
+You can still pass a token directly:
 
 ```ts
-const token = await fetchDeveloperTokenFromYourBackend();
-await Auth.authorize(token);
+await Auth.authorize(jwtFromYourPipeline);
 ```
 
 **Repo CLI (local dev / example app only)**
@@ -158,10 +202,10 @@ npm run dev-token -- --verify "$(grep EXPO_PUBLIC example/.env.local | cut -d= -
 
 | Situation | Result |
 | --------- | ------ |
-| No token passed to `authorize()` | Promise **rejects** with `MISSING_DEVELOPER_TOKEN` |
+| No token and no `getDeveloperToken` provider (Android/web) | Promise **rejects** with `MISSING_DEVELOPER_TOKEN` |
 | Invalid / expired JWT | `AuthStatus.UNKNOWN` (`TOKEN_FETCH_ERROR` from SDK) |
 
-Developer tokens expire (typically on the order of months, per your Apple key settings). Refresh from your backend before calling `authorize()`.
+Developer tokens expire (max **~6 months** per Apple). Use `AppleMusic.configure` + `Auth.refreshDeveloperToken()` or call `authorize()` again after your provider returns a new JWT.
 
 Apple’s reference: [Creating a developer token](https://developer.apple.com/documentation/applemusicapi/generating_developer_tokens) and [Android MusicKit](https://developer.apple.com/documentation/musickit/android).
 

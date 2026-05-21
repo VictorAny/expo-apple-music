@@ -18,6 +18,12 @@ internal fun ModuleDefinitionBuilder.registerAuthBridge(
   subscriptionService: () -> AndroidSubscriptionService,
   libraryService: () -> expo.modules.applemusic.AndroidLibraryService,
 ) {
+  AsyncFunction("setDeveloperToken") { token: String ->
+    val trimmed = token.trim()
+    require(trimmed.isNotEmpty()) { "Developer token must not be empty" }
+    MusicKitAuthStorage.saveDeveloperToken(reactContext(), trimmed)
+  }
+
   AsyncFunction("authorization") Coroutine {
     developerToken: String?,
     startScreenMessage: String?,

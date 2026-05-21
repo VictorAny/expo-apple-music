@@ -27,7 +27,9 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 
 **REST headers (Apple Music API):** `Authorization: Bearer {developer JWT}` on (almost) every HTTPS call. `Music-User-Token: {music user token}` additionally for **`/v1/me/...`** (library, history, ratings, mutations, storefront). Catalog paths (`/v1/catalog/{storefront}/...`) are store-scoped and need the developer JWT; the user token is not required by Apple for anonymous catalog browse, though this module may still require prior `authorize()` on Android/web.
 
-**App-owned music user token (multi-account):** The consuming app stores each user’s music user token (e.g. Zustand). Native does **not** persist it. `authorize()` returns the token to JS when successful. User-scoped APIs take `musicUserToken` as the **first parameter only** (never inside pagination/options objects). TypeScript and native reject missing tokens on `/v1/me/` routes. Developer JWT remains app-level (`Auth.authorize(developerToken)`).
+**App-owned music user token (multi-account):** The consuming app stores each user’s music user token (e.g. Zustand). Native does **not** persist it. `authorize()` returns the token to JS when successful. User-scoped APIs take `musicUserToken` as the **first parameter only** (never inside pagination/options objects). TypeScript and native reject missing tokens on `/v1/me/` routes.
+
+**Developer JWT (app-level, rotatable):** Max ~6 months (Apple). Register `AppleMusic.configure({ getDeveloperToken })` so your app can fetch a fresh JWT (Remote Config, HTTPS endpoint, etc.). The module caches it, checks `exp`, and syncs to native/web via `setDeveloperToken`. Optional on iOS for `authorize()`; required on Android/web. **iOS `Catalog.search` uses native MusicKit first**; REST catalog search is fallback only.
 
 ## JS API map (by domain)
 

@@ -20,6 +20,21 @@ export type { AuthorizeResult } from './types/authorize-result';
 
 export type { AndroidAuthorizeOptions } from './types/android-authorize-options';
 
+export type {
+  AppleMusicConfigureOptions,
+  DeveloperTokenProvider,
+} from './types/developer-token-provider';
+
+export {
+  configureAppleMusic,
+  ensureDeveloperToken,
+  getCachedDeveloperToken,
+  hasDeveloperTokenProvider,
+  isDeveloperTokenExpired,
+  refreshDeveloperToken,
+  resolveDeveloperToken,
+} from './api/developer-token';
+
 export * from './types/check-subscription';
 
 export * from './types/music-item';
@@ -55,6 +70,7 @@ export * from './types/recommendation';
 import useCurrentSong from './hooks/use-current-song';
 import useIsPlaying from './hooks/use-is-playing';
 import usePlaybackState from './hooks/use-playback-state';
+import { AppleMusic } from './modules/apple-music';
 import Auth from './modules/auth';
 import Catalog from './modules/catalog';
 import History from './modules/history';
@@ -96,10 +112,13 @@ export { normalizeNativeError } from './api/call-native';
 
 export { getErrorMessage } from './utils/get-error-message';
 
+export { useAppleMusicDeveloperToken } from './hooks/use-apple-music-developer-token';
+
 export {
   useCurrentSong,
   useIsPlaying,
   usePlaybackState,
+  AppleMusic,
   Auth,
   Catalog,
   History,

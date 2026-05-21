@@ -38,9 +38,9 @@ export function CatalogSearchField({ onResults, limit = 10 }: CatalogSearchField
   const [term, setTerm] = useState("Beatles");
 
   async function runSearch() {
-    if (Platform.OS === "ios" && !devToken?.trim()) {
+    if (Platform.OS === "android" && !devToken?.trim()) {
       appendLog(
-        "iOS search blocked: set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN in example/.env.local",
+        "Search blocked: authorize first (developer JWT via AppleMusic.configure).",
       );
       return;
     }
@@ -70,7 +70,7 @@ export function CatalogSearchField({ onResults, limit = 10 }: CatalogSearchField
     }
   }
 
-  const needsTokenHint = Platform.OS === "ios" && !devToken?.trim();
+  const needsTokenHint = Platform.OS === "android" && !devToken?.trim();
 
   return (
     <View style={styles.wrap}>
@@ -87,7 +87,7 @@ export function CatalogSearchField({ onResults, limit = 10 }: CatalogSearchField
       />
       {needsTokenHint ? (
         <Text style={styles.hint}>
-          iOS needs EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN for catalog search.
+          Android requires a developer JWT — tap Authorize after configuring a token.
         </Text>
       ) : null}
       <RunButton

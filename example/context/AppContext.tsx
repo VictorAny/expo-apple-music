@@ -1,6 +1,8 @@
 import {
   Auth,
   AuthStatus,
+  getCachedDeveloperToken,
+  useAppleMusicDeveloperToken,
   type Album,
   type Artist,
   type AuthorizeResult,
@@ -68,7 +70,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [lastPlaylistId, setLastPlaylistId] = useState<string | null>(null);
 
-  const devToken = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
+  useAppleMusicDeveloperToken();
+
+  const devToken =
+    getCachedDeveloperToken() ??
+    process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
 
   const hasStoredSession = Boolean(musicUserToken);
 
@@ -114,12 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const authorize = useCallback(async () => {
     try {
-      if (!devToken) {
-        appendLog(
-          "warning: no EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN — iOS catalog search will 404. Run: npm run dev-token -- --write-env example/.env.local",
-        );
-      }
-      const result = await Auth.authorize(devToken, {
+      const result = await Auth.authorize(undefined, {
         startScreenMessage:
           "Start screen message for <b>Expo Apple Music Example App</b>",
       });
@@ -130,7 +131,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       appendLog(`authorize error: ${formatApiError(error)}`);
     }
-  }, [appendLog, applyAuthorizeResult, devToken]);
+  }, [appendLog, applyAuthorizeResult]);
 
   useEffect(() => {
     const sub = Player.addListener("onPlaybackError", (err) => {

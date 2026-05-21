@@ -1,34 +1,27 @@
 // CatalogSearchStoreFactory.swift
-// Picks catalog search transport from auth session state (developer JWT stored or not).
+// Native MusicKit search first; REST fallback only when auto-token fails and a developer JWT is stored.
 
 import Foundation
 
 @available(iOS 16.0, *)
 enum CatalogSearchStoreFactory {
 
-  static func primaryStore() -> any CatalogSearchStore {
-    if AuthenticatedSession.current.prefersRestCatalogSearch {
-      return RestCatalogSearchStore()
-    }
-    return MusicKitCatalogSearchStore()
-  }
-
   static func search(
     term: String,
     types: [String],
     options: CatalogService.SearchOptions
   ) async throws -> CatalogService.SearchResult {
-    let store = primaryStore()
     do {
-      return try await store.search(term: term, types: types, options: options)
+      return try await MusicKitCatalogSearchStore().search(
+        term: term, types: types, options: options)
     } catch {
-      if store is MusicKitCatalogSearchStore, AuthenticatedSession.current.prefersRestCatalogSearch {
+      if MusicKitCatalogSearchStore.isClientNotRegistered(error),
+        AuthenticatedSession.current.hasDeveloperToken
+      {
         return try await RestCatalogSearchStore().search(
           term: term, types: types, options: options)
       }
-      if store is MusicKitCatalogSearchStore,
-        MusicKitCatalogSearchStore.isClientNotRegistered(error)
-      {
+      if MusicKitCatalogSearchStore.isClientNotRegistered(error) {
         throw CatalogService.CatalogServiceError.configurationRequired(
           MusicKitCatalogSearchStore.missingDeveloperTokenMessage)
       }

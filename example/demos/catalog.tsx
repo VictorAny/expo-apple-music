@@ -58,8 +58,8 @@ export function SearchDemo() {
     <ApiScreen
       headerExtra={<CatalogSearchField limit={5} />}
       hint={
-        Platform.OS === "ios" && !devToken?.trim()
-          ? "iOS needs example/.env.local with EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN (see docs/CLI.md)."
+        Platform.OS === "android" && !devToken?.trim()
+          ? "Android needs a developer JWT — configure AppleMusic.configure and Authorize (see docs/AUTH.md)."
           : undefined
       }
       items={items}
