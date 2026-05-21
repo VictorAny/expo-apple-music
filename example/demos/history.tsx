@@ -9,7 +9,6 @@ import { ApiScreen } from "../components/ApiScreen";
 import { useApp } from "../context/AppContext";
 import { formatApiError } from "../lib/format-error";
 import { requireMusicToken } from "../lib/require-music-token";
-import { formatApiError as fe from "../lib/format-error";
 import { toDemoItems } from "../lib/demo-list";
 import { RunButton } from "./helpers";
 

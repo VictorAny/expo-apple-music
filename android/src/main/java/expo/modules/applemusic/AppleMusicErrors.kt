@@ -6,7 +6,7 @@ internal object AppleMusicErrors {
   fun missingMusicUserToken(): CodedException =
     CodedException(
       AppleMusicErrorCodes.MISSING_MUSIC_USER_TOKEN,
-      "Apple Music music user token is required. Pass the token from Auth.authorize() (store it in your app).",
+      "Apple Music music user token is required. Call Auth.authorize(developerToken) first, then pass the token from AuthorizeResult on user-scoped APIs (or queue playback after authorize on Android).",
       null,
     )
 

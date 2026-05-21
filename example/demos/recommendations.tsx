@@ -1,7 +1,6 @@
 import { Recommendations } from "@wwdrew/expo-apple-music";
 import { formatApiError } from "../lib/format-error";
 import { requireMusicToken } from "../lib/require-music-token";
-import { formatApiError as fe from "../lib/format-error";
 import { useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
 import { useApp } from "../context/AppContext";

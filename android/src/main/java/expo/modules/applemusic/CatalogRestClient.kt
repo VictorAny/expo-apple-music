@@ -26,7 +26,7 @@ internal class CatalogRestClient(
     offset: Int,
   ): CatalogSearchResult =
     withContext(Dispatchers.IO) {
-      val storefrontId = storefront.getStorefront()
+      val storefrontId = storefront.getCatalogStorefront()
       val typeParam =
         types
           .mapNotNull { catalogSearchTypeParam(it) }
@@ -99,7 +99,7 @@ internal class CatalogRestClient(
       if (trimmed.isEmpty()) {
         return@withContext emptyList()
       }
-      val storefrontId = storefront.getStorefront()
+      val storefrontId = storefront.getCatalogStorefront()
       val json =
         transport.getJson(
           null,
@@ -188,7 +188,7 @@ internal class CatalogRestClient(
     chart: String?,
   ): CatalogChartsResult =
     withContext(Dispatchers.IO) {
-      val storefrontId = storefront.getStorefront()
+      val storefrontId = storefront.getCatalogStorefront()
       val typeParam =
         types
           .mapNotNull { catalogChartTypeParam(it) }
@@ -226,7 +226,7 @@ internal class CatalogRestClient(
     mapper: (JSONObject) -> Map<String, Any?>,
   ): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
-      val storefrontId = storefront.getStorefront()
+      val storefrontId = storefront.getCatalogStorefront()
       val json =
         transport.getJson(
           null,
@@ -252,7 +252,7 @@ internal class CatalogRestClient(
     mapper: (JSONObject) -> Map<String, Any?>,
   ): Map<String, Any?> =
     withContext(Dispatchers.IO) {
-      val storefrontId = storefront.getStorefront()
+      val storefrontId = storefront.getCatalogStorefront()
       val json = transport.getJson(
           null,
           "/v1/catalog/$storefrontId$pathSuffix")

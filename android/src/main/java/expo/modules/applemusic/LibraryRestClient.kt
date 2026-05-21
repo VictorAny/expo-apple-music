@@ -172,7 +172,7 @@ internal class LibraryRestClient(
           "playlist" -> "/v1/me/library/playlists/$libraryId"
           else -> throw AppleMusicErrors.unknownMediaType(mediaType)
         }
-      val json = transport.getJson(path)
+      val json = transport.getJson(musicUserToken, path)
       val resource = json.getJSONArray("data").getJSONObject(0)
       AppleMusicJsonMapper.catalogPlaybackId(resource)
         ?: throw AppleMusicErrors.itemNotFound(mediaType.replaceFirstChar { it.uppercase() }, true)

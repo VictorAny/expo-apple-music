@@ -11,6 +11,10 @@ internal class StorefrontRestClient(
   suspend fun getStorefront(musicUserToken: String): String =
     resolveStorefront(musicUserToken, allowLocaleFallback = true)
 
+  /** Catalog REST paths — cached storefront or device locale (no music user token). */
+  fun getCatalogStorefront(): String =
+    AuthenticatedSessionCache.storefrontId ?: localeStorefrontId()
+
   /** Resolves storefront from `/v1/me/storefront` only — required before library playback. */
   suspend fun requireUserStorefront(musicUserToken: String): String =
     resolveStorefront(musicUserToken, allowLocaleFallback = false)

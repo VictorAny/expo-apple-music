@@ -49,7 +49,7 @@ internal class AndroidQueueService(
           throw AppleMusicErrors.apiError("Station playback is not supported on Android yet.")
       }
     playback.clearSongCache()
-    playback.prepareQueue(provider, musicUserToken = null)
+    playback.prepareQueue(provider)
   }
 
   suspend fun playLibrarySong(musicUserToken: String, songId: String) {

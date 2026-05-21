@@ -34,21 +34,62 @@ internal class AndroidPlaybackController private constructor(
     mutableSetOf<MediaPlayerController.Listener>()
 
   @Volatile
-  private var activeMusicUserToken: String = ""
+  private var boundMusicUserToken: String? = null
+
+  /** Drops the native player when the music user token changes (SDK caches credentials). */
+  internal fun applyMusicUserToken(token: String?) {
+    val trimmed = token?.trim()?.takeIf { it.isNotEmpty() } ?: return
+    MusicKitAuthStorage.saveMusicUserToken(appContext, trimmed)
+    if (trimmed != boundMusicUserToken) {
+      releaseControllerSync()
+    }
+  }
 
   private fun ensureController(): MediaPlayerController {
+    val token = MusicKitAuthStorage.getMusicUserToken(appContext)
+    if (!token.isNullOrEmpty()) {
+      return ensurePlaybackController(token)
+    }
     val existing = controller
     if (existing != null) {
       return existing
     }
+    return createController(null)
+  }
+
+  private fun ensurePlaybackController(musicUserToken: String): MediaPlayerController {
+    val existing = controller
+    if (existing != null && boundMusicUserToken == musicUserToken) {
+      return existing
+    }
+    releaseControllerSync()
+    return createController(musicUserToken)
+  }
+
+  private fun createController(musicUserToken: String?): MediaPlayerController {
     AppleMusicNativeLoader.ensureLoaded()
     return MediaPlayerControllerFactory.createLocalController(
       appContext,
-      MusicKitTokenProvider(appContext) { activeMusicUserToken },
+      MusicKitTokenProvider(appContext),
     ).also { player ->
       player.addListener(globalErrorListener)
       externalListeners.forEach { player.addListener(it) }
       controller = player
+      boundMusicUserToken = musicUserToken
+    }
+  }
+
+  private fun releaseControllerSync() {
+    clearSongCache()
+    val player = controller ?: return
+    controller = null
+    boundMusicUserToken = null
+    try {
+      player.removeListener(globalErrorListener)
+      externalListeners.forEach { player.removeListener(it) }
+      player.release()
+    } catch (error: Exception) {
+      Log.w(TAG, "release playback controller failed", error)
     }
   }
 
@@ -126,15 +167,10 @@ internal class AndroidPlaybackController private constructor(
   suspend fun prepareQueue(provider: PlaybackQueueItemProvider, musicUserToken: String? = null) {
     AndroidDeveloperToken.requireStored(appContext)
     val stack = AppleMusicRestStack.create(appContext)
-    if (musicUserToken != null) {
-      activeMusicUserToken = requireMusicUserToken(musicUserToken)
-      stack.storefront.requireUserStorefront(musicUserToken)
-    } else {
-      activeMusicUserToken = ""
-      AuthenticatedSessionCache.storefrontId = stack.storefront.localeStorefrontId()
-    }
-    val player = ensureController()
+    val effectiveToken = resolvePlaybackMusicUserToken(appContext, musicUserToken)
+    stack.storefront.requireUserStorefront(effectiveToken)
     withContext(Dispatchers.Main) {
+      val player = ensurePlaybackController(effectiveToken)
       suspendCancellableCoroutine { continuation ->
         lateinit var timeoutRunnable: Runnable
 
@@ -313,22 +349,14 @@ internal class AndroidPlaybackController private constructor(
 
   fun warmUp() {
     AppleMusicNativeLoader.ensureLoaded()
-    ensureController()
   }
 
   /** Releases the native player and clears caches; keeps this singleton for observer re-attach. */
   internal fun releaseMediaPlayer() {
-    clearSongCache()
-    val player = controller ?: return
-    controller = null
-    mainHandler.post {
-      try {
-        player.removeListener(globalErrorListener)
-        externalListeners.forEach { player.removeListener(it) }
-        player.release()
-      } catch (error: Exception) {
-        Log.w(TAG, "release playback controller failed", error)
-      }
+    if (Looper.myLooper() == Looper.getMainLooper()) {
+      releaseControllerSync()
+    } else {
+      mainHandler.post { releaseControllerSync() }
     }
   }
 

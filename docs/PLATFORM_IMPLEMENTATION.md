@@ -97,6 +97,8 @@ Heavy rotation: `History.getHeavyRotation()` — not this module ([RECOMMENDATIO
 | `Player.playLibrarySong` / `playLibraryPlaylist` | **Native** (+ library ID resolution in queue service) | REST resolve catalog IDs + queue |
 | `Player` transport, `getCurrentState`, hooks | **Native** | Native AAR |
 
+On **Android**, catalog `setQueue` requires a music user token in the native session (set when `authorization` returns `authorized`, or when `playLibrary*` passes a token). **Web** relies on MusicKit JS authorize; **iOS** uses system MusicKit account state.
+
 ---
 
 ## Bridge contract (parity rules)

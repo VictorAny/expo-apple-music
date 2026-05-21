@@ -43,6 +43,10 @@ internal fun ModuleDefinitionBuilder.registerAuthBridge(
       )
 
     if (result.status == "authorized") {
+      result.musicUserToken?.let { userToken ->
+        MusicKitAuthStorage.saveMusicUserToken(context, userToken)
+        AndroidPlaybackController.getInstance(context).applyMusicUserToken(userToken)
+      }
       AndroidPlaybackController.warmUp(context)
     }
 

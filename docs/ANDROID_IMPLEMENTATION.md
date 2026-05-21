@@ -141,6 +141,8 @@ Return strings match iOS:
 3. Queue via `CatalogPlaybackQueueItemProvider.Builder` — spike library vs catalog IDs on device
 4. If library IDs fail on provider alone, resolve to catalog song IDs via `LibraryRestClient` first
 
+**Catalog and library playback** both need a valid **music user token** for the playback SDK (it calls `GET /v1/me/storefront`). After `authorization` succeeds, native keeps the token in `AuthenticatedSessionCache` for `setPlaybackQueue` / `playLibrary*` (in-memory only; JS still owns long-term storage — same contract as web MusicKit JS session and iOS `MusicKitAuthStorage` for REST). `Player.setQueue` without a prior `Auth.authorize()` rejects with `MISSING_MUSIC_USER_TOKEN`.
+
 `MediaContainerType` in AAR: `ALBUM`, `PLAYLIST` only — confirm catalog `station` during spike.
 
 ---
