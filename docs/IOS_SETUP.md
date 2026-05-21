@@ -12,7 +12,7 @@ For API behavior, see [AUTH.md](./AUTH.md). To mint JWTs locally, see [CLI.md](.
 |-------------|--------|
 | **Apple Developer Program** (paid) | Free accounts cannot use Certificates, Identifiers & Profiles for MusicKit. |
 | **Explicit App ID** | Wildcard App IDs do not support per-app MusicKit the way this flow expects. |
-| **Bundle identifier** | Must match **exactly** between `app.json` → `expo.ios.bundleIdentifier`, the Xcode target, and the App ID in the portal. |
+| **Bundle identifier** | Must match **exactly** between `app.config.ts` → `ios.bundleIdentifier`, the Xcode target, and the App ID in the portal. |
 | **iOS 16.4+** | Required by this module (Expo SDK 56 minimum). |
 
 ---
@@ -27,7 +27,7 @@ For API behavior, see [AUTH.md](./AUTH.md). To mint JWTs locally, see [CLI.md](.
 
 That checkbox registers your app with Apple’s Music services for your bundle ID. **It is not mirrored as an entitlement inside the provisioning profile** — see [Apple DTS: “Determining if an entitlement is real”](https://developer.apple.com/forums/thread/799000) and [MusicKit in the portal](https://developer.apple.com/help/account/services/musickit/).
 
-**Global bundle IDs:** If creating a new App ID says the identifier already exists but you do not see it under **your** team, the bundle ID is taken by another account. Pick a new unique ID and update `app.json`.
+**Global bundle IDs:** If creating a new App ID says the identifier already exists but you do not see it under **your** team, the bundle ID is taken by another account. Pick a new unique ID and update `app.config.ts`.
 
 ---
 
@@ -44,7 +44,7 @@ to `ios.entitlements` or the **Signing & Capabilities** UI.
 
 **Fix if signing broke after adding MusicKit to entitlements:**
 
-1. Remove MusicKit-related keys from `app.json` → `ios.entitlements` (if present).
+1. Remove MusicKit-related keys from `app.config.ts` → `ios.entitlements` (if present).
 2. Ensure the generated `*.entitlements` file under `ios/<AppName>/` has no MusicKit keys (empty `<dict/>` is fine).
 3. `npx expo prebuild --clean` (or edit the native project), then clean build in Xcode.
 
@@ -66,11 +66,12 @@ If profiles were created while the project had bad entitlements, delete stale [d
 Install the plugin and set the media-library usage string (required for the system permission dialog):
 
 ```ts
-// app.config.ts / app.json plugin entry
-[
-  '@wwdrew/expo-apple-music',
-  { musicUsageDescription: 'We use Apple Music to play and search music.' },
-],
+// app.config.ts
+import expoAppleMusic from '@wwdrew/expo-apple-music/plugin';
+
+// plugins: [
+//   expoAppleMusic({ musicUsageDescription: 'We use Apple Music to play and search music.' }),
+// ]
 ```
 
 That sets `NSAppleMusicUsageDescription`. Re-run `npx expo prebuild` when you change native config.
@@ -119,9 +120,9 @@ See [AUTH.md § Production apps](./AUTH.md#production-apps-your-responsibility--
 
 For **this npm package**, use [QA_SIGNOFF.md](./QA_SIGNOFF.md) (iOS section). The items below are for **your consumer app** before App Store submission.
 
-- [ ] App ID in portal matches `expo.ios.bundleIdentifier` (explicit).
+- [ ] App ID in portal matches `ios.bundleIdentifier` in `app.config.ts` (explicit).
 - [ ] **MusicKit** enabled under App Services for that App ID.
-- [ ] No invalid MusicKit keys in `*.entitlements` / `app.json` `ios.entitlements`.
+- [ ] No invalid MusicKit keys in `*.entitlements` / `app.config.ts` `ios.entitlements`.
 - [ ] `NSAppleMusicUsageDescription` set via the config plugin.
 - [ ] Signing succeeds in Xcode (development and **Archive** / distribution profiles for your chosen channel).
 - [ ] `Catalog.search`: either confirm native MusicKit works on device, or provide developer JWT + `authorize(token)` for REST search.

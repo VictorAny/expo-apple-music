@@ -4,13 +4,13 @@ Dev playground for [`@wwdrew/expo-apple-music`](../README.md).
 
 ## iOS (recommended first-time path)
 
-1. **Apple Developer:** Create or reuse an **explicit** App ID matching `expo.ios.bundleIdentifier` in [`app.json`](./app.json). Enable **MusicKit** under **App Services** only — do not add MusicKit keys to entitlements (see [docs/IOS_SETUP.md](../docs/IOS_SETUP.md)).
+1. **Apple Developer:** Create or reuse an **explicit** App ID matching `ios.bundleIdentifier` in [`app.config.ts`](./app.config.ts). Enable **MusicKit** under **App Services** only — do not add MusicKit keys to entitlements (see [docs/IOS_SETUP.md](../docs/IOS_SETUP.md)).
 2. **Developer JWT:** From the **repo root** (not `example/`):
    ```sh
    cp ../.env.music.example ../.env.music   # add Team ID, Key ID, .p8 path
    npm run dev-token -- --write-env example/.env.local
    ```
-3. **Run:**
+3. **Run** (after plugin or SDK changes, run `npx expo prebuild` first):
    ```sh
    npx expo start --clear
    npx expo run:ios
@@ -25,7 +25,7 @@ Set the same env var; Android **requires** it. See [docs/CLI.md](../docs/CLI.md)
 
 ```sh
 npm run dev-token -- --write-env example/.env.local
-cd example && npx expo start --clear && npx expo run:android
+cd example && npx expo prebuild && npx expo start --clear && npx expo run:android
 ```
 
 ## Web (localhost)
