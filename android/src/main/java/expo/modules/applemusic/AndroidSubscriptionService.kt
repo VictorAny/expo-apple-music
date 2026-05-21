@@ -6,17 +6,12 @@ import android.content.Context
  * Approximates iOS [MusicSubscription] fields — there is no equivalent on Android.
  */
 internal class AndroidSubscriptionService(
-  private val context: Context,
   private val library: LibraryRestClient,
 ) {
-  constructor(context: Context) : this(context, AppleMusicRestStack.create(context).library)
+  constructor(context: Context) : this(AppleMusicRestStack.create(context).library)
 
-  suspend fun checkSubscription(): Map<String, Any?> {
-    if (!AuthenticatedSession.load(context).hasMusicUserToken) {
-      throw AppleMusicErrors.missingTokens()
-    }
-
-    val libraryOk = library.probeLibraryAccess()
+  suspend fun checkSubscription(musicUserToken: String): Map<String, Any?> {
+    val libraryOk = library.probeLibraryAccess(musicUserToken)
     val canPlay = libraryOk
 
     return mapOf(

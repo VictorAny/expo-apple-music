@@ -8,10 +8,12 @@ import org.json.JSONObject
 internal class RatingsRestClient(
   private val transport: AppleMusicRestTransport,
 ) {
-  suspend fun getRating(resourceType: String, id: String): Map<String, Any?>? =
+  suspend fun getRating(musicUserToken: String, resourceType: String, id: String): Map<String, Any?>? =
     withContext(Dispatchers.IO) {
       try {
-        val json = transport.getJson("/v1/me/ratings/$resourceType/$id")
+        val json = transport.getJson(
+          musicUserToken,
+          "/v1/me/ratings/$resourceType/$id")
         AppleMusicJsonMapper.mapRating(json)
       } catch (error: expo.modules.kotlin.exception.CodedException) {
         if (error.message?.contains("(404)") == true) {
@@ -21,7 +23,7 @@ internal class RatingsRestClient(
       }
     }
 
-  suspend fun setRating(resourceType: String, id: String, value: Int): Map<String, Any?> =
+  suspend fun setRating(musicUserToken: String, resourceType: String, id: String, value: Int): Map<String, Any?> =
     withContext(Dispatchers.IO) {
       val body =
         JSONObject()
@@ -32,6 +34,7 @@ internal class RatingsRestClient(
           )
       val json =
         transport.request(
+          musicUserToken,
           AppleMusicHttpMethod.PUT,
           "/v1/me/ratings/$resourceType/$id",
           body = body,
@@ -40,24 +43,28 @@ internal class RatingsRestClient(
         ?: throw AppleMusicErrors.apiError("Invalid Apple Music API response")
     }
 
-  suspend fun clearRating(resourceType: String, id: String): Unit =
-    withContext(Dispatchers.IO) {
-      transport.request(AppleMusicHttpMethod.DELETE, "/v1/me/ratings/$resourceType/$id")
-    }
-
-  suspend fun addToFavorites(resourceIds: Map<String, List<String>>): Unit =
+  suspend fun clearRating(musicUserToken: String, resourceType: String, id: String): Unit =
     withContext(Dispatchers.IO) {
       transport.request(
-        AppleMusicHttpMethod.POST,
+          musicUserToken,
+          AppleMusicHttpMethod.DELETE, "/v1/me/ratings/$resourceType/$id")
+    }
+
+  suspend fun addToFavorites(musicUserToken: String, resourceIds: Map<String, List<String>>): Unit =
+    withContext(Dispatchers.IO) {
+      transport.request(
+          musicUserToken,
+          AppleMusicHttpMethod.POST,
         "/v1/me/favorites",
         query = buildIdsQuery(resourceIds),
       )
     }
 
-  suspend fun removeFromFavorites(resourceIds: Map<String, List<String>>): Unit =
+  suspend fun removeFromFavorites(musicUserToken: String, resourceIds: Map<String, List<String>>): Unit =
     withContext(Dispatchers.IO) {
       transport.request(
-        AppleMusicHttpMethod.DELETE,
+          musicUserToken,
+          AppleMusicHttpMethod.DELETE,
         "/v1/me/favorites",
         query = buildIdsQuery(resourceIds),
       )

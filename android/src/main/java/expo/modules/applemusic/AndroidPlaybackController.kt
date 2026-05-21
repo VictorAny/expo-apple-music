@@ -33,6 +33,9 @@ internal class AndroidPlaybackController private constructor(
   private val externalListeners =
     mutableSetOf<MediaPlayerController.Listener>()
 
+  @Volatile
+  private var activeMusicUserToken: String = ""
+
   private fun ensureController(): MediaPlayerController {
     val existing = controller
     if (existing != null) {
@@ -41,7 +44,7 @@ internal class AndroidPlaybackController private constructor(
     AppleMusicNativeLoader.ensureLoaded()
     return MediaPlayerControllerFactory.createLocalController(
       appContext,
-      MusicKitTokenProvider(appContext),
+      MusicKitTokenProvider(appContext) { activeMusicUserToken },
     ).also { player ->
       player.addListener(globalErrorListener)
       externalListeners.forEach { player.addListener(it) }
@@ -120,9 +123,16 @@ internal class AndroidPlaybackController private constructor(
    * [MediaPlayerController.prepare] loads queue items asynchronously — wait for
    * [onPlaybackQueueItemsAdded] before returning to JS.
    */
-  suspend fun prepareQueue(provider: PlaybackQueueItemProvider) {
-    requirePlaybackTokens()
-    AppleMusicRestStack.create(appContext).storefront.requireUserStorefront()
+  suspend fun prepareQueue(provider: PlaybackQueueItemProvider, musicUserToken: String? = null) {
+    AndroidDeveloperToken.requireStored(appContext)
+    val stack = AppleMusicRestStack.create(appContext)
+    if (musicUserToken != null) {
+      activeMusicUserToken = requireMusicUserToken(musicUserToken)
+      stack.storefront.requireUserStorefront(musicUserToken)
+    } else {
+      activeMusicUserToken = ""
+      AuthenticatedSessionCache.storefrontId = stack.storefront.localeStorefrontId()
+    }
     val player = ensureController()
     withContext(Dispatchers.Main) {
       suspendCancellableCoroutine { continuation ->
@@ -364,9 +374,6 @@ internal class AndroidPlaybackController private constructor(
     return songInfo
   }
 
-  private fun requirePlaybackTokens() {
-    AuthenticatedSession.load(appContext).requireRestCredentials()
-  }
 
   companion object {
     private const val TAG = "ExpoAppleMusic"

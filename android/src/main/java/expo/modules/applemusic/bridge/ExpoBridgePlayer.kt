@@ -24,13 +24,13 @@ internal fun ModuleDefinitionBuilder.registerPlayerBridge(
     }
   }
 
-  AsyncFunction("playLibrarySong") Coroutine { songId: String ->
-    queueService().playLibrarySong(songId)
+  AsyncFunction("playLibrarySong") Coroutine { musicUserToken: String, songId: String ->
+    queueService().playLibrarySong(musicUserToken, songId)
     "Library song added to queue"
   }
 
-  AsyncFunction("playLibraryPlaylist") Coroutine { playlistId: String, startingAt: Int ->
-    queueService().playLibraryPlaylist(playlistId, startingAt)
+  AsyncFunction("playLibraryPlaylist") Coroutine { musicUserToken: String, playlistId: String, startingAt: Int ->
+    queueService().playLibraryPlaylist(musicUserToken, playlistId, startingAt)
     "Library playlist added to queue"
   }
 

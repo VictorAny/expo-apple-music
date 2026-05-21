@@ -37,19 +37,20 @@ internal fun ModuleDefinitionBuilder.registerAuthBridge(
       )
 
     if (result.status == "authorized") {
-      result.musicUserToken?.let { MusicKitAuthStorage.saveMusicUserToken(context, it) }
       AndroidPlaybackController.warmUp(context)
-    } else {
-      MusicKitAuthStorage.clearMusicUserToken(context)
     }
-    result.status
+
+    mapOf(
+      "status" to result.status,
+      "musicUserToken" to result.musicUserToken,
+    )
   }
 
-  AsyncFunction("checkSubscription") Coroutine { ->
-    subscriptionService().checkSubscription()
+  AsyncFunction("checkSubscription") Coroutine { musicUserToken: String ->
+    subscriptionService().checkSubscription(musicUserToken)
   }
 
-  AsyncFunction("getStorefront") Coroutine { ->
-    BridgeResponses.storefront(libraryService().getStorefrontId())
+  AsyncFunction("getStorefront") Coroutine { musicUserToken: String ->
+    BridgeResponses.storefront(libraryService().getStorefrontId(musicUserToken))
   }
 }

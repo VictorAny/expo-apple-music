@@ -7,21 +7,21 @@ internal class AndroidRatingsService(
 ) {
   constructor(context: Context) : this(AppleMusicRestStack.create(context).ratings)
 
-  suspend fun getRating(resourceType: String, id: String): Map<String, Any?>? =
-    ratings.getRating(resourceType, id)
+  suspend fun getRating(musicUserToken: String, resourceType: String, id: String): Map<String, Any?>? =
+    ratings.getRating(musicUserToken, resourceType, id)
 
-  suspend fun setRating(resourceType: String, id: String, value: Int): Map<String, Any?> =
-    ratings.setRating(resourceType, id, value)
+  suspend fun setRating(musicUserToken: String, resourceType: String, id: String, value: Int): Map<String, Any?> =
+    ratings.setRating(musicUserToken, resourceType, id, value)
 
-  suspend fun clearRating(resourceType: String, id: String) {
-    ratings.clearRating(resourceType, id)
+  suspend fun clearRating(musicUserToken: String, resourceType: String, id: String) {
+    ratings.clearRating(musicUserToken, resourceType, id)
   }
 
-  suspend fun addToFavorites(resourceIds: Map<String, List<String>>) {
-    ratings.addToFavorites(resourceIds)
+  suspend fun addToFavorites(musicUserToken: String, resourceIds: Map<String, List<String>>) {
+    ratings.addToFavorites(musicUserToken, resourceIds)
   }
 
-  suspend fun removeFromFavorites(resourceIds: Map<String, List<String>>) {
-    ratings.removeFromFavorites(resourceIds)
+  suspend fun removeFromFavorites(musicUserToken: String, resourceIds: Map<String, List<String>>) {
+    ratings.removeFromFavorites(musicUserToken, resourceIds)
   }
 }

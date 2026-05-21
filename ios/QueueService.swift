@@ -112,7 +112,7 @@ final class QueueService {
 
   // MARK: - Library Playback with Starting Position
 
-  func playLibrarySong(songId: String) async throws {
+  func playLibrarySong(musicUserToken: String, songId: String) async throws {
     let service = makeLibraryService()
     let id = MusicItemID(songId)
     guard let song = try await service.fetchSong(id: id) else {
@@ -121,7 +121,7 @@ final class QueueService {
     try await playbackController.setQueue(song)
   }
 
-  func playLibraryPlaylist(playlistId: String, startingAt index: Int) async throws {
+  func playLibraryPlaylist(musicUserToken: String, playlistId: String, startingAt index: Int) async throws {
     let service = makeLibraryService()
     let id = MusicItemID(playlistId)
     guard let playlist = try await service.fetchPlaylist(id: id) else {

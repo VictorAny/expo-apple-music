@@ -4,32 +4,32 @@ import { BridgeResponses } from '../bridge-responses';
 
 export function createHistoryBridge(api: WebAppleMusicApiClient) {
   return {
-    async getRecentlyPlayedResources() {
-      const tracks = await api.getRecentlyPlayed();
+    async getRecentlyPlayedResources(musicUserToken: string) {
+      const tracks = await api.getRecentlyPlayed(musicUserToken);
       return BridgeResponses.recentlyPlayedResources(tracks);
     },
 
-    async getRecentlyPlayedTracks(options: Record<string, unknown>) {
+    async getRecentlyPlayedTracks(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const songs = await api.getRecentlyPlayedTracks(pagination.limit);
+      const songs = await api.getRecentlyPlayedTracks(musicUserToken, pagination.limit);
       return BridgeResponses.songs(songs);
     },
 
-    async getHeavyRotation(options: Record<string, unknown>) {
+    async getHeavyRotation(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const items = await api.getHeavyRotation(pagination.limit);
+      const items = await api.getHeavyRotation(musicUserToken, pagination.limit);
       return BridgeResponses.recentItems(items);
     },
 
-    async getRecentlyPlayedStations(options: Record<string, unknown>) {
+    async getRecentlyPlayedStations(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const stations = await api.getRecentlyPlayedStations(pagination.limit);
+      const stations = await api.getRecentlyPlayedStations(musicUserToken, pagination.limit);
       return BridgeResponses.stations(stations);
     },
 
-    async getRecentlyAdded(options: Record<string, unknown>) {
+    async getRecentlyAdded(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const items = await api.getRecentlyAdded(pagination.limit, pagination.offset);
+      const items = await api.getRecentlyAdded(musicUserToken, pagination.limit, pagination.offset);
       return BridgeResponses.recentItems(items);
     },
   };

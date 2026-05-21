@@ -9,6 +9,8 @@ import { ApiScreen } from "../components/ApiScreen";
 import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
 import { formatApiError } from "../lib/format-error";
+import { requireMusicToken } from "../lib/require-music-token";
+import { formatApiError as fe from "../lib/format-error";
 import { RunButton } from "./helpers";
 
 function useSongIdField() {
@@ -23,7 +25,7 @@ function useSongIdField() {
 }
 
 export function GetRatingDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen
@@ -48,7 +50,7 @@ export function GetRatingDemo() {
 }
 
 export function SetRatingDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen
@@ -75,7 +77,7 @@ export function SetRatingDemo() {
 }
 
 export function ClearRatingDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen
@@ -98,7 +100,7 @@ export function ClearRatingDemo() {
 }
 
 export function AddToFavoritesDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen
@@ -123,7 +125,7 @@ export function AddToFavoritesDemo() {
 }
 
 export function RemoveFromFavoritesDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen

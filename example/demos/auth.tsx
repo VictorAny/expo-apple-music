@@ -3,6 +3,7 @@ import { formatApiError } from "../lib/format-error";
 import { Platform } from "react-native";
 import { ApiScreen } from "../components/ApiScreen";
 import { useApp } from "../context/AppContext";
+import { requireMusicToken } from "../lib/require-music-token";
 import { RunButton } from "./helpers";
 
 export function AuthorizeDemo() {
@@ -22,7 +23,7 @@ export function AuthorizeDemo() {
 }
 
 export function CheckSubscriptionDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   return (
     <ApiScreen
       actions={
@@ -30,7 +31,8 @@ export function CheckSubscriptionDemo() {
           title="Run checkSubscription()"
           requiresAuth={false}
           onPress={() => {
-            void Auth.checkSubscription()
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Auth.checkSubscription(musicUserToken)
               .then((sub) =>
                 appendLog(
                   `canPlayCatalogContent: ${sub.canPlayCatalogContent}, ` +
@@ -46,7 +48,7 @@ export function CheckSubscriptionDemo() {
 }
 
 export function GetStorefrontDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   return (
     <ApiScreen
       actions={
@@ -54,7 +56,8 @@ export function GetStorefrontDemo() {
           title="Run getStorefront()"
           requiresAuth={false}
           onPress={() => {
-            void Auth.getStorefront()
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Auth.getStorefront(musicUserToken)
               .then((sf) => appendLog(`storefront.id: ${sf.id}`))
               .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}

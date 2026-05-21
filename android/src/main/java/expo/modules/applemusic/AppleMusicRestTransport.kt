@@ -14,13 +14,18 @@ import java.util.concurrent.TimeUnit
 /** Shared HTTP adapter for Apple Music REST (see docs/ANDROID_IMPLEMENTATION.md). */
 internal interface AppleMusicRestTransport {
   suspend fun request(
+    musicUserToken: String?,
     method: AppleMusicHttpMethod,
     path: String,
     query: Map<String, String> = emptyMap(),
     body: JSONObject? = null,
   ): JSONObject
 
-  suspend fun getJson(path: String, query: Map<String, String> = emptyMap()): JSONObject
+  suspend fun getJson(
+    musicUserToken: String?,
+    path: String,
+    query: Map<String, String> = emptyMap(),
+  ): JSONObject
 }
 
 internal class OkHttpAppleMusicRestTransport(
@@ -32,18 +37,24 @@ internal class OkHttpAppleMusicRestTransport(
       .readTimeout(30, TimeUnit.SECONDS)
       .build()
 
-  private fun session(): AuthenticatedSession = AuthenticatedSession.load(context)
+  private fun pathRequiresMusicUserToken(path: String): Boolean = path.startsWith("/v1/me/")
 
   override suspend fun request(
+    musicUserToken: String?,
     method: AppleMusicHttpMethod,
     path: String,
     query: Map<String, String>,
     body: JSONObject?,
   ): JSONObject =
     withContext(Dispatchers.IO) {
-      val credentials = session().requireRestCredentials()
-      val developerToken = credentials.developerToken
-      val userToken = credentials.musicUserToken
+      val developerToken = AndroidDeveloperToken.requireStored(context)
+      val userToken =
+        if (pathRequiresMusicUserToken(path)) {
+          requireMusicUserToken(musicUserToken)
+        } else {
+          musicUserToken?.trim()?.takeIf { it.isNotEmpty() }
+        }
+
       val urlBuilder =
         HttpUrl.Builder()
           .scheme("https")
@@ -59,7 +70,10 @@ internal class OkHttpAppleMusicRestTransport(
         Request.Builder()
           .url(urlBuilder.build())
           .header("Authorization", "Bearer $developerToken")
-          .header("Music-User-Token", userToken)
+
+      if (!userToken.isNullOrEmpty()) {
+        requestBuilder.header("Music-User-Token", userToken)
+      }
 
       when (method) {
         AppleMusicHttpMethod.GET -> requestBuilder.get()
@@ -96,6 +110,9 @@ internal class OkHttpAppleMusicRestTransport(
       }
     }
 
-  override suspend fun getJson(path: String, query: Map<String, String>): JSONObject =
-    request(AppleMusicHttpMethod.GET, path, query)
+  override suspend fun getJson(
+    musicUserToken: String?,
+    path: String,
+    query: Map<String, String>,
+  ): JSONObject = request(musicUserToken, AppleMusicHttpMethod.GET, path, query)
 }

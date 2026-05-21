@@ -5,13 +5,13 @@ import { getMusic } from './MusicKitLoader';
 export class WebSubscriptionService {
   constructor(private readonly api = new WebAppleMusicApiClient()) {}
 
-  async checkSubscription(): Promise<Record<string, unknown>> {
+  async checkSubscription(musicUserToken: string): Promise<Record<string, unknown>> {
     const music = await getMusic();
     if (!music.isAuthorized) {
       throw errors.missingTokens();
     }
 
-    const libraryOk = await this.api.probeLibraryAccess();
+    const libraryOk = await this.api.probeLibraryAccess(musicUserToken);
     const canPlay = libraryOk;
 
     return {

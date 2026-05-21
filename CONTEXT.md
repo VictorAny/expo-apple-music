@@ -20,8 +20,14 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | **Library APIs**   | `Library.getPlaylists`, `getSongs`, `getPlaylistTracks`                                            | Catalog search                                                                  |
 | **History APIs**   | `History.getRecentlyPlayedResources`, `getRecentlyPlayedTracks`, …                                 | Library collection reads                                                        |
 | **Auth**           | Sign the user into Apple Music and obtain permission/tokens to access **their** data               | Catalog browse without a user (developer token alone is not “auth” for library) |
+| **Developer JWT**  | App credential you sign (MusicKit private key) — identifies **your app** to Apple                | The signed-in user’s token; not returned by `authorize()` to JS today             |
+| **Music user token** | Per-user credential after sign-in — identifies **which Apple Music account** and their entitlements | The developer JWT; not interchangeable with `Authorization: Bearer`             |
 
 **Rule of thumb:** **Library** and **History** methods refer to the user’s account. **Catalog** methods refer to the Apple Music store.
+
+**REST headers (Apple Music API):** `Authorization: Bearer {developer JWT}` on (almost) every HTTPS call. `Music-User-Token: {music user token}` additionally for **`/v1/me/...`** (library, history, ratings, mutations, storefront). Catalog paths (`/v1/catalog/{storefront}/...`) are store-scoped and need the developer JWT; the user token is not required by Apple for anonymous catalog browse, though this module may still require prior `authorize()` on Android/web.
+
+**App-owned music user token (multi-account):** The consuming app stores each user’s music user token (e.g. Zustand). Native does **not** persist it. `authorize()` returns the token to JS when successful. User-scoped APIs take `musicUserToken` as the **first parameter only** (never inside pagination/options objects). TypeScript and native reject missing tokens on `/v1/me/` routes. Developer JWT remains app-level (`Auth.authorize(developerToken)`).
 
 ## JS API map (by domain)
 

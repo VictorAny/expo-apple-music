@@ -6,10 +6,11 @@ import Foundation
 @available(iOS 16.0, *)
 final class RatingsService {
 
-  func getRating(resourceType: String, id: String) async throws -> [String: Any]? {
+  func getRating(musicUserToken: String, resourceType: String, id: String) async throws -> [String: Any]? {
     do {
       let json = try await AppleMusicRestClient.get(
-        path: "/v1/me/ratings/\(resourceType)/\(id)"
+        path: "/v1/me/ratings/\(resourceType)/\(id)",
+        musicUserToken: musicUserToken
       )
       return RestJsonMapper.mapRating(json)
     } catch let error as AppleMusicRestClient.RestError {
@@ -20,7 +21,7 @@ final class RatingsService {
     }
   }
 
-  func setRating(resourceType: String, id: String, value: Int) async throws -> [String: Any] {
+  func setRating(musicUserToken: String, resourceType: String, id: String, value: Int) async throws -> [String: Any] {
     let body: [String: Any] = [
       "type": "rating",
       "attributes": ["value": value],
@@ -28,6 +29,7 @@ final class RatingsService {
     let json = try await AppleMusicRestClient.request(
       method: .put,
       path: "/v1/me/ratings/\(resourceType)/\(id)",
+      musicUserToken: musicUserToken,
       body: body
     )
     guard let rating = RestJsonMapper.mapRating(json) else {
@@ -36,25 +38,28 @@ final class RatingsService {
     return rating
   }
 
-  func clearRating(resourceType: String, id: String) async throws {
+  func clearRating(musicUserToken: String, resourceType: String, id: String) async throws {
     _ = try await AppleMusicRestClient.request(
       method: .delete,
-      path: "/v1/me/ratings/\(resourceType)/\(id)"
+      path: "/v1/me/ratings/\(resourceType)/\(id)",
+      musicUserToken: musicUserToken
     )
   }
 
-  func addToFavorites(resourceIds: [String: [String]]) async throws {
+  func addToFavorites(musicUserToken: String, resourceIds: [String: [String]]) async throws {
     _ = try await AppleMusicRestClient.request(
       method: .post,
       path: "/v1/me/favorites",
+      musicUserToken: musicUserToken,
       query: RestJsonMapper.buildIdsQuery(resourceIds)
     )
   }
 
-  func removeFromFavorites(resourceIds: [String: [String]]) async throws {
+  func removeFromFavorites(musicUserToken: String, resourceIds: [String: [String]]) async throws {
     _ = try await AppleMusicRestClient.request(
       method: .delete,
       path: "/v1/me/favorites",
+      musicUserToken: musicUserToken,
       query: RestJsonMapper.buildIdsQuery(resourceIds)
     )
   }

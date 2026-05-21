@@ -3,6 +3,7 @@ import {
   AuthStatus,
   type Album,
   type Artist,
+  type AuthorizeResult,
   type Playlist,
   type Song,
   Player,
@@ -18,10 +19,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Platform } from "react-native";
 
 type AppContextValue = {
   authStatus: string;
+  musicUserToken: string | undefined;
   hasStoredSession: boolean;
   devToken: string | undefined;
   log: string;
@@ -32,7 +33,7 @@ type AppContextValue = {
   toggleLogVisible: () => void;
   markLogRead: () => void;
   authorize: () => Promise<void>;
-  restoreSession: () => Promise<boolean>;
+  clearMusicSession: () => void;
   catalogSongs: Song[];
   setCatalogSongs: (songs: Song[]) => void;
   catalogAlbums: Album[];
@@ -52,7 +53,9 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [authStatus, setAuthStatus] = useState("checking…");
-  const [hasStoredSession, setHasStoredSession] = useState(false);
+  const [musicUserToken, setMusicUserToken] = useState<string | undefined>(
+    undefined,
+  );
   const [log, setLog] = useState("");
   const [logVisible, setLogVisible] = useState(false);
   const [logUnread, setLogUnread] = useState(false);
@@ -66,6 +69,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [lastPlaylistId, setLastPlaylistId] = useState<string | null>(null);
 
   const devToken = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
+
+  const hasStoredSession = Boolean(musicUserToken);
 
   const appendLog = useCallback((message: string) => {
     setLog((prev) => `${message}\n${prev}`.slice(0, 4000));
@@ -89,23 +94,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const markLogRead = useCallback(() => setLogUnread(false), []);
 
-  const restoreSession = useCallback(async (): Promise<boolean> => {
-    try {
-      const subscription = await Auth.checkSubscription();
-      if (!subscription.canPlayCatalogContent) {
-        setAuthStatus(AuthStatus.NOT_DETERMINED);
-        setHasStoredSession(false);
-        return false;
-      }
-      setAuthStatus(AuthStatus.AUTHORIZED);
-      setHasStoredSession(true);
-      return true;
-    } catch {
-      setAuthStatus(AuthStatus.NOT_DETERMINED);
-      setHasStoredSession(false);
-      return false;
-    }
+  const clearMusicSession = useCallback(() => {
+    setMusicUserToken(undefined);
+    setAuthStatus(AuthStatus.NOT_DETERMINED);
+    appendLog("cleared music user token");
   }, [appendLog]);
+
+  const applyAuthorizeResult = useCallback(
+    (result: AuthorizeResult) => {
+      setAuthStatus(result.status);
+      if (result.status === AuthStatus.AUTHORIZED && result.musicUserToken) {
+        setMusicUserToken(result.musicUserToken);
+      } else {
+        setMusicUserToken(undefined);
+      }
+    },
+    [],
+  );
 
   const authorize = useCallback(async () => {
     try {
@@ -114,19 +119,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
           "warning: no EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN — iOS catalog search will 404. Run: npm run dev-token -- --write-env example/.env.local",
         );
       }
-      const status = await Auth.authorize(devToken, {
+      const result = await Auth.authorize(devToken, {
         startScreenMessage:
           "Start screen message for <b>Expo Apple Music Example App</b>",
       });
-      setAuthStatus(status);
-      setHasStoredSession(status === AuthStatus.AUTHORIZED);
+      applyAuthorizeResult(result);
       appendLog(
-        `authorize: ${status}${devToken ? " (developer token saved)" : ""}`,
+        `authorize: ${result.status}${result.musicUserToken ? " (music user token stored in app)" : ""}`,
       );
     } catch (error) {
       appendLog(`authorize error: ${formatApiError(error)}`);
     }
-  }, [appendLog, devToken]);
+  }, [appendLog, applyAuthorizeResult, devToken]);
 
   useEffect(() => {
     const sub = Player.addListener("onPlaybackError", (err) => {
@@ -138,12 +142,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [appendLog]);
 
   useEffect(() => {
-    void restoreSession().then((restored) => {
-      if (restored) {
-        appendLog("restored session from native storage");
-      }
-    });
-  }, [appendLog, restoreSession]);
+    if (!musicUserToken) {
+      setAuthStatus(AuthStatus.NOT_DETERMINED);
+    }
+  }, [musicUserToken]);
 
   const selectedSong = useMemo(
     () => catalogSongs.find((s) => s.id === selectedSongId),
@@ -153,6 +155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppContextValue>(
     () => ({
       authStatus,
+      musicUserToken,
       hasStoredSession,
       devToken,
       log,
@@ -163,7 +166,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleLogVisible,
       markLogRead,
       authorize,
-      restoreSession,
+      clearMusicSession,
       catalogSongs,
       setCatalogSongs,
       catalogAlbums,
@@ -180,6 +183,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       authStatus,
+      musicUserToken,
       hasStoredSession,
       devToken,
       log,
@@ -190,7 +194,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleLogVisible,
       markLogRead,
       authorize,
-      restoreSession,
+      clearMusicSession,
       catalogSongs,
       catalogAlbums,
       catalogArtists,

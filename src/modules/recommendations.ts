@@ -1,4 +1,5 @@
 import { callNative } from '../api/call-native';
+import { requireMusicUserToken } from '../api/require-music-user-token';
 import type {
   RecommendationsOptions,
   RecommendationsResponse,
@@ -8,23 +9,23 @@ import type {
 import { MusicModule } from '../native-module';
 
 class Recommendations {
-  /**
-   * Personalized recommendations (Made for You mixes, etc.).
-   * Omit `ids` to load all recommendations (MusicKit on iOS, REST on Android).
-   */
-  public static async get(options?: RecommendationsOptions): Promise<RecommendationsResponse> {
+  public static async get(
+    musicUserToken: string,
+    options?: RecommendationsOptions,
+  ): Promise<RecommendationsResponse> {
+    requireMusicUserToken(musicUserToken, 'Recommendations.get');
     return callNative('Recommendations.get', async () =>
-      (await MusicModule.getRecommendations(options?.ids)) as RecommendationsResponse,
+      (await MusicModule.getRecommendations(musicUserToken, options?.ids)) as RecommendationsResponse,
     );
   }
 
-  /**
-   * Apple Music Replay summaries (`GET /v1/me/music-summaries`).
-   * Requires sufficient listening history; may 404 for ineligible accounts/years.
-   */
-  public static async getReplay(options?: ReplayOptions): Promise<ReplayResponse> {
+  public static async getReplay(
+    musicUserToken: string,
+    options?: ReplayOptions,
+  ): Promise<ReplayResponse> {
+    requireMusicUserToken(musicUserToken, 'Recommendations.getReplay');
     return callNative('Recommendations.getReplay', async () =>
-      (await MusicModule.getReplay(options?.year)) as ReplayResponse,
+      (await MusicModule.getReplay(musicUserToken, options?.year)) as ReplayResponse,
     );
   }
 }

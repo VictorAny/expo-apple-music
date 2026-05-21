@@ -6,6 +6,7 @@ import {
   type Song,
 } from "@wwdrew/expo-apple-music";
 import { formatApiError } from "../lib/format-error";
+import { requireMusicToken } from "../lib/require-music-token";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
@@ -24,7 +25,7 @@ import { theme } from "../lib/theme";
 
 export default function PlaygroundScreen() {
   const router = useRouter();
-  const { appendLog, authStatus } = useApp();
+  const { musicUserToken, appendLog, authStatus } = useApp();
   const authorized = isAuthorized(authStatus);
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [searchSongs, setSearchSongs] = useState<Song[]>([]);

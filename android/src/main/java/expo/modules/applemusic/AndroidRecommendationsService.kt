@@ -7,8 +7,9 @@ internal class AndroidRecommendationsService(
 ) {
   constructor(context: Context) : this(AppleMusicRestStack.create(context).recommendations)
 
-  suspend fun getRecommendations(ids: List<String>?): List<Map<String, Any?>> =
-    recommendations.getRecommendations(ids)
+  suspend fun getRecommendations(musicUserToken: String, ids: List<String>?): List<Map<String, Any?>> =
+    recommendations.getRecommendations(musicUserToken, ids)
 
-  suspend fun getReplay(year: Int?): List<Map<String, Any?>> = recommendations.getReplay(year)
+  suspend fun getReplay(musicUserToken: String, year: Int?): List<Map<String, Any?>> =
+    recommendations.getReplay(musicUserToken, year)
 }

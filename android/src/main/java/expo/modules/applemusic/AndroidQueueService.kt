@@ -31,7 +31,9 @@ internal class AndroidQueueService(
     val isLibrary = LibraryIds.isLibraryId(itemId)
 
     if (isLibrary) {
-      setLibraryQueue(itemId, mediaType)
+      throw AppleMusicErrors.apiError(
+        "Library queue requires a music user token. Use Player.playLibrarySong or playLibraryPlaylist.",
+      )
     } else {
       setCatalogQueue(itemId, mediaType)
     }
@@ -47,38 +49,17 @@ internal class AndroidQueueService(
           throw AppleMusicErrors.apiError("Station playback is not supported on Android yet.")
       }
     playback.clearSongCache()
-    playback.prepareQueue(provider)
+    playback.prepareQueue(provider, musicUserToken = null)
   }
 
-  private suspend fun setLibraryQueue(itemId: String, type: MediaType) {
-    when (type) {
-      MediaType.STATION -> throw AppleMusicErrors.unsupportedLibraryType("station")
-      MediaType.SONG -> {
-        val catalogId = library.resolveCatalogPlaybackId(itemId, "song")
-        playback.clearSongCache()
-        playback.prepareQueue(playback.buildSongProvider(catalogId))
-      }
-      MediaType.ALBUM -> {
-        val catalogId = library.resolveCatalogPlaybackId(itemId, "album")
-        playback.clearSongCache()
-        playback.prepareQueue(playback.buildAlbumProvider(catalogId))
-      }
-      MediaType.PLAYLIST -> {
-        val catalogId = library.resolveCatalogPlaybackId(itemId, "playlist")
-        playback.clearSongCache()
-        playback.prepareQueue(playback.buildPlaylistProvider(catalogId))
-      }
-    }
-  }
-
-  suspend fun playLibrarySong(songId: String) {
-    val catalogId = library.resolveCatalogPlaybackId(songId, "song")
+  suspend fun playLibrarySong(musicUserToken: String, songId: String) {
+    val catalogId = library.resolveCatalogPlaybackId(musicUserToken, songId, "song")
     playback.clearSongCache()
-    playback.prepareQueue(playback.buildSongProvider(catalogId))
+    playback.prepareQueue(playback.buildSongProvider(catalogId), musicUserToken)
   }
 
-  suspend fun playLibraryPlaylist(playlistId: String, startingAt: Int) {
-    val catalogIds = library.resolveLibrarySongCatalogIds(playlistId)
+  suspend fun playLibraryPlaylist(musicUserToken: String, playlistId: String, startingAt: Int) {
+    val catalogIds = library.resolveLibrarySongCatalogIds(musicUserToken, playlistId)
     if (catalogIds.isEmpty()) {
       throw AppleMusicErrors.noSongsInPlaylist()
     }
@@ -91,6 +72,7 @@ internal class AndroidQueueService(
     playback.clearSongCache()
     playback.prepareQueue(
       playback.buildSongProvider(*catalogIds.toTypedArray(), startIndex = startIndex),
+      musicUserToken,
     )
   }
 }

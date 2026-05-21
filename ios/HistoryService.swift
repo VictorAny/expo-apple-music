@@ -1,44 +1,51 @@
 // HistoryService.swift
-// Listening history — native MusicKit where available, REST for gap-fill endpoints.
+// Listening history via Apple Music REST (app-supplied music user token).
 
 import Foundation
-import MusicKit
 
 @available(iOS 16.0, *)
 final class HistoryService {
 
-  func getRecentlyPlayedResources() async throws -> [[String: Any]] {
-    let request = MusicRecentlyPlayedContainerRequest()
-    let response = try await request.response()
-    return response.items.map(MusicItemMapper.map)
+  func getRecentlyPlayedResources(musicUserToken: String) async throws -> [[String: Any]] {
+    let data = try await AppleMusicRestClient.getDataArray(
+      path: "/v1/me/recent/played",
+      musicUserToken: musicUserToken,
+      query: ["limit": "10"]
+    )
+    return data.map(RestJsonMapper.mapRecentlyPlayed)
   }
 
-  func getRecentlyPlayedTracks(options: BridgePagination) async throws -> [[String: Any]] {
-    var request = MusicRecentlyPlayedRequest<Song>()
-    request.limit = options.limit
-    let response = try await request.response()
-    return response.items.map(MusicItemMapper.map)
+  func getRecentlyPlayedTracks(musicUserToken: String, options: BridgePagination) async throws -> [[String: Any]] {
+    let data = try await AppleMusicRestClient.getDataArray(
+      path: "/v1/me/recent/played/tracks",
+      musicUserToken: musicUserToken,
+      query: ["limit": "\(options.limit)"]
+    )
+    return data.map(RestJsonMapper.mapSong)
   }
 
-  func getHeavyRotation(limit: Int) async throws -> [[String: Any]] {
+  func getHeavyRotation(musicUserToken: String, limit: Int) async throws -> [[String: Any]] {
     let data = try await AppleMusicRestClient.getDataArray(
       path: "/v1/me/history/heavy-rotation",
+      musicUserToken: musicUserToken,
       query: ["limit": "\(limit)"]
     )
     return data.map(RestJsonMapper.mapRecentResource)
   }
 
-  func getRecentlyPlayedStations(limit: Int) async throws -> [[String: Any]] {
+  func getRecentlyPlayedStations(musicUserToken: String, limit: Int) async throws -> [[String: Any]] {
     let data = try await AppleMusicRestClient.getDataArray(
       path: "/v1/me/recent/radio-stations",
+      musicUserToken: musicUserToken,
       query: ["limit": "\(limit)"]
     )
     return data.map(RestJsonMapper.mapStation)
   }
 
-  func getRecentlyAdded(limit: Int, offset: Int) async throws -> [[String: Any]] {
+  func getRecentlyAdded(musicUserToken: String, limit: Int, offset: Int) async throws -> [[String: Any]] {
     let data = try await AppleMusicRestClient.getDataArray(
       path: "/v1/me/library/recently-added",
+      musicUserToken: musicUserToken,
       query: ["limit": "\(limit)", "offset": "\(offset)"]
     )
     return data.map(RestJsonMapper.mapRecentResource)

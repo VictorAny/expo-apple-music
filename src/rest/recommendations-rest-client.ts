@@ -6,21 +6,21 @@ import { mapTopLevelResourceArray } from './rest-json';
 export class RecommendationsRestClient {
   constructor(private readonly transport: AppleMusicRestTransport) {}
 
-  async getRecommendations(ids: string[] | null) {
+  async getRecommendations(musicUserToken: string, ids: string[] | null) {
     const query: Record<string, string> = {};
     if (ids?.length) {
       query.ids = ids.join(',');
     }
-    const json = await this.transport.getJson('/v1/me/recommendations', query);
+    const json = await this.transport.getJson('/v1/me/recommendations', query, musicUserToken);
     return mapTopLevelResourceArray(json.data, mapRecommendation);
   }
 
-  async getReplay(year: number | null) {
+  async getReplay(musicUserToken: string, year: number | null) {
     const query: Record<string, string> = {};
     if (year != null) {
       query['filter[year]'] = String(year);
     }
-    const json = await this.transport.getJson('/v1/me/music-summaries', query);
+    const json = await this.transport.getJson('/v1/me/music-summaries', query, musicUserToken);
     return mapTopLevelResourceArray(json.data, mapReplaySummary);
   }
 }

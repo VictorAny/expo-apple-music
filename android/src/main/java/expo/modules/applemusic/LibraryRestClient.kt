@@ -9,29 +9,33 @@ import org.json.JSONObject
 internal class LibraryRestClient(
   private val transport: AppleMusicRestTransport,
 ) {
-  suspend fun getLibraryPlaylists(limit: Int, offset: Int): List<Map<String, Any?>> =
+  suspend fun getLibraryPlaylists(musicUserToken: String, limit: Int, offset: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/library/playlists",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
       mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapPlaylist(it) }
     }
 
-  suspend fun getLibrarySongs(limit: Int, offset: Int): List<Map<String, Any?>> =
+  suspend fun getLibrarySongs(musicUserToken: String, limit: Int, offset: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/library/songs",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
       mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapSong(it) }
     }
 
-  suspend fun getPlaylistTracks(playlistId: String): List<Map<String, Any?>> =
+  suspend fun getPlaylistTracks(musicUserToken: String, playlistId: String): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
-      val json = transport.getJson("/v1/me/library/playlists/$playlistId/tracks")
+      val json = transport.getJson(
+          musicUserToken,
+          "/v1/me/library/playlists/$playlistId/tracks")
       val data = requireDataArray(json)
       buildList {
         for (i in 0 until data.length()) {
@@ -53,20 +57,22 @@ internal class LibraryRestClient(
       else -> null
     }
 
-  suspend fun getLibraryArtists(limit: Int, offset: Int): List<Map<String, Any?>> =
+  suspend fun getLibraryArtists(musicUserToken: String, limit: Int, offset: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/library/artists",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
       mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapArtist(it) }
     }
 
-  suspend fun getLibraryAlbums(limit: Int, offset: Int): List<Map<String, Any?>> =
+  suspend fun getLibraryAlbums(musicUserToken: String, limit: Int, offset: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/library/albums",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
@@ -81,10 +87,11 @@ internal class LibraryRestClient(
     val musicVideos: List<Map<String, Any?>>,
   )
 
-  suspend fun getLibraryMusicVideos(limit: Int, offset: Int): List<Map<String, Any?>> =
+  suspend fun getLibraryMusicVideos(musicUserToken: String, limit: Int, offset: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/library/music-videos",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )
@@ -92,6 +99,7 @@ internal class LibraryRestClient(
     }
 
   suspend fun searchLibrary(
+    musicUserToken: String,
     term: String,
     types: List<String>,
     limit: Int,
@@ -108,6 +116,7 @@ internal class LibraryRestClient(
 
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/library/search",
           mapOf(
             "term" to term,
@@ -142,17 +151,19 @@ internal class LibraryRestClient(
       )
     }
 
-  suspend fun probeLibraryAccess(): Boolean =
+  suspend fun probeLibraryAccess(musicUserToken: String): Boolean =
     withContext(Dispatchers.IO) {
       try {
-        transport.getJson("/v1/me/library/songs", mapOf("limit" to "1"))
+        transport.getJson(
+          musicUserToken,
+          "/v1/me/library/songs", mapOf("limit" to "1"))
         true
       } catch (_: Exception) {
         false
       }
     }
 
-  suspend fun resolveCatalogPlaybackId(libraryId: String, mediaType: String): String =
+  suspend fun resolveCatalogPlaybackId(musicUserToken: String, libraryId: String, mediaType: String): String =
     withContext(Dispatchers.IO) {
       val path =
         when (mediaType) {
@@ -167,9 +178,11 @@ internal class LibraryRestClient(
         ?: throw AppleMusicErrors.itemNotFound(mediaType.replaceFirstChar { it.uppercase() }, true)
     }
 
-  suspend fun resolveLibrarySongCatalogIds(playlistId: String): List<String> =
+  suspend fun resolveLibrarySongCatalogIds(musicUserToken: String, playlistId: String): List<String> =
     withContext(Dispatchers.IO) {
-      val json = transport.getJson("/v1/me/library/playlists/$playlistId/tracks")
+      val json = transport.getJson(
+          musicUserToken,
+          "/v1/me/library/playlists/$playlistId/tracks")
       val data = requireDataArray(json)
       buildList {
         for (i in 0 until data.length()) {

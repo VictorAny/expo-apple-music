@@ -13,13 +13,17 @@ export function createPlayerBridge(
       return 'Track(s) added to queue';
     },
 
-    async playLibrarySong(songId: string): Promise<string> {
-      await queue.playLibrarySong(songId);
+    async playLibrarySong(musicUserToken: string, songId: string): Promise<string> {
+      await queue.playLibrarySong(musicUserToken, songId);
       return 'Library song added to queue';
     },
 
-    async playLibraryPlaylist(playlistId: string, startingAt: number): Promise<string> {
-      await queue.playLibraryPlaylist(playlistId, startingAt);
+    async playLibraryPlaylist(
+      musicUserToken: string,
+      playlistId: string,
+      startingAt: number,
+    ): Promise<string> {
+      await queue.playLibraryPlaylist(musicUserToken, playlistId, startingAt);
       return 'Library playlist added to queue';
     },
 

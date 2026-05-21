@@ -127,19 +127,28 @@ export async function musicKitApiRequest(
   path: string,
   query: Record<string, string> = {},
   body?: Record<string, unknown>,
+  musicUserToken?: string,
 ): Promise<MusicKitApiResponse> {
   const request = resolveMusicRequest(music);
   const mkPath = toMusicKitApiPath(path);
+
+  const headers: Record<string, string> = {};
+  if (body) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (musicUserToken && path.startsWith('/v1/me/')) {
+    headers['Music-User-Token'] = musicUserToken;
+  }
 
   const sessionOptions: { method?: string; fetchOptions?: RequestInit } = {
     method,
   };
 
-  if (body) {
+  if (body || Object.keys(headers).length > 0) {
     sessionOptions.fetchOptions = {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      headers,
+      ...(body ? { body: JSON.stringify(body) } : {}),
     };
   }
 

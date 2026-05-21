@@ -7,9 +7,13 @@ import { buildIdsQuery } from './resource-ids-query';
 export class RatingsRestClient {
   constructor(private readonly transport: AppleMusicRestTransport) {}
 
-  async getRating(resourceType: string, id: string) {
+  async getRating(musicUserToken: string, resourceType: string, id: string) {
     try {
-      const json = await this.transport.getJson(`/v1/me/ratings/${resourceType}/${id}`);
+      const json = await this.transport.getJson(
+        `/v1/me/ratings/${resourceType}/${id}`,
+        {},
+        musicUserToken,
+      );
       return mapRating(json as Parameters<typeof mapRating>[0]);
     } catch (error) {
       const message = getErrorMessage(error);
@@ -20,23 +24,26 @@ export class RatingsRestClient {
     }
   }
 
-  async setRating(resourceType: string, id: string, value: number) {
-    const json = await this.transport.request('PUT', `/v1/me/ratings/${resourceType}/${id}`, {}, {
-      type: 'rating',
-      attributes: { value },
-    });
+  async setRating(musicUserToken: string, resourceType: string, id: string, value: number) {
+    const json = await this.transport.request(
+      'PUT',
+      `/v1/me/ratings/${resourceType}/${id}`,
+      {},
+      { type: 'rating', attributes: { value } },
+      musicUserToken,
+    );
     return mapRating(json as Parameters<typeof mapRating>[0]);
   }
 
-  async clearRating(resourceType: string, id: string) {
-    await this.transport.request('DELETE', `/v1/me/ratings/${resourceType}/${id}`);
+  async clearRating(musicUserToken: string, resourceType: string, id: string) {
+    await this.transport.request('DELETE', `/v1/me/ratings/${resourceType}/${id}`, {}, undefined, musicUserToken);
   }
 
-  async addToFavorites(resourceIds: Record<string, string[]>) {
-    await this.transport.request('POST', '/v1/me/favorites', buildIdsQuery(resourceIds));
+  async addToFavorites(musicUserToken: string, resourceIds: Record<string, string[]>) {
+    await this.transport.request('POST', '/v1/me/favorites', buildIdsQuery(resourceIds), undefined, musicUserToken);
   }
 
-  async removeFromFavorites(resourceIds: Record<string, string[]>) {
-    await this.transport.request('DELETE', '/v1/me/favorites', buildIdsQuery(resourceIds));
+  async removeFromFavorites(musicUserToken: string, resourceIds: Record<string, string[]>) {
+    await this.transport.request('DELETE', '/v1/me/favorites', buildIdsQuery(resourceIds), undefined, musicUserToken);
   }
 }

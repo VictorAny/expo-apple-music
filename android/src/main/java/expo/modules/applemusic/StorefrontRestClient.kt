@@ -8,16 +8,18 @@ import kotlinx.coroutines.withContext
 internal class StorefrontRestClient(
   private val transport: AppleMusicRestTransport,
 ) {
-  suspend fun getStorefront(): String = resolveStorefront(allowLocaleFallback = true)
+  suspend fun getStorefront(musicUserToken: String): String =
+    resolveStorefront(musicUserToken, allowLocaleFallback = true)
 
-  /** Resolves storefront from `/v1/me/storefront` only — required before playback. */
-  suspend fun requireUserStorefront(): String = resolveStorefront(allowLocaleFallback = false)
+  /** Resolves storefront from `/v1/me/storefront` only — required before library playback. */
+  suspend fun requireUserStorefront(musicUserToken: String): String =
+    resolveStorefront(musicUserToken, allowLocaleFallback = false)
 
-  private suspend fun resolveStorefront(allowLocaleFallback: Boolean): String =
+  private suspend fun resolveStorefront(musicUserToken: String, allowLocaleFallback: Boolean): String =
     withContext(Dispatchers.IO) {
       AuthenticatedSessionCache.storefrontId?.let { return@withContext it }
       try {
-        val json = transport.getJson("/v1/me/storefront")
+        val json = transport.getJson(musicUserToken, "/v1/me/storefront")
         val id = json.getJSONArray("data").getJSONObject(0).getString("id")
         AuthenticatedSessionCache.storefrontId = id
         id
@@ -31,7 +33,7 @@ internal class StorefrontRestClient(
     }
 
   /** Fallback when `/v1/me/storefront` is unavailable (mirrors iOS [StorefrontService]). */
-  private fun localeStorefrontId(): String {
+  fun localeStorefrontId(): String {
     val region = Locale.getDefault().country
     return if (region.isNotEmpty()) region.lowercase(Locale.US) else "us"
   }

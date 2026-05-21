@@ -47,55 +47,60 @@ function librarySearchTypeParam(type: string): string | null {
 export class LibraryRestClient {
   constructor(private readonly transport: AppleMusicRestTransport) {}
 
-  async getLibraryPlaylists(limit: number, offset: number) {
+  async getLibraryPlaylists(musicUserToken: string, limit: number, offset: number) {
     const json = await this.transport.getJson('/v1/me/library/playlists', {
       limit: String(limit),
       offset: String(offset),
-    });
+    }, musicUserToken);
     return mapTopLevelResourceArray(json.data, mapPlaylist);
   }
 
-  async getLibrarySongs(limit: number, offset: number) {
+  async getLibrarySongs(musicUserToken: string, limit: number, offset: number) {
     const json = await this.transport.getJson('/v1/me/library/songs', {
       limit: String(limit),
       offset: String(offset),
-    });
+    }, musicUserToken);
     return mapTopLevelResourceArray(json.data, mapSong);
   }
 
-  async getPlaylistTracks(playlistId: string) {
-    const json = await this.transport.getJson(`/v1/me/library/playlists/${playlistId}/tracks`);
+  async getPlaylistTracks(musicUserToken: string, playlistId: string) {
+    const json = await this.transport.getJson(
+      `/v1/me/library/playlists/${playlistId}/tracks`,
+      {},
+      musicUserToken,
+    );
     const data = parseDataArray(json.data);
     return data
       .filter((item) => String((item as AppleMusicApiResource).type ?? '').includes('song'))
       .map((item) => mapSong(item as AppleMusicApiResource));
   }
 
-  async getLibraryArtists(limit: number, offset: number) {
+  async getLibraryArtists(musicUserToken: string, limit: number, offset: number) {
     const json = await this.transport.getJson('/v1/me/library/artists', {
       limit: String(limit),
       offset: String(offset),
-    });
+    }, musicUserToken);
     return mapTopLevelResourceArray(json.data, mapArtist);
   }
 
-  async getLibraryAlbums(limit: number, offset: number) {
+  async getLibraryAlbums(musicUserToken: string, limit: number, offset: number) {
     const json = await this.transport.getJson('/v1/me/library/albums', {
       limit: String(limit),
       offset: String(offset),
-    });
+    }, musicUserToken);
     return mapTopLevelResourceArray(json.data, mapAlbum);
   }
 
-  async getLibraryMusicVideos(limit: number, offset: number) {
+  async getLibraryMusicVideos(musicUserToken: string, limit: number, offset: number) {
     const json = await this.transport.getJson('/v1/me/library/music-videos', {
       limit: String(limit),
       offset: String(offset),
-    });
+    }, musicUserToken);
     return mapTopLevelResourceArray(json.data, mapMusicVideo);
   }
 
   async searchLibrary(
+    musicUserToken: string,
     term: string,
     types: LibrarySearchType[],
     limit: number,
@@ -111,7 +116,7 @@ export class LibraryRestClient {
       types: typesQuery,
       limit: String(limit),
       offset: String(offset),
-    });
+    }, musicUserToken);
 
     const results = (json.results ?? {}) as Record<string, { data?: AppleMusicApiResource[] }>;
     return {
@@ -123,16 +128,16 @@ export class LibraryRestClient {
     };
   }
 
-  async probeLibraryAccess(): Promise<boolean> {
+  async probeLibraryAccess(musicUserToken: string): Promise<boolean> {
     try {
-      await this.transport.getJson('/v1/me/library/songs', { limit: '1' });
+      await this.transport.getJson('/v1/me/library/songs', { limit: '1' }, musicUserToken);
       return true;
     } catch {
       return false;
     }
   }
 
-  async resolveCatalogPlaybackId(libraryId: string, mediaType: string): Promise<string> {
+  async resolveCatalogPlaybackId(musicUserToken: string, libraryId: string, mediaType: string): Promise<string> {
     const path =
       mediaType === 'song'
         ? `/v1/me/library/songs/${libraryId}`
@@ -144,7 +149,7 @@ export class LibraryRestClient {
     if (!path) {
       throw errors.unknownMediaType(mediaType);
     }
-    const json = await this.transport.getJson(path);
+    const json = await this.transport.getJson(path, {}, musicUserToken);
     const rows = parseDataArray(json.data);
     const data = rows[0];
     if (!data) {
@@ -157,8 +162,12 @@ export class LibraryRestClient {
     return catalogId;
   }
 
-  async resolveLibrarySongCatalogIds(playlistId: string): Promise<string[]> {
-    const json = await this.transport.getJson(`/v1/me/library/playlists/${playlistId}/tracks`);
+  async resolveLibrarySongCatalogIds(musicUserToken: string, playlistId: string): Promise<string[]> {
+    const json = await this.transport.getJson(
+      `/v1/me/library/playlists/${playlistId}/tracks`,
+      {},
+      musicUserToken,
+    );
     const data = parseDataArray(json.data);
     const ids: string[] = [];
     for (const item of data) {

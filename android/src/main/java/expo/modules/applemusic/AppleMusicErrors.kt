@@ -3,6 +3,13 @@ package expo.modules.applemusic
 import expo.modules.kotlin.exception.CodedException
 
 internal object AppleMusicErrors {
+  fun missingMusicUserToken(): CodedException =
+    CodedException(
+      AppleMusicErrorCodes.MISSING_MUSIC_USER_TOKEN,
+      "Apple Music music user token is required. Pass the token from Auth.authorize() (store it in your app).",
+      null,
+    )
+
   fun missingTokens(): CodedException =
     CodedException(
       AppleMusicErrorCodes.PERMISSION_DENIED,

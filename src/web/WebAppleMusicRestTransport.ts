@@ -22,11 +22,12 @@ export class WebAppleMusicRestTransport implements AppleMusicRestTransport {
     path: string,
     query: Record<string, string> = {},
     body?: Record<string, unknown>,
+    musicUserToken?: string,
   ): Promise<MusicKitApiResponse> {
     await this.requireAuthorized();
     const music = await getMusic();
     try {
-      return await musicKitApiRequest(music, method, path, query, body);
+      return await musicKitApiRequest(music, method, path, query, body, musicUserToken);
     } catch (error) {
       const message = getErrorMessage(error);
       if (message.includes('403')) {
@@ -39,7 +40,8 @@ export class WebAppleMusicRestTransport implements AppleMusicRestTransport {
   async getJson(
     path: string,
     query: Record<string, string> = {},
+    musicUserToken?: string,
   ): Promise<MusicKitApiResponse> {
-    return this.request('GET', path, query);
+    return this.request('GET', path, query, undefined, musicUserToken);
   }
 }

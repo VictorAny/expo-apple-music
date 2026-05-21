@@ -3,13 +3,13 @@ import { BridgeResponses } from '../bridge-responses';
 
 export function createRecommendationsBridge(api: WebAppleMusicApiClient) {
   return {
-    async getRecommendations(ids: string[] | null) {
-      const recommendations = await api.getRecommendations(ids);
+    async getRecommendations(musicUserToken: string, ids: string[] | null) {
+      const recommendations = await api.getRecommendations(musicUserToken, ids);
       return BridgeResponses.recommendations(recommendations);
     },
 
-    async getReplay(year: number | null) {
-      const summaries = await api.getReplay(year);
+    async getReplay(musicUserToken: string, year: number | null) {
+      const summaries = await api.getReplay(musicUserToken, year);
       return BridgeResponses.replaySummaries(summaries);
     },
   };

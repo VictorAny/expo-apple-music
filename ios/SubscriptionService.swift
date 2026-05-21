@@ -34,15 +34,16 @@ final class SubscriptionService {
     }
   }
 
-  /// Persists a music user token when a developer JWT is available (REST header parity with Android).
-  func refreshMusicUserToken(developerToken: String) async {
-    guard !developerToken.isEmpty else { return }
-    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+  /// Fetches a music user token when a developer JWT is available (not persisted by the module).
+  func fetchMusicUserToken(developerToken: String) async -> String? {
+    guard !developerToken.isEmpty else { return nil }
+    return await withCheckedContinuation { continuation in
       SKCloudServiceController().requestUserToken(forDeveloperToken: developerToken) { token, _ in
         if let token, !token.isEmpty {
-          MusicKitAuthStorage.saveMusicUserToken(token)
+          continuation.resume(returning: token)
+        } else {
+          continuation.resume(returning: nil)
         }
-        continuation.resume()
       }
     }
   }

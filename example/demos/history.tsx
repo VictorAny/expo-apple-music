@@ -8,11 +8,13 @@ import { useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
 import { useApp } from "../context/AppContext";
 import { formatApiError } from "../lib/format-error";
+import { requireMusicToken } from "../lib/require-music-token";
+import { formatApiError as fe from "../lib/format-error";
 import { toDemoItems } from "../lib/demo-list";
 import { RunButton } from "./helpers";
 
 export function GetRecentlyPlayedResourcesDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [items, setItems] = useState<
     { id: string | number; title: string; type: string; subtitle: string }[]
   >([]);
@@ -43,7 +45,7 @@ export function GetRecentlyPlayedResourcesDemo() {
 }
 
 export function GetRecentlyPlayedTracksDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [songs, setSongs] = useState<Song[]>([]);
   return (
     <ApiScreen
@@ -72,7 +74,7 @@ export function GetRecentlyPlayedTracksDemo() {
 }
 
 export function GetHeavyRotationDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [items, setItems] = useState<RecentResource[]>([]);
   return (
     <ApiScreen
@@ -101,7 +103,7 @@ export function GetHeavyRotationDemo() {
 }
 
 export function GetRecentlyPlayedStationsDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [stations, setStations] = useState<Station[]>([]);
   return (
     <ApiScreen
@@ -130,7 +132,7 @@ export function GetRecentlyPlayedStationsDemo() {
 }
 
 export function GetRecentlyAddedDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [items, setItems] = useState<RecentResource[]>([]);
   return (
     <ApiScreen

@@ -27,12 +27,13 @@ export class WebAppleMusicApiClient {
     path: string,
     query: Record<string, string> = {},
     body?: Record<string, unknown>,
+    musicUserToken?: string,
   ) {
-    return this.stack.transport.request(method, path, query, body);
+    return this.stack.transport.request(method, path, query, body, musicUserToken);
   }
 
-  async getStorefront(): Promise<string> {
-    return this.stack.storefront.getStorefront();
+  async getStorefront(musicUserToken: string): Promise<string> {
+    return this.stack.storefront.getUserStorefront(musicUserToken);
   }
 
   async catalogSearch(term: string, types: string[], limit: number, offset: number) {
@@ -92,40 +93,41 @@ export class WebAppleMusicApiClient {
     );
   }
 
-  async getUserPlaylists(limit: number, offset: number) {
-    return this.library.getLibraryPlaylists(limit, offset);
+  async getUserPlaylists(musicUserToken: string, limit: number, offset: number) {
+    return this.library.getLibraryPlaylists(musicUserToken, limit, offset);
   }
 
-  async getLibrarySongs(limit: number, offset: number) {
-    return this.library.getLibrarySongs(limit, offset);
+  async getLibrarySongs(musicUserToken: string, limit: number, offset: number) {
+    return this.library.getLibrarySongs(musicUserToken, limit, offset);
   }
 
-  async getPlaylistTracks(playlistId: string) {
-    return this.library.getPlaylistTracks(playlistId);
+  async getPlaylistTracks(musicUserToken: string, playlistId: string) {
+    return this.library.getPlaylistTracks(musicUserToken, playlistId);
   }
 
-  async getRecentlyPlayed() {
-    return this.history.getRecentlyPlayed();
+  async getRecentlyPlayed(musicUserToken: string) {
+    return this.history.getRecentlyPlayed(musicUserToken);
   }
 
-  async getRecentlyPlayedTracks(limit: number) {
-    return this.history.getRecentlyPlayedTracks(limit);
+  async getRecentlyPlayedTracks(musicUserToken: string, limit: number) {
+    return this.history.getRecentlyPlayedTracks(musicUserToken, limit);
   }
 
-  async getLibraryArtists(limit: number, offset: number) {
-    return this.library.getLibraryArtists(limit, offset);
+  async getLibraryArtists(musicUserToken: string, limit: number, offset: number) {
+    return this.library.getLibraryArtists(musicUserToken, limit, offset);
   }
 
-  async getLibraryAlbums(limit: number, offset: number) {
-    return this.library.getLibraryAlbums(limit, offset);
+  async getLibraryAlbums(musicUserToken: string, limit: number, offset: number) {
+    return this.library.getLibraryAlbums(musicUserToken, limit, offset);
   }
 
-  async getLibraryMusicVideos(limit: number, offset: number) {
-    return this.library.getLibraryMusicVideos(limit, offset);
+  async getLibraryMusicVideos(musicUserToken: string, limit: number, offset: number) {
+    return this.library.getLibraryMusicVideos(musicUserToken, limit, offset);
   }
 
-  async librarySearch(term: string, types: string[], limit: number, offset: number) {
+  async librarySearch(musicUserToken: string, term: string, types: string[], limit: number, offset: number) {
     return this.library.searchLibrary(
+      musicUserToken,
       term,
       types as import('../types/library-search').LibrarySearchType[],
       limit,
@@ -133,72 +135,83 @@ export class WebAppleMusicApiClient {
     );
   }
 
-  async getHeavyRotation(limit: number) {
-    return this.history.getHeavyRotation(limit);
+  async getHeavyRotation(musicUserToken: string, limit: number) {
+    return this.history.getHeavyRotation(musicUserToken, limit);
   }
 
-  async getRecentlyPlayedStations(limit: number) {
-    return this.history.getRecentlyPlayedStations(limit);
+  async getRecentlyPlayedStations(musicUserToken: string, limit: number) {
+    return this.history.getRecentlyPlayedStations(musicUserToken, limit);
   }
 
-  async getRecentlyAdded(limit: number, offset: number) {
-    return this.history.getRecentlyAdded(limit, offset);
+  async getRecentlyAdded(musicUserToken: string, limit: number, offset: number) {
+    return this.history.getRecentlyAdded(musicUserToken, limit, offset);
   }
 
-  async probeLibraryAccess(): Promise<boolean> {
-    return this.library.probeLibraryAccess();
+  async probeLibraryAccess(musicUserToken: string): Promise<boolean> {
+    return this.library.probeLibraryAccess(musicUserToken);
   }
 
-  async resolveCatalogPlaybackId(libraryId: string, mediaType: string) {
-    return this.library.resolveCatalogPlaybackId(libraryId, mediaType);
+  async resolveCatalogPlaybackId(musicUserToken: string, libraryId: string, mediaType: string) {
+    return this.library.resolveCatalogPlaybackId(musicUserToken, libraryId, mediaType);
   }
 
-  async resolveLibrarySongCatalogIds(playlistId: string) {
-    return this.library.resolveLibrarySongCatalogIds(playlistId);
+  async resolveLibrarySongCatalogIds(musicUserToken: string, playlistId: string) {
+    return this.library.resolveLibrarySongCatalogIds(musicUserToken, playlistId);
   }
 
-  async getRating(resourceType: string, id: string) {
-    return this.ratings.getRating(resourceType, id);
+  async getRating(musicUserToken: string, resourceType: string, id: string) {
+    return this.ratings.getRating(musicUserToken, resourceType, id);
   }
 
-  async setRating(resourceType: string, id: string, value: number) {
-    return this.ratings.setRating(resourceType, id, value);
+  async setRating(musicUserToken: string, resourceType: string, id: string, value: number) {
+    return this.ratings.setRating(musicUserToken, resourceType, id, value);
   }
 
-  async clearRating(resourceType: string, id: string) {
-    return this.ratings.clearRating(resourceType, id);
+  async clearRating(musicUserToken: string, resourceType: string, id: string) {
+    return this.ratings.clearRating(musicUserToken, resourceType, id);
   }
 
-  async addToFavorites(resourceIds: Record<string, string[]>) {
-    return this.ratings.addToFavorites(resourceIds);
+  async addToFavorites(musicUserToken: string, resourceIds: Record<string, string[]>) {
+    return this.ratings.addToFavorites(musicUserToken, resourceIds);
   }
 
-  async removeFromFavorites(resourceIds: Record<string, string[]>) {
-    return this.ratings.removeFromFavorites(resourceIds);
+  async removeFromFavorites(musicUserToken: string, resourceIds: Record<string, string[]>) {
+    return this.ratings.removeFromFavorites(musicUserToken, resourceIds);
   }
 
-  async addToLibrary(resourceIds: Record<string, string[]>) {
-    return this.libraryMutations.addToLibrary(resourceIds);
+  async addToLibrary(musicUserToken: string, resourceIds: Record<string, string[]>) {
+    return this.libraryMutations.addToLibrary(musicUserToken, resourceIds);
   }
 
   async createLibraryPlaylist(
+    musicUserToken: string,
     name: string,
     description: string | null,
     isPublic: boolean,
     tracks: { id: string; type: string }[] | null,
   ) {
-    return this.libraryMutations.createLibraryPlaylist(name, description, isPublic, tracks);
+    return this.libraryMutations.createLibraryPlaylist(
+      musicUserToken,
+      name,
+      description,
+      isPublic,
+      tracks,
+    );
   }
 
-  async addTracksToLibraryPlaylist(playlistId: string, tracks: { id: string; type: string }[]) {
-    return this.libraryMutations.addTracksToLibraryPlaylist(playlistId, tracks);
+  async addTracksToLibraryPlaylist(
+    musicUserToken: string,
+    playlistId: string,
+    tracks: { id: string; type: string }[],
+  ) {
+    return this.libraryMutations.addTracksToLibraryPlaylist(musicUserToken, playlistId, tracks);
   }
 
-  async getRecommendations(ids: string[] | null) {
-    return this.recommendations.getRecommendations(ids);
+  async getRecommendations(musicUserToken: string, ids: string[] | null) {
+    return this.recommendations.getRecommendations(musicUserToken, ids);
   }
 
-  async getReplay(year: number | null) {
-    return this.recommendations.getReplay(year);
+  async getReplay(musicUserToken: string, year: number | null) {
+    return this.recommendations.getReplay(musicUserToken, year);
   }
 }

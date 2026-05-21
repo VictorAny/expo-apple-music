@@ -11,37 +11,44 @@ import { mapTopLevelResourceArray } from './rest-json';
 export class HistoryRestClient {
   constructor(private readonly transport: AppleMusicRestTransport) {}
 
-  async getRecentlyPlayed() {
-    const json = await this.transport.getJson('/v1/me/recent/played', { limit: '10' });
+  async getRecentlyPlayed(musicUserToken: string) {
+    const json = await this.transport.getJson('/v1/me/recent/played', { limit: '10' }, musicUserToken);
     return mapTopLevelResourceArray(json.data, mapRecentlyPlayed);
   }
 
-  async getRecentlyPlayedTracks(limit: number) {
-    const json = await this.transport.getJson('/v1/me/recent/played/tracks', {
-      limit: String(limit),
-    });
+  async getRecentlyPlayedTracks(musicUserToken: string, limit: number) {
+    const json = await this.transport.getJson(
+      '/v1/me/recent/played/tracks',
+      { limit: String(limit) },
+      musicUserToken,
+    );
     return mapTopLevelResourceArray(json.data, mapSong);
   }
 
-  async getHeavyRotation(limit: number) {
-    const json = await this.transport.getJson('/v1/me/history/heavy-rotation', {
-      limit: String(limit),
-    });
+  async getHeavyRotation(musicUserToken: string, limit: number) {
+    const json = await this.transport.getJson(
+      '/v1/me/history/heavy-rotation',
+      { limit: String(limit) },
+      musicUserToken,
+    );
     return mapTopLevelResourceArray(json.data, mapRecentResource);
   }
 
-  async getRecentlyPlayedStations(limit: number) {
-    const json = await this.transport.getJson('/v1/me/recent/radio-stations', {
-      limit: String(limit),
-    });
+  async getRecentlyPlayedStations(musicUserToken: string, limit: number) {
+    const json = await this.transport.getJson(
+      '/v1/me/recent/radio-stations',
+      { limit: String(limit) },
+      musicUserToken,
+    );
     return mapTopLevelResourceArray(json.data, mapStation);
   }
 
-  async getRecentlyAdded(limit: number, offset: number) {
-    const json = await this.transport.getJson('/v1/me/library/recently-added', {
-      limit: String(limit),
-      offset: String(offset),
-    });
+  async getRecentlyAdded(musicUserToken: string, limit: number, offset: number) {
+    const json = await this.transport.getJson(
+      '/v1/me/library/recently-added',
+      { limit: String(limit), offset: String(offset) },
+      musicUserToken,
+    );
     return mapTopLevelResourceArray(json.data, mapRecentResource);
   }
 }

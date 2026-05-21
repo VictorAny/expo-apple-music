@@ -6,15 +6,17 @@ import Foundation
 @available(iOS 16.0, *)
 final class LibraryMutationsService {
 
-  func addToLibrary(resourceIds: [String: [String]]) async throws {
+  func addToLibrary(musicUserToken: String, resourceIds: [String: [String]]) async throws {
     _ = try await AppleMusicRestClient.request(
       method: .post,
       path: "/v1/me/library",
+      musicUserToken: musicUserToken,
       query: RestJsonMapper.buildIdsQuery(resourceIds)
     )
   }
 
   func createPlaylist(
+    musicUserToken: String,
     name: String,
     description: String?,
     isPublic: Bool,
@@ -40,6 +42,7 @@ final class LibraryMutationsService {
     let json = try await AppleMusicRestClient.request(
       method: .post,
       path: "/v1/me/library/playlists",
+      musicUserToken: musicUserToken,
       body: payload
     )
     guard let data = json["data"] as? [[String: Any]], let first = data.first else {
@@ -48,13 +51,13 @@ final class LibraryMutationsService {
     return RestJsonMapper.mapPlaylist(first)
   }
 
-  func addTracksToPlaylist(playlistId: String, tracks: [[String: String]]) async throws {
+  func addTracksToPlaylist(musicUserToken: String, playlistId: String, tracks: [[String: String]]) async throws {
     let data = tracks.map { ["id": $0["id"] ?? "", "type": $0["type"] ?? ""] }
     _ = try await AppleMusicRestClient.request(
       method: .post,
       path: "/v1/me/library/playlists/\(playlistId)/tracks",
+      musicUserToken: musicUserToken,
       body: ["data": data]
     )
   }
 }
-

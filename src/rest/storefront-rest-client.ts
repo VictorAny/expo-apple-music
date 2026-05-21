@@ -13,6 +13,7 @@ export class StorefrontRestClient {
     private readonly resolveFromMusicKit?: StorefrontResolver,
   ) {}
 
+  /** Catalog storefront — MusicKit instance or locale fallback (no music user token). */
   async getStorefront(): Promise<string> {
     if (this.cachedStorefront) {
       return this.cachedStorefront;
@@ -24,7 +25,13 @@ export class StorefrontRestClient {
       return fromMusicKit;
     }
 
-    const json = await this.transport.getJson('/v1/me/storefront');
+    this.cachedStorefront = 'us';
+    return 'us';
+  }
+
+  /** User storefront from `/v1/me/storefront` (requires music user token). */
+  async getUserStorefront(musicUserToken: string): Promise<string> {
+    const json = await this.transport.getJson('/v1/me/storefront', {}, musicUserToken);
     const id = parseStorefrontId(json);
     if (!id) {
       throw errors.apiError('Storefront response missing id');

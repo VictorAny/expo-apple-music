@@ -41,18 +41,19 @@ public class ExpoAppleMusicModule: Module {
 
       // MARK: - Auth
 
-      AsyncFunction("authorization") { (developerToken: String?, _ startScreenMessage: String?, _ hideStartScreen: Bool?) -> String in
+      AsyncFunction("authorization") { (developerToken: String?, _ startScreenMessage: String?, _ hideStartScreen: Bool?) -> [String: Any?] in
         if let token = developerToken, !token.isEmpty {
           MusicKitAuthStorage.saveDeveloperToken(token)
         }
         let status = await self.subscriptionService.requestAuthorization()
+        var musicUserToken: String? = nil
         if status == .authorized, let token = developerToken, !token.isEmpty {
-          await self.subscriptionService.refreshMusicUserToken(developerToken: token)
+          musicUserToken = await self.subscriptionService.fetchMusicUserToken(developerToken: token)
         }
-        return status.rawValue
+        return ["status": status.rawValue, "musicUserToken": musicUserToken]
       }
 
-      AsyncFunction("checkSubscription") { () -> [String: Any] in
+      AsyncFunction("checkSubscription") { (musicUserToken: String) -> [String: Any] in
         do {
           let details = try await self.subscriptionService.checkSubscription()
           return details.toDictionary()
@@ -68,9 +69,9 @@ public class ExpoAppleMusicModule: Module {
         }
       }
 
-      AsyncFunction("getStorefront") { () -> [String: Any] in
+      AsyncFunction("getStorefront") { (musicUserToken: String) -> [String: Any] in
         try await AppleMusicBridgeError.rethrow {
-          let id = try await StorefrontService.getStorefrontId()
+          let id = try await StorefrontService.getStorefrontId(musicUserToken: musicUserToken)
           return BridgeResponses.storefront(id: id)
         }
       }
@@ -164,51 +165,58 @@ public class ExpoAppleMusicModule: Module {
 
       // MARK: - Library
 
-      AsyncFunction("getUserPlaylists") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getUserPlaylists") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeLibrary.getUserPlaylists(
           service: self.libraryService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
 
-      AsyncFunction("getLibrarySongs") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getLibrarySongs") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeLibrary.getLibrarySongs(
           service: self.libraryService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
 
-      AsyncFunction("getPlaylistSongs") { (playlistId: String, options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getPlaylistSongs") { (musicUserToken: String, playlistId: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeLibrary.getPlaylistSongs(
           service: self.libraryService,
+          musicUserToken: musicUserToken,
           playlistId: playlistId
         )
       }
 
-      AsyncFunction("getLibraryArtists") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getLibraryArtists") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeLibrary.getLibraryArtists(
           service: self.libraryService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
 
-      AsyncFunction("getLibraryAlbums") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getLibraryAlbums") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeLibrary.getLibraryAlbums(
           service: self.libraryService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
 
-      AsyncFunction("getLibraryMusicVideos") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getLibraryMusicVideos") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeLibrary.getLibraryMusicVideos(
           service: self.libraryService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
 
-      AsyncFunction("librarySearch") { (term: String, types: [String], options: [String: Any]) -> [String: Any] in
+      AsyncFunction("librarySearch") { (musicUserToken: String, term: String, types: [String], options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeLibrary.librarySearch(
           service: self.libraryService,
+          musicUserToken: musicUserToken,
           term: term,
           types: types,
           options: options as NSDictionary
@@ -217,34 +225,40 @@ public class ExpoAppleMusicModule: Module {
 
       // MARK: - History
 
-      AsyncFunction("getRecentlyPlayedResources") { () -> [String: Any] in
-        try await ExpoBridgeHistory.getRecentlyPlayedResources(service: self.historyService)
+      AsyncFunction("getRecentlyPlayedResources") { (musicUserToken: String) -> [String: Any] in
+        try await ExpoBridgeHistory.getRecentlyPlayedResources(
+          service: self.historyService,
+          musicUserToken: musicUserToken)
       }
 
-      AsyncFunction("getRecentlyPlayedTracks") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getRecentlyPlayedTracks") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeHistory.getRecentlyPlayedTracks(
           service: self.historyService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
 
-      AsyncFunction("getHeavyRotation") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getHeavyRotation") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeHistory.getHeavyRotation(
           service: self.historyService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
 
-      AsyncFunction("getRecentlyPlayedStations") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getRecentlyPlayedStations") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeHistory.getRecentlyPlayedStations(
           service: self.historyService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
 
-      AsyncFunction("getRecentlyAdded") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("getRecentlyAdded") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await ExpoBridgeHistory.getRecentlyAdded(
           service: self.historyService,
+          musicUserToken: musicUserToken,
           options: options as NSDictionary
         )
       }
@@ -336,16 +350,17 @@ public class ExpoAppleMusicModule: Module {
         return result
       }
 
-      AsyncFunction("playLibrarySong") { (songId: String) -> String in
+      AsyncFunction("playLibrarySong") { (musicUserToken: String, songId: String) -> String in
         try await AppleMusicBridgeError.rethrow {
-          try await self.queueService.playLibrarySong(songId: songId)
+          try await self.queueService.playLibrarySong(musicUserToken: musicUserToken, songId: songId)
           return "Library song added to queue"
         }
       }
 
-      AsyncFunction("playLibraryPlaylist") { (playlistId: String, startingAt: Int) -> String in
+      AsyncFunction("playLibraryPlaylist") { (musicUserToken: String, playlistId: String, startingAt: Int) -> String in
         try await AppleMusicBridgeError.rethrow {
           try await self.queueService.playLibraryPlaylist(
+            musicUserToken: musicUserToken,
             playlistId: playlistId,
             startingAt: startingAt
           )
@@ -355,51 +370,58 @@ public class ExpoAppleMusicModule: Module {
 
       // MARK: - Ratings
 
-      AsyncFunction("getRating") { (resourceType: String, id: String) -> [String: Any]? in
+      AsyncFunction("getRating") { (musicUserToken: String, resourceType: String, id: String) -> [String: Any]? in
         try await AppleMusicBridgeError.rethrow {
-          try await self.ratingsService.getRating(resourceType: resourceType, id: id)
+          try await self.ratingsService.getRating(
+            musicUserToken: musicUserToken, resourceType: resourceType, id: id)
         }
       }
 
-      AsyncFunction("setRating") { (resourceType: String, id: String, value: Int) -> [String: Any] in
+      AsyncFunction("setRating") { (musicUserToken: String, resourceType: String, id: String, value: Int) -> [String: Any] in
         try await AppleMusicBridgeError.rethrow {
-          try await self.ratingsService.setRating(resourceType: resourceType, id: id, value: value)
+          try await self.ratingsService.setRating(
+            musicUserToken: musicUserToken, resourceType: resourceType, id: id, value: value)
         }
       }
 
-      AsyncFunction("clearRating") { (resourceType: String, id: String) -> Void in
+      AsyncFunction("clearRating") { (musicUserToken: String, resourceType: String, id: String) -> Void in
         try await AppleMusicBridgeError.rethrow {
-          try await self.ratingsService.clearRating(resourceType: resourceType, id: id)
+          try await self.ratingsService.clearRating(
+            musicUserToken: musicUserToken, resourceType: resourceType, id: id)
         }
       }
 
-      AsyncFunction("addToFavorites") { (resourceIds: [String: [String]]) -> Void in
+      AsyncFunction("addToFavorites") { (musicUserToken: String, resourceIds: [String: [String]]) -> Void in
         try await AppleMusicBridgeError.rethrow {
-          try await self.ratingsService.addToFavorites(resourceIds: resourceIds)
+          try await self.ratingsService.addToFavorites(
+            musicUserToken: musicUserToken, resourceIds: resourceIds)
         }
       }
 
-      AsyncFunction("removeFromFavorites") { (resourceIds: [String: [String]]) -> Void in
+      AsyncFunction("removeFromFavorites") { (musicUserToken: String, resourceIds: [String: [String]]) -> Void in
         try await AppleMusicBridgeError.rethrow {
-          try await self.ratingsService.removeFromFavorites(resourceIds: resourceIds)
+          try await self.ratingsService.removeFromFavorites(
+            musicUserToken: musicUserToken, resourceIds: resourceIds)
         }
       }
 
       // MARK: - Library mutations
 
-      AsyncFunction("addToLibrary") { (resourceIds: [String: [String]]) -> Void in
+      AsyncFunction("addToLibrary") { (musicUserToken: String, resourceIds: [String: [String]]) -> Void in
         try await AppleMusicBridgeError.rethrow {
-          try await self.libraryMutationsService.addToLibrary(resourceIds: resourceIds)
+          try await self.libraryMutationsService.addToLibrary(
+            musicUserToken: musicUserToken, resourceIds: resourceIds)
         }
       }
 
-      AsyncFunction("createLibraryPlaylist") { (options: [String: Any]) -> [String: Any] in
+      AsyncFunction("createLibraryPlaylist") { (musicUserToken: String, options: [String: Any]) -> [String: Any] in
         try await AppleMusicBridgeError.rethrow {
           let name = options["name"] as? String ?? ""
           let description = options["description"] as? String
           let isPublic = options["isPublic"] as? Bool ?? false
           let tracks = options["tracks"] as? [[String: String]]
           return try await self.libraryMutationsService.createPlaylist(
+            musicUserToken: musicUserToken,
             name: name,
             description: description,
             isPublic: isPublic,
@@ -408,9 +430,10 @@ public class ExpoAppleMusicModule: Module {
         }
       }
 
-      AsyncFunction("addTracksToLibraryPlaylist") { (playlistId: String, tracks: [[String: String]]) -> Void in
+      AsyncFunction("addTracksToLibraryPlaylist") { (musicUserToken: String, playlistId: String, tracks: [[String: String]]) -> Void in
         try await AppleMusicBridgeError.rethrow {
           try await self.libraryMutationsService.addTracksToPlaylist(
+            musicUserToken: musicUserToken,
             playlistId: playlistId,
             tracks: tracks
           )
@@ -419,19 +442,21 @@ public class ExpoAppleMusicModule: Module {
 
       // MARK: - Recommendations
 
-      AsyncFunction("getRecommendations") { (ids: [String]?) -> [String: Any] in
+      AsyncFunction("getRecommendations") { (musicUserToken: String, ids: [String]?) -> [String: Any] in
         try await ExpoBridgeRecommendations.getRecommendations(
           service: self.recommendationsService,
+          musicUserToken: musicUserToken,
           ids: ids
         )
       }
 
-    AsyncFunction("getReplay") { (year: Int?) -> [String: Any] in
-      try await ExpoBridgeRecommendations.getReplay(
-        service: self.recommendationsService,
-        year: year
-      )
-    }
+      AsyncFunction("getReplay") { (musicUserToken: String, year: Int?) -> [String: Any] in
+        try await ExpoBridgeRecommendations.getReplay(
+          service: self.recommendationsService,
+          musicUserToken: musicUserToken,
+          year: year
+        )
+      }
   }
 
   private func emitPlaybackError(_ error: Error, operation: String) {

@@ -9,7 +9,16 @@ final class LibraryService {
 
   // MARK: - Options
 
-  func getArtists(options: BridgePagination) async throws -> [[String: Any]] {
+  func getArtists(musicUserToken: String, options: BridgePagination) async throws -> [[String: Any]] {
+    let data = try await AppleMusicRestClient.getDataArray(
+      path: "/v1/me/library/artists",
+      musicUserToken: musicUserToken,
+      query: ["limit": "\(options.limit)", "offset": "\(options.offset)"]
+    )
+    return data.map(RestJsonMapper.mapArtist)
+  }
+
+  private func getArtistsNative(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Artist>()
     request.limit = options.limit
     request.offset = options.offset
@@ -17,7 +26,16 @@ final class LibraryService {
     return response.items.map(MusicItemMapper.map)
   }
 
-  func getAlbums(options: BridgePagination) async throws -> [[String: Any]] {
+  func getAlbums(musicUserToken: String, options: BridgePagination) async throws -> [[String: Any]] {
+    let data = try await AppleMusicRestClient.getDataArray(
+      path: "/v1/me/library/albums",
+      musicUserToken: musicUserToken,
+      query: ["limit": "\(options.limit)", "offset": "\(options.offset)"]
+    )
+    return data.map(RestJsonMapper.mapAlbum)
+  }
+
+  private func getAlbumsNative(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Album>()
     request.limit = options.limit
     request.offset = options.offset
@@ -27,7 +45,16 @@ final class LibraryService {
 
   // MARK: - Playlists
 
-  func getPlaylists(options: BridgePagination) async throws -> [[String: Any]] {
+  func getPlaylists(musicUserToken: String, options: BridgePagination) async throws -> [[String: Any]] {
+    let data = try await AppleMusicRestClient.getDataArray(
+      path: "/v1/me/library/playlists",
+      musicUserToken: musicUserToken,
+      query: ["limit": "\(options.limit)", "offset": "\(options.offset)"]
+    )
+    return data.map(RestJsonMapper.mapPlaylist)
+  }
+
+  private func getPlaylistsNative(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Playlist>()
     request.limit = options.limit
     request.offset = options.offset
@@ -43,7 +70,21 @@ final class LibraryService {
     return playlists
   }
 
-  func getPlaylistSongs(playlistId: String) async throws -> [[String: Any]] {
+  func getPlaylistSongs(musicUserToken: String, playlistId: String) async throws -> [[String: Any]] {
+    let json = try await AppleMusicRestClient.get(
+      path: "/v1/me/library/playlists/\(playlistId)/tracks",
+      musicUserToken: musicUserToken
+    )
+    guard let data = json["data"] as? [[String: Any]] else {
+      throw LibraryServiceError.playlistNotFound
+    }
+    return data.compactMap { row -> [String: Any]? in
+      guard let type = row["type"] as? String, type.contains("song") else { return nil }
+      return RestJsonMapper.mapSong(row)
+    }
+  }
+
+  private func getPlaylistSongsNative(playlistId: String) async throws -> [[String: Any]] {
     let musicItemId = MusicItemID(playlistId)
 
     var request = MusicLibraryRequest<Playlist>()
@@ -69,7 +110,16 @@ final class LibraryService {
 
   // MARK: - Songs
 
-  func getSongs(options: BridgePagination) async throws -> [[String: Any]] {
+  func getSongs(musicUserToken: String, options: BridgePagination) async throws -> [[String: Any]] {
+    let data = try await AppleMusicRestClient.getDataArray(
+      path: "/v1/me/library/songs",
+      musicUserToken: musicUserToken,
+      query: ["limit": "\(options.limit)", "offset": "\(options.offset)"]
+    )
+    return data.map(RestJsonMapper.mapSong)
+  }
+
+  private func getSongsNative(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<Song>()
     request.limit = options.limit
     request.offset = options.offset
@@ -78,7 +128,16 @@ final class LibraryService {
     return response.items.map(MusicItemMapper.map)
   }
 
-  func getMusicVideos(options: BridgePagination) async throws -> [[String: Any]] {
+  func getMusicVideos(musicUserToken: String, options: BridgePagination) async throws -> [[String: Any]] {
+    let data = try await AppleMusicRestClient.getDataArray(
+      path: "/v1/me/library/music-videos",
+      musicUserToken: musicUserToken,
+      query: ["limit": "\(options.limit)", "offset": "\(options.offset)"]
+    )
+    return data.map(RestJsonMapper.mapMusicVideo)
+  }
+
+  private func getMusicVideosNative(options: BridgePagination) async throws -> [[String: Any]] {
     var request = MusicLibraryRequest<MusicVideo>()
     request.limit = options.limit
     request.offset = options.offset
@@ -94,9 +153,13 @@ final class LibraryService {
     let musicVideos: [[String: Any]]
   }
 
-  func search(term: String, types: [String], options: BridgePagination) async throws -> LibrarySearchResult {
+  func search(musicUserToken: String, term: String, types: [String], options: BridgePagination) async throws -> LibrarySearchResult {
+    return try await searchViaRest(musicUserToken: musicUserToken, term: term, types: types, options: options)
+  }
+
+  private func searchNative(term: String, types: [String], options: BridgePagination) async throws -> LibrarySearchResult {
     if options.offset > 0 {
-      return try await searchViaRest(term: term, types: types, options: options)
+      return try await searchViaRest(musicUserToken: "", term: term, types: types, options: options)
     }
 
     let searchTypes = types.compactMap { Self.librarySearchableType($0) }
@@ -122,6 +185,7 @@ final class LibraryService {
 
   /// MusicKit `MusicLibrarySearchRequest` has no `offset`; REST matches Android pagination.
   private func searchViaRest(
+    musicUserToken: String,
     term: String,
     types: [String],
     options: BridgePagination
@@ -132,6 +196,7 @@ final class LibraryService {
 
     let json = try await AppleMusicRestClient.get(
       path: "/v1/me/library/search",
+      musicUserToken: musicUserToken,
       query: [
         "term": term,
         "types": typesQuery,

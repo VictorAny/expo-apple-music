@@ -7,17 +7,18 @@ internal class AndroidHistoryService(
 ) {
   constructor(context: Context) : this(AppleMusicRestStack.create(context).history)
 
-  suspend fun getRecentlyPlayedResources(): List<Map<String, Any?>> = history.getRecentlyPlayed()
+  suspend fun getRecentlyPlayedResources(musicUserToken: String): List<Map<String, Any?>> =
+    history.getRecentlyPlayed(musicUserToken)
 
-  suspend fun getRecentlyPlayedTracks(options: PaginationOptions): List<Map<String, Any?>> =
-    history.getRecentlyPlayedTracks(options.limit)
+  suspend fun getRecentlyPlayedTracks(musicUserToken: String, options: PaginationOptions): List<Map<String, Any?>> =
+    history.getRecentlyPlayedTracks(musicUserToken, options.limit)
 
-  suspend fun getHeavyRotation(options: PaginationOptions): List<Map<String, Any?>> =
-    history.getHeavyRotation(options.limit)
+  suspend fun getHeavyRotation(musicUserToken: String, options: PaginationOptions): List<Map<String, Any?>> =
+    history.getHeavyRotation(musicUserToken, options.limit)
 
-  suspend fun getRecentlyPlayedStations(options: PaginationOptions): List<Map<String, Any?>> =
-    history.getRecentlyPlayedStations(options.limit)
+  suspend fun getRecentlyPlayedStations(musicUserToken: String, options: PaginationOptions): List<Map<String, Any?>> =
+    history.getRecentlyPlayedStations(musicUserToken, options.limit)
 
-  suspend fun getRecentlyAdded(options: PaginationOptions): List<Map<String, Any?>> =
-    history.getRecentlyAdded(options.limit, options.offset)
+  suspend fun getRecentlyAdded(musicUserToken: String, options: PaginationOptions): List<Map<String, Any?>> =
+    history.getRecentlyAdded(musicUserToken, options.limit, options.offset)
 }

@@ -16,6 +16,8 @@ export * from './types/album';
 
 export * from './types/auth-status';
 
+export type { AuthorizeResult } from './types/authorize-result';
+
 export type { AndroidAuthorizeOptions } from './types/android-authorize-options';
 
 export * from './types/check-subscription';

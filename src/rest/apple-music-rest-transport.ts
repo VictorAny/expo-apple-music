@@ -9,7 +9,12 @@ export interface AppleMusicRestTransport {
     path: string,
     query?: Record<string, string>,
     body?: Record<string, unknown>,
+    musicUserToken?: string,
   ): Promise<MusicKitApiResponse>;
 
-  getJson(path: string, query?: Record<string, string>): Promise<MusicKitApiResponse>;
+  getJson(
+    path: string,
+    query?: Record<string, string>,
+    musicUserToken?: string,
+  ): Promise<MusicKitApiResponse>;
 }

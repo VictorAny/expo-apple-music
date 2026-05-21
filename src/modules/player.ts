@@ -1,6 +1,7 @@
 import type { EventSubscription } from 'expo-modules-core';
 import { callNative } from '../api/call-native';
 import { assertLibraryId } from '../api/library-ids';
+import { requireMusicUserToken } from '../api/require-music-user-token';
 import type { MusicItem } from '../types/music-item';
 import type { PlaybackState } from '../types/playback-state';
 import type { Song } from '../types/song';
@@ -41,17 +42,23 @@ class Player {
     });
   }
 
-  public static async playLibrarySong(songId: string): Promise<void> {
+  public static async playLibrarySong(musicUserToken: string, songId: string): Promise<void> {
+    requireMusicUserToken(musicUserToken, 'Player.playLibrarySong');
     assertLibraryId(songId, 'songId');
     await callNative('Player.playLibrarySong', async () => {
-      await MusicModule.playLibrarySong(songId);
+      await MusicModule.playLibrarySong(musicUserToken, songId);
     });
   }
 
-  public static async playLibraryPlaylist(playlistId: string, startingAt = -1): Promise<void> {
+  public static async playLibraryPlaylist(
+    musicUserToken: string,
+    playlistId: string,
+    startingAt = -1,
+  ): Promise<void> {
+    requireMusicUserToken(musicUserToken, 'Player.playLibraryPlaylist');
     assertLibraryId(playlistId, 'playlistId');
     await callNative('Player.playLibraryPlaylist', async () => {
-      await MusicModule.playLibraryPlaylist(playlistId, startingAt);
+      await MusicModule.playLibraryPlaylist(musicUserToken, playlistId, startingAt);
     });
   }
 

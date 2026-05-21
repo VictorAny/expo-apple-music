@@ -1,4 +1,5 @@
 import { configureMusicKit } from '../../web/MusicKitLoader';
+import { extractMusicUserToken } from '../../web/extract-music-user-token';
 import { authStatusFromAuthorizeError, authStatusFromMusicKit } from '../../web/map-auth-status';
 import * as errors from '../../web/apple-music-errors';
 import type { WebAppleMusicApiClient } from '../../web/WebAppleMusicApiClient';
@@ -18,24 +19,31 @@ export function createAuthBridge(api: WebAppleMusicApiClient, subscription: WebS
       developerToken: string | null,
       _startScreenMessage: string | null,
       _hideStartScreen: boolean | null,
-    ): Promise<string> {
+    ): Promise<Record<string, string | undefined>> {
       const token = requireDeveloperToken(developerToken);
       const music = await configureMusicKit(token);
       if (music.isAuthorized) {
-        return 'authorized';
+        return {
+          status: 'authorized',
+          musicUserToken: extractMusicUserToken(music),
+        };
       }
       try {
         const result = await music.authorize();
-        return authStatusFromMusicKit(music, result);
+        const status = authStatusFromMusicKit(music, result);
+        return {
+          status,
+          musicUserToken: status === 'authorized' ? extractMusicUserToken(music, result) : undefined,
+        };
       } catch (error) {
-        return authStatusFromAuthorizeError(error);
+        return { status: authStatusFromAuthorizeError(error) };
       }
     },
 
-    checkSubscription: () => subscription.checkSubscription(),
+    checkSubscription: (musicUserToken: string) => subscription.checkSubscription(musicUserToken),
 
-    async getStorefront() {
-      const id = await api.getStorefront();
+    async getStorefront(musicUserToken: string) {
+      const id = await api.getStorefront(musicUserToken);
       return BridgeResponses.storefront(id);
     },
   };

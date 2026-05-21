@@ -36,6 +36,7 @@ internal class CatalogRestClient(
 
       val json =
         transport.getJson(
+          null,
           "/v1/catalog/$storefrontId/search",
           mapOf(
             "term" to term,
@@ -101,6 +102,7 @@ internal class CatalogRestClient(
       val storefrontId = storefront.getStorefront()
       val json =
         transport.getJson(
+          null,
           "/v1/catalog/$storefrontId/$type",
           mapOf("ids" to trimmed.joinToString(",")),
         )
@@ -203,7 +205,9 @@ internal class CatalogRestClient(
           chart?.takeIf { it.isNotBlank() }?.let { put("chart", it) }
         }
 
-      val json = transport.getJson("/v1/catalog/$storefrontId/charts", query)
+      val json = transport.getJson(
+          null,
+          "/v1/catalog/$storefrontId/charts", query)
       val results = json.optJSONObject("results") ?: JSONObject()
       CatalogChartsResult(
         songs = parseChartsEntries(results, "songs", "song", AppleMusicJsonMapper::mapSong),
@@ -225,6 +229,7 @@ internal class CatalogRestClient(
       val storefrontId = storefront.getStorefront()
       val json =
         transport.getJson(
+          null,
           "/v1/catalog/$storefrontId$pathSuffix",
           mapOf(
             "limit" to limit.toString(),
@@ -248,7 +253,9 @@ internal class CatalogRestClient(
   ): Map<String, Any?> =
     withContext(Dispatchers.IO) {
       val storefrontId = storefront.getStorefront()
-      val json = transport.getJson("/v1/catalog/$storefrontId$pathSuffix")
+      val json = transport.getJson(
+          null,
+          "/v1/catalog/$storefrontId$pathSuffix")
       val data = requireDataArray(json)
       if (data.length() == 0) {
         throw AppleMusicErrors.itemNotFound("Catalog item", false)

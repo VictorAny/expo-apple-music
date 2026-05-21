@@ -12,6 +12,7 @@ export const AppleMusicErrorCode = {
   permissionDenied: 'permissionDenied',
   /** `Auth.authorize()` on Android/web without a developer JWT. */
   missingDeveloperToken: 'MISSING_DEVELOPER_TOKEN',
+  missingMusicUserToken: 'MISSING_MUSIC_USER_TOKEN',
   /** `Library` / `Player` called with a catalog id instead of `i.` / `l.` / `p.`. */
   invalidLibraryId: 'INVALID_LIBRARY_ID',
   /** Native playback queue / transport failure (Android; iOS playback events). */

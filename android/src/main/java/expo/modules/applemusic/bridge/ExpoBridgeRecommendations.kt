@@ -8,11 +8,11 @@ import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 internal fun ModuleDefinitionBuilder.registerRecommendationsBridge(
   recommendationsService: () -> AndroidRecommendationsService,
 ) {
-  AsyncFunction("getRecommendations") Coroutine { ids: List<String>? ->
-    BridgeResponses.recommendations(recommendationsService().getRecommendations(ids))
+  AsyncFunction("getRecommendations") Coroutine { musicUserToken: String, ids: List<String>? ->
+    BridgeResponses.recommendations(recommendationsService().getRecommendations(musicUserToken, ids))
   }
 
-  AsyncFunction("getReplay") Coroutine { year: Int? ->
-    BridgeResponses.replaySummaries(recommendationsService().getReplay(year))
+  AsyncFunction("getReplay") Coroutine { musicUserToken: String, year: Int? ->
+    BridgeResponses.replaySummaries(recommendationsService().getReplay(musicUserToken, year))
   }
 }

@@ -1,5 +1,6 @@
 import { callNative } from '../api/call-native';
 import { paginationBridgePayload } from '../api/pagination';
+import { requireMusicUserToken } from '../api/require-music-user-token';
 import type { PaginationOptions } from '../types/pagination';
 import type { RecentResourcesResponse } from '../types/recent-resource';
 import type { Song } from '../types/song';
@@ -12,45 +13,62 @@ export interface RecentlyPlayedTracksResponse {
 }
 
 class History {
-  /** Recently played albums, playlists, and stations (mixed containers). */
-  public static async getRecentlyPlayedResources(): Promise<TracksFromLibrary> {
+  public static async getRecentlyPlayedResources(musicUserToken: string): Promise<TracksFromLibrary> {
+    requireMusicUserToken(musicUserToken, 'History.getRecentlyPlayedResources');
     return callNative('History.getRecentlyPlayedResources', async () =>
-      (await MusicModule.getRecentlyPlayedResources()) as TracksFromLibrary,
+      (await MusicModule.getRecentlyPlayedResources(musicUserToken)) as TracksFromLibrary,
     );
   }
 
-  /** Recently played songs — use for listening history / artist inference. */
   public static async getRecentlyPlayedTracks(
+    musicUserToken: string,
     options?: PaginationOptions,
   ): Promise<RecentlyPlayedTracksResponse> {
+    requireMusicUserToken(musicUserToken, 'History.getRecentlyPlayedTracks');
     return callNative('History.getRecentlyPlayedTracks', async () =>
-      (await MusicModule.getRecentlyPlayedTracks(paginationBridgePayload(options))) as RecentlyPlayedTracksResponse,
+      (await MusicModule.getRecentlyPlayedTracks(
+        musicUserToken,
+        paginationBridgePayload(options),
+      )) as RecentlyPlayedTracksResponse,
     );
   }
 
-  /** Resources the user plays most often (API may return an empty list). */
   public static async getHeavyRotation(
+    musicUserToken: string,
     options?: PaginationOptions,
   ): Promise<RecentResourcesResponse> {
+    requireMusicUserToken(musicUserToken, 'History.getHeavyRotation');
     return callNative('History.getHeavyRotation', async () =>
-      (await MusicModule.getHeavyRotation(paginationBridgePayload(options))) as RecentResourcesResponse,
+      (await MusicModule.getHeavyRotation(
+        musicUserToken,
+        paginationBridgePayload(options),
+      )) as RecentResourcesResponse,
     );
   }
 
   public static async getRecentlyPlayedStations(
+    musicUserToken: string,
     options?: PaginationOptions,
   ): Promise<StationsResponse> {
+    requireMusicUserToken(musicUserToken, 'History.getRecentlyPlayedStations');
     return callNative('History.getRecentlyPlayedStations', async () =>
-      (await MusicModule.getRecentlyPlayedStations(paginationBridgePayload(options))) as StationsResponse,
+      (await MusicModule.getRecentlyPlayedStations(
+        musicUserToken,
+        paginationBridgePayload(options),
+      )) as StationsResponse,
     );
   }
 
-  /** Albums and playlists recently added to the user's library. */
   public static async getRecentlyAdded(
+    musicUserToken: string,
     options?: PaginationOptions,
   ): Promise<RecentResourcesResponse> {
+    requireMusicUserToken(musicUserToken, 'History.getRecentlyAdded');
     return callNative('History.getRecentlyAdded', async () =>
-      (await MusicModule.getRecentlyAdded(paginationBridgePayload(options))) as RecentResourcesResponse,
+      (await MusicModule.getRecentlyAdded(
+        musicUserToken,
+        paginationBridgePayload(options),
+      )) as RecentResourcesResponse,
     );
   }
 }

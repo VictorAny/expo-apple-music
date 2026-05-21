@@ -1,6 +1,8 @@
 import { callNative } from '../api/call-native';
-import type { AuthStatus } from '../types/auth-status';
+import { parseAuthorizeResult } from '../api/parse-authorize-result';
+import { requireMusicUserToken } from '../api/require-music-user-token';
 import type { AndroidAuthorizeOptions } from '../types/android-authorize-options';
+import type { AuthorizeResult } from '../types/authorize-result';
 import type { CheckSubscription } from '../types/check-subscription';
 import type { Storefront } from '../types/storefront';
 import { MusicModule } from '../native-module';
@@ -14,52 +16,37 @@ class Auth {
   /**
    * Requests authorization to access the user's Apple Music account.
    *
-   * **iOS** — Shows the system media-library permission dialog. The `developerToken` and
-   * `options` arguments are ignored. Requires MusicKit on your App ID and
-   * `NSAppleMusicUsageDescription` from the config plugin.
-   *
-   * **Android** — Requires a MusicKit **developer JWT** as `developerToken`. Opens the MusicKit
-   * auth flow (optional upsell → Apple Music app).
-   * Requires the Apple Music app installed and the user signed in with a subscription in most cases.
-   *
-   * **Web** — Requires a developer JWT (same as Android). Uses MusicKit JS authorize UI in the browser.
-   *
-   * @param developerToken - Android and web. Signed JWT from your backend or Apple Developer tooling.
-   * @param options - Android only. Upsell screen (`hideStartScreen`, `startScreenMessage`).
-   * @returns {@link AuthStatus} — `authorized` | `denied` | `notDetermined` | `restricted` | `unknown`
+   * Returns `musicUserToken` when `status` is `authorized` — store it in your app (e.g. Zustand).
+   * The native module does not persist the music user token.
    *
    * @throws On Android and web, rejects with `MISSING_DEVELOPER_TOKEN` when no developer JWT is provided.
    */
   public static async authorize(
     developerToken?: string,
     options?: AndroidAuthorizeOptions,
-  ): Promise<AuthStatus> {
+  ): Promise<AuthorizeResult> {
     return callNative('Auth.authorize', async () => {
-      const status = await MusicModule.authorization(
+      const raw = await MusicModule.authorization(
         developerToken ?? null,
         options?.startScreenMessage ?? null,
         options?.hideStartScreen ?? false,
       );
-      return status as AuthStatus;
+      return parseAuthorizeResult(raw);
     });
   }
 
-  /**
-   * Checks subscription capabilities via `MusicSubscription.current`.
-   *
-   * **iOS** — Uses `MusicSubscription.current`. **Android and web** — best-effort inference from library access.
-   *
-   * Call after `authorize()` returns `authorized` to see if the user can play catalog content.
-   */
-  public static async checkSubscription(): Promise<CheckSubscription> {
+  public static async checkSubscription(musicUserToken: string): Promise<CheckSubscription> {
+    requireMusicUserToken(musicUserToken, 'Auth.checkSubscription');
     return callNative('Auth.checkSubscription', async () =>
-      (await MusicModule.checkSubscription()) as CheckSubscription,
+      (await MusicModule.checkSubscription(musicUserToken)) as CheckSubscription,
     );
   }
 
-  /** User's Apple Music storefront country code (e.g. `us`). Requires prior authorization. */
-  public static async getStorefront(): Promise<Storefront> {
-    return callNative('Auth.getStorefront', async () => (await MusicModule.getStorefront()) as Storefront);
+  public static async getStorefront(musicUserToken: string): Promise<Storefront> {
+    requireMusicUserToken(musicUserToken, 'Auth.getStorefront');
+    return callNative('Auth.getStorefront', async () =>
+      (await MusicModule.getStorefront(musicUserToken)) as Storefront,
+    );
   }
 }
 

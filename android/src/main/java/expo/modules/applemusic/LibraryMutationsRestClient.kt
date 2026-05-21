@@ -9,16 +9,18 @@ import org.json.JSONObject
 internal class LibraryMutationsRestClient(
   private val transport: AppleMusicRestTransport,
 ) {
-  suspend fun addToLibrary(resourceIds: Map<String, List<String>>): Unit =
+  suspend fun addToLibrary(musicUserToken: String, resourceIds: Map<String, List<String>>): Unit =
     withContext(Dispatchers.IO) {
       transport.request(
-        AppleMusicHttpMethod.POST,
+          musicUserToken,
+          AppleMusicHttpMethod.POST,
         "/v1/me/library",
         query = buildIdsQuery(resourceIds),
       )
     }
 
   suspend fun createLibraryPlaylist(
+    musicUserToken: String,
     name: String,
     description: String?,
     isPublic: Boolean,
@@ -57,6 +59,7 @@ internal class LibraryMutationsRestClient(
 
       val json =
         transport.request(
+          musicUserToken,
           AppleMusicHttpMethod.POST,
           "/v1/me/library/playlists",
           body = payload,
@@ -69,6 +72,7 @@ internal class LibraryMutationsRestClient(
     }
 
   suspend fun addTracksToLibraryPlaylist(
+    musicUserToken: String,
     playlistId: String,
     tracks: List<Map<String, String>>,
   ): Unit =
@@ -82,7 +86,8 @@ internal class LibraryMutationsRestClient(
         )
       }
       transport.request(
-        AppleMusicHttpMethod.POST,
+          musicUserToken,
+          AppleMusicHttpMethod.POST,
         "/v1/me/library/playlists/$playlistId/tracks",
         body = JSONObject().put("data", trackData),
       )

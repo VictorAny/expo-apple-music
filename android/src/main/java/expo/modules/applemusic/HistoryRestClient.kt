@@ -7,46 +7,51 @@ import kotlinx.coroutines.withContext
 internal class HistoryRestClient(
   private val transport: AppleMusicRestTransport,
 ) {
-  suspend fun getRecentlyPlayed(): List<Map<String, Any?>> =
+  suspend fun getRecentlyPlayed(musicUserToken: String): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
-      val json = transport.getJson("/v1/me/recent/played", mapOf("limit" to "10"))
+      val json =
+        transport.getJson(musicUserToken, "/v1/me/recent/played", mapOf("limit" to "10"))
       mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapRecentlyPlayed(it) }
     }
 
-  suspend fun getRecentlyPlayedTracks(limit: Int): List<Map<String, Any?>> =
+  suspend fun getRecentlyPlayedTracks(musicUserToken: String, limit: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/recent/played/tracks",
           mapOf("limit" to limit.toString()),
         )
       mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapSong(it) }
     }
 
-  suspend fun getHeavyRotation(limit: Int): List<Map<String, Any?>> =
+  suspend fun getHeavyRotation(musicUserToken: String, limit: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/history/heavy-rotation",
           mapOf("limit" to limit.toString()),
         )
       mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapRecentResource(it) }
     }
 
-  suspend fun getRecentlyPlayedStations(limit: Int): List<Map<String, Any?>> =
+  suspend fun getRecentlyPlayedStations(musicUserToken: String, limit: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/recent/radio-stations",
           mapOf("limit" to limit.toString()),
         )
       mapTopLevelResourceArray(json) { AppleMusicJsonMapper.mapStation(it) }
     }
 
-  suspend fun getRecentlyAdded(limit: Int, offset: Int): List<Map<String, Any?>> =
+  suspend fun getRecentlyAdded(musicUserToken: String, limit: Int, offset: Int): List<Map<String, Any?>> =
     withContext(Dispatchers.IO) {
       val json =
         transport.getJson(
+          musicUserToken,
           "/v1/me/library/recently-added",
           mapOf("limit" to limit.toString(), "offset" to offset.toString()),
         )

@@ -1,5 +1,7 @@
 import { Recommendations } from "@wwdrew/expo-apple-music";
 import { formatApiError } from "../lib/format-error";
+import { requireMusicToken } from "../lib/require-music-token";
+import { formatApiError as fe from "../lib/format-error";
 import { useState } from "react";
 import { ApiScreen } from "../components/ApiScreen";
 import { useApp } from "../context/AppContext";
@@ -7,7 +9,7 @@ import { toDemoItems } from "../lib/demo-list";
 import { RunButton } from "./helpers";
 
 export function GetRecommendationsDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [titles, setTitles] = useState<string[]>([]);
   return (
     <ApiScreen
@@ -36,7 +38,7 @@ export function GetRecommendationsDemo() {
 }
 
 export function GetReplayDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   return (
     <ApiScreen
       hint="Omit year for Apple's latest eligible Replay year. May 404 if the account has insufficient listening history."

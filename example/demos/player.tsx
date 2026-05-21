@@ -1,5 +1,6 @@
 import { MusicItem, Player } from "@wwdrew/expo-apple-music";
 import { formatApiError } from "../lib/format-error";
+import { requireMusicToken } from "../lib/require-music-token";
 import { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { ApiScreen } from "../components/ApiScreen";
@@ -87,7 +88,7 @@ export function SetQueueDemo() {
 }
 
 export function PlayLibrarySongDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [songId, setSongId] = useState("");
   return (
     <ApiScreen
@@ -100,7 +101,8 @@ export function PlayLibrarySongDemo() {
           title="Run playLibrarySong(songId)"
           disabled={!songId.trim()}
           onPress={() => {
-            void Player.playLibrarySong(songId.trim())
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Player.playLibrarySong(musicUserToken, songId.trim())
               .then(() => appendLog(`playing library song ${songId.trim()}`))
               .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
@@ -111,7 +113,7 @@ export function PlayLibrarySongDemo() {
 }
 
 export function PlayLibraryPlaylistDemo() {
-  const { appendLog, lastPlaylistId } = useApp();
+  const { musicUserToken, appendLog, lastPlaylistId } = useApp();
   const [playlistId, setPlaylistId] = useState(lastPlaylistId ?? "");
   useEffect(() => {
     if (!playlistId && lastPlaylistId) setPlaylistId(lastPlaylistId);
@@ -132,7 +134,8 @@ export function PlayLibraryPlaylistDemo() {
           title="Run playLibraryPlaylist(playlistId)"
           disabled={!playlistId.trim()}
           onPress={() => {
-            void Player.playLibraryPlaylist(playlistId.trim())
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Player.playLibraryPlaylist(musicUserToken, playlistId.trim())
               .then(() => appendLog(`playing playlist ${playlistId.trim()}`))
               .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}

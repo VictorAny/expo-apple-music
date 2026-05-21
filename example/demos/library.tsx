@@ -5,10 +5,11 @@ import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
 import { toDemoItems } from "../lib/demo-list";
 import { formatApiError } from "../lib/format-error";
+import { requireMusicToken } from "../lib/require-music-token";
 import { RunButton } from "./helpers";
 
 export function GetPlaylistsDemo() {
-  const { appendLog, setLastPlaylistId } = useApp();
+  const { musicUserToken, appendLog, setLastPlaylistId } = useApp();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   return (
     <ApiScreen
@@ -16,7 +17,8 @@ export function GetPlaylistsDemo() {
         <RunButton
           title="Run getPlaylists()"
           onPress={() => {
-            void Library.getPlaylists({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Library.getPlaylists(musicUserToken, { limit: 10 })
               .then((r) => {
                 setPlaylists(r.playlists);
                 if (r.playlists[0]) setLastPlaylistId(r.playlists[0].id);
@@ -39,7 +41,7 @@ export function GetPlaylistsDemo() {
 }
 
 export function GetSongsDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [songs, setSongs] = useState<Song[]>([]);
   return (
     <ApiScreen
@@ -47,7 +49,8 @@ export function GetSongsDemo() {
         <RunButton
           title="Run getSongs()"
           onPress={() => {
-            void Library.getSongs({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Library.getSongs(musicUserToken, { limit: 10 })
               .then((r) => {
                 setSongs(r.songs);
                 appendLog(`${r.songs.length} library song(s)`);
@@ -69,7 +72,7 @@ export function GetSongsDemo() {
 }
 
 export function GetPlaylistTracksDemo() {
-  const { appendLog, lastPlaylistId } = useApp();
+  const { musicUserToken, appendLog, lastPlaylistId } = useApp();
   const [playlistId, setPlaylistId] = useState(lastPlaylistId ?? "");
   const [tracks, setTracks] = useState<Song[]>([]);
   useEffect(() => {
@@ -91,7 +94,8 @@ export function GetPlaylistTracksDemo() {
           title="Run getPlaylistTracks(playlistId)"
           disabled={!playlistId.trim()}
           onPress={() => {
-            void Library.getPlaylistTracks(playlistId.trim(), { limit: 25 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Library.getPlaylistTracks(musicUserToken, playlistId.trim(), { limit: 25 })
               .then((r) => {
                 setTracks(r.songs);
                 appendLog(`${r.songs.length} track(s)`);
@@ -112,7 +116,7 @@ export function GetPlaylistTracksDemo() {
 }
 
 export function GetArtistsDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [artists, setArtists] = useState<Artist[]>([]);
   return (
     <ApiScreen
@@ -120,7 +124,8 @@ export function GetArtistsDemo() {
         <RunButton
           title="Run getArtists()"
           onPress={() => {
-            void Library.getArtists({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Library.getArtists(musicUserToken, { limit: 10 })
               .then((r) => {
                 setArtists(r.artists);
                 appendLog(`${r.artists.length} library artist(s)`);
@@ -141,7 +146,7 @@ export function GetArtistsDemo() {
 }
 
 export function GetAlbumsDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const [albums, setAlbums] = useState<Album[]>([]);
   return (
     <ApiScreen
@@ -149,7 +154,8 @@ export function GetAlbumsDemo() {
         <RunButton
           title="Run getAlbums()"
           onPress={() => {
-            void Library.getAlbums({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Library.getAlbums(musicUserToken, { limit: 10 })
               .then((r) => {
                 setAlbums(r.albums);
                 appendLog(`${r.albums.length} library album(s)`);

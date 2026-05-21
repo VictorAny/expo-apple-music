@@ -23,7 +23,9 @@ export class WebQueueService {
   async setQueue(itemId: string, type: string): Promise<void> {
     const mediaType = parseMediaType(type);
     if (isLibraryId(itemId)) {
-      await this.setLibraryQueue(itemId, mediaType);
+      throw errors.apiError(
+        'Library queue requires a music user token. Use Player.playLibrarySong or playLibraryPlaylist.',
+      );
     } else {
       await this.setCatalogQueue(itemId, mediaType);
     }
@@ -38,22 +40,14 @@ export class WebQueueService {
     await music.setQueue({ [type]: itemId });
   }
 
-  private async setLibraryQueue(itemId: string, type: MediaType): Promise<void> {
-    if (type === 'station') {
-      throw errors.unsupportedLibraryType('station');
-    }
-    const catalogId = await this.api.resolveCatalogPlaybackId(itemId, type);
-    await this.setCatalogQueue(catalogId, type);
-  }
-
-  async playLibrarySong(songId: string): Promise<void> {
-    const catalogId = await this.api.resolveCatalogPlaybackId(songId, 'song');
+  async playLibrarySong(musicUserToken: string, songId: string): Promise<void> {
+    const catalogId = await this.api.resolveCatalogPlaybackId(musicUserToken, songId, 'song');
     const music = await getMusic();
     await music.setQueue({ songs: [catalogId] });
   }
 
-  async playLibraryPlaylist(playlistId: string, startingAt: number): Promise<void> {
-    const catalogIds = await this.api.resolveLibrarySongCatalogIds(playlistId);
+  async playLibraryPlaylist(musicUserToken: string, playlistId: string, startingAt: number): Promise<void> {
+    const catalogIds = await this.api.resolveLibrarySongCatalogIds(musicUserToken, playlistId);
     if (catalogIds.length === 0) {
       throw errors.noSongsInPlaylist();
     }

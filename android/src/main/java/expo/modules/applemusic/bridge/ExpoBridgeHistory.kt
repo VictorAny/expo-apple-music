@@ -9,27 +9,27 @@ import expo.modules.kotlin.modules.ModuleDefinitionBuilder
 internal fun ModuleDefinitionBuilder.registerHistoryBridge(
   historyService: () -> AndroidHistoryService,
 ) {
-  AsyncFunction("getRecentlyPlayedResources") Coroutine { ->
-    BridgeResponses.recentlyPlayedResources(historyService().getRecentlyPlayedResources())
+  AsyncFunction("getRecentlyPlayedResources") Coroutine { musicUserToken: String ->
+    BridgeResponses.recentlyPlayedResources(historyService().getRecentlyPlayedResources(musicUserToken))
   }
 
-  AsyncFunction("getRecentlyPlayedTracks") Coroutine { options: Map<String, Any?> ->
+  AsyncFunction("getRecentlyPlayedTracks") Coroutine { musicUserToken: String, options: Map<String, Any?> ->
     val pagination = PaginationOptions.fromMap(options)
-    BridgeResponses.songs(historyService().getRecentlyPlayedTracks(pagination))
+    BridgeResponses.songs(historyService().getRecentlyPlayedTracks(musicUserToken, pagination))
   }
 
-  AsyncFunction("getHeavyRotation") Coroutine { options: Map<String, Any?> ->
+  AsyncFunction("getHeavyRotation") Coroutine { musicUserToken: String, options: Map<String, Any?> ->
     val pagination = PaginationOptions.fromMap(options)
-    BridgeResponses.recentItems(historyService().getHeavyRotation(pagination))
+    BridgeResponses.recentItems(historyService().getHeavyRotation(musicUserToken, pagination))
   }
 
-  AsyncFunction("getRecentlyPlayedStations") Coroutine { options: Map<String, Any?> ->
+  AsyncFunction("getRecentlyPlayedStations") Coroutine { musicUserToken: String, options: Map<String, Any?> ->
     val pagination = PaginationOptions.fromMap(options)
-    BridgeResponses.stations(historyService().getRecentlyPlayedStations(pagination))
+    BridgeResponses.stations(historyService().getRecentlyPlayedStations(musicUserToken, pagination))
   }
 
-  AsyncFunction("getRecentlyAdded") Coroutine { options: Map<String, Any?> ->
+  AsyncFunction("getRecentlyAdded") Coroutine { musicUserToken: String, options: Map<String, Any?> ->
     val pagination = PaginationOptions.fromMap(options)
-    BridgeResponses.recentItems(historyService().getRecentlyAdded(pagination))
+    BridgeResponses.recentItems(historyService().getRecentlyAdded(musicUserToken, pagination))
   }
 }

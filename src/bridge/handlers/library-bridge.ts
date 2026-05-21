@@ -4,44 +4,59 @@ import { BridgeResponses } from '../bridge-responses';
 
 export function createLibraryBridge(api: WebAppleMusicApiClient) {
   return {
-    async getUserPlaylists(options: Record<string, unknown>) {
+    async getUserPlaylists(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const playlists = await api.getUserPlaylists(pagination.limit, pagination.offset);
+      const playlists = await api.getUserPlaylists(musicUserToken, pagination.limit, pagination.offset);
       return BridgeResponses.playlists(playlists);
     },
 
-    async getLibrarySongs(options: Record<string, unknown>) {
+    async getLibrarySongs(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const songs = await api.getLibrarySongs(pagination.limit, pagination.offset);
+      const songs = await api.getLibrarySongs(musicUserToken, pagination.limit, pagination.offset);
       return BridgeResponses.songs(songs);
     },
 
-    async getPlaylistSongs(playlistId: string, _options: Record<string, unknown>) {
-      const songs = await api.getPlaylistTracks(playlistId);
+    async getPlaylistSongs(musicUserToken: string, playlistId: string, _options: Record<string, unknown>) {
+      const songs = await api.getPlaylistTracks(musicUserToken, playlistId);
       return BridgeResponses.songs(songs);
     },
 
-    async getLibraryArtists(options: Record<string, unknown>) {
+    async getLibraryArtists(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const artists = await api.getLibraryArtists(pagination.limit, pagination.offset);
+      const artists = await api.getLibraryArtists(musicUserToken, pagination.limit, pagination.offset);
       return BridgeResponses.artists(artists);
     },
 
-    async getLibraryAlbums(options: Record<string, unknown>) {
+    async getLibraryAlbums(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const albums = await api.getLibraryAlbums(pagination.limit, pagination.offset);
+      const albums = await api.getLibraryAlbums(musicUserToken, pagination.limit, pagination.offset);
       return BridgeResponses.albums(albums);
     },
 
-    async getLibraryMusicVideos(options: Record<string, unknown>) {
+    async getLibraryMusicVideos(musicUserToken: string, options: Record<string, unknown>) {
       const pagination = paginationFromMap(options);
-      const musicVideos = await api.getLibraryMusicVideos(pagination.limit, pagination.offset);
+      const musicVideos = await api.getLibraryMusicVideos(
+        musicUserToken,
+        pagination.limit,
+        pagination.offset,
+      );
       return BridgeResponses.musicVideos(musicVideos);
     },
 
-    async librarySearch(term: string, types: string[], options: Record<string, unknown>) {
+    async librarySearch(
+      musicUserToken: string,
+      term: string,
+      types: string[],
+      options: Record<string, unknown>,
+    ) {
       const pagination = paginationFromMap(options);
-      const result = await api.librarySearch(term, types, pagination.limit, pagination.offset);
+      const result = await api.librarySearch(
+        musicUserToken,
+        term,
+        types,
+        pagination.limit,
+        pagination.offset,
+      );
       return BridgeResponses.librarySearch(result);
     },
   };

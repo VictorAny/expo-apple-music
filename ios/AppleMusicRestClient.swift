@@ -43,27 +43,58 @@ enum AppleMusicRestClient {
   static func request(
     method: AppleMusicHttpMethod,
     path: String,
+    musicUserToken: String? = nil,
     query: [String: String] = [:],
     body: [String: Any]? = nil
   ) async throws -> [String: Any] {
     let session = AuthenticatedSession.current
+    if path.hasPrefix("/v1/me/") {
+      guard let musicUserToken, !musicUserToken.isEmpty else {
+        throw RestError.apiError("Apple Music REST requires a music user token")
+      }
+      return try await requestViaUrlSession(
+        session: session,
+        method: method,
+        path: path,
+        musicUserToken: musicUserToken,
+        query: query,
+        body: body)
+    }
     if method == .get, session.prefersStoredDeveloperTokenForGet {
       return try await requestViaUrlSession(
-        session: session, method: method, path: path, query: query, body: body)
+        session: session,
+        method: method,
+        path: path,
+        musicUserToken: nil,
+        query: query,
+        body: body)
     }
     if method == .get, session.canUseMusicKitAutoTokenForGet {
       return try await getViaMusicDataRequest(path: path, query: query)
     }
     return try await requestViaUrlSession(
-      session: session, method: method, path: path, query: query, body: body)
+      session: session,
+      method: method,
+      path: path,
+      musicUserToken: musicUserToken,
+      query: query,
+      body: body)
   }
 
-  static func get(path: String, query: [String: String] = [:]) async throws -> [String: Any] {
-    try await request(method: .get, path: path, query: query)
+  static func get(
+    path: String,
+    musicUserToken: String? = nil,
+    query: [String: String] = [:]
+  ) async throws -> [String: Any] {
+    try await request(method: .get, path: path, musicUserToken: musicUserToken, query: query)
   }
 
-  static func getDataArray(path: String, query: [String: String] = [:]) async throws -> [[String: Any]] {
-    let json = try await get(path: path, query: query)
+  static func getDataArray(
+    path: String,
+    musicUserToken: String? = nil,
+    query: [String: String] = [:]
+  ) async throws -> [[String: Any]] {
+    let json = try await get(path: path, musicUserToken: musicUserToken, query: query)
     return try parseDataArray(from: json)
   }
 
@@ -105,6 +136,7 @@ enum AppleMusicRestClient {
     session: AuthenticatedSession,
     method: AppleMusicHttpMethod,
     path: String,
+    musicUserToken: String?,
     query: [String: String],
     body: [String: Any]?
   ) async throws -> [String: Any] {
@@ -117,14 +149,11 @@ enum AppleMusicRestClient {
       throw RestError.apiError("Apple Music REST requires a stored developer token")
     }
 
-    let userToken = session.musicUserToken
+    let userToken = musicUserToken ?? session.musicUserToken
     let requiresUserToken = session.pathRequiresMusicUserToken(path)
 
     if requiresUserToken, userToken == nil || userToken?.isEmpty == true {
-      if method == .get {
-        return try await getViaMusicDataRequest(path: path, query: query)
-      }
-      throw RestError.apiError("Apple Music REST requires stored developer and user tokens")
+      throw RestError.apiError("Apple Music REST requires a music user token")
     }
 
     guard var components = URLComponents(string: "https://api.music.apple.com\(path)") else {
