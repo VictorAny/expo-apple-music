@@ -1,5 +1,7 @@
 # @wwdrew/expo-apple-music
 
+**Docs index:** [docs/README.md](./docs/README.md) · **Getting started:** [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)
+
 Read [CONTEXT.md](./CONTEXT.md) for **catalog vs library** terminology and **Android implementation tiers** before changing native or public API behavior.
 
 For **auth** (`authorize`, developer token, `AuthStatus`, platform requirements), read [docs/AUTH.md](./docs/AUTH.md).

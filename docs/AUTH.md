@@ -2,6 +2,8 @@
 
 How `Auth.authorize()` and `Auth.checkSubscription()` work on **iOS**, **Android**, and **web**, including developer tokens, return values, and device requirements.
 
+New to the package? Start with **[GETTING_STARTED.md](./GETTING_STARTED.md)**.
+
 ## Quick start
 
 ```ts

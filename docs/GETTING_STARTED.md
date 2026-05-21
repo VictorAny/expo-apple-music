@@ -1,0 +1,110 @@
+# Getting started
+
+Minimal path to Apple Music in an Expo app (SDK 55). For auth edge cases and production JWT rotation, see **[AUTH.md](./AUTH.md)**.
+
+## 1. Install
+
+```sh
+npx expo install @wwdrew/expo-apple-music
+```
+
+## 2. Config plugin
+
+```ts
+// app.config.ts
+export default {
+  plugins: [
+    [
+      '@wwdrew/expo-apple-music',
+      { musicUsageDescription: 'We use Apple Music in this app.' },
+    ],
+  ],
+};
+```
+
+Then `npx expo prebuild` when you change native config.
+
+**Apple Developer:** enable **MusicKit** on your App ID (App Services). Do **not** add MusicKit keys to entitlements — see **[IOS_SETUP.md](./IOS_SETUP.md)**.
+
+## 3. Developer JWT
+
+| Platform | JWT for `Auth.authorize()` |
+| -------- | -------------------------- |
+| **Android** | Required |
+| **Web** | Required |
+| **iOS** | Optional for authorize; recommended for reliable `Catalog.search` |
+
+Your app must **sign and serve** the JWT (backend, Remote Config, etc.). This package does not ship keys. Local dev: clone this repo and run **`npm run dev-token`** — **[CLI.md](./CLI.md)**.
+
+## 4. Authorize and play
+
+```ts
+import {
+  Auth,
+  AuthStatus,
+  Catalog,
+  CatalogSearchType,
+  Player,
+} from '@wwdrew/expo-apple-music';
+
+const developerToken = await fetchDeveloperJwtFromYourApp();
+
+const { status, musicUserToken } = await Auth.authorize(developerToken);
+
+if (status !== AuthStatus.AUTHORIZED || !musicUserToken) {
+  return;
+}
+
+const { songs } = await Catalog.search('Beatles', [CatalogSearchType.SONGS]);
+const first = songs[0];
+if (first) {
+  await Player.setQueue({ songs: [first] });
+  await Player.play();
+}
+```
+
+Refresh the JWT without re-prompting the user:
+
+```ts
+await Auth.setDeveloperToken(await fetchDeveloperJwtFromYourApp());
+```
+
+## 5. Platform checklist
+
+### iOS
+
+- Physical device, iOS 16+
+- MusicKit enabled on App ID
+- Optional: pass developer JWT to `Auth.authorize()` for REST catalog fallback
+
+Details: **[IOS_SETUP.md](./IOS_SETUP.md)**
+
+### Android
+
+- Physical **ARM** device
+- **Apple Music** app installed (`com.apple.android.music`)
+- Active subscription
+- **Developer JWT required** on `Auth.authorize(developerToken)`
+
+### Web
+
+- MusicKit on App ID (same portal toggle)
+- Developer JWT with optional `origin` claim for localhost — **[AUTH.md](./AUTH.md)**
+- Test in **Safari and Chrome** with popups allowed
+
+## 6. Example app
+
+This repository includes a full explorer (not published to npm):
+
+```sh
+git clone https://github.com/wwdrew/expo-apple-music.git
+cd expo-apple-music
+npm run dev-token -- --write-env example/.env.local
+cd example && npx expo start
+```
+
+## Next steps
+
+- **[AUTH.md](./AUTH.md)** — subscription checks, storage, errors
+- **[APPLE_MUSIC_API.md](./APPLE_MUSIC_API.md)** — what works on each platform
+- **[docs/README.md](./README.md)** — full doc index

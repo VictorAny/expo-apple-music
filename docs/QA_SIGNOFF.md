@@ -52,9 +52,8 @@ Check each box, note device/browser + date, then tag `v1.0.0`.
 ## Publish (after all three signed)
 
 ```sh
-npm test && npm run build
-npm pack   # inspect tarball
-npm publish
+npm test && npm run pack:check
+npm publish --access public
 git tag v1.0.0 && git push origin v1.0.0
 ```
 

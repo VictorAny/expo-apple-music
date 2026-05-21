@@ -4,7 +4,7 @@ Use this before tagging **`1.0.0`** on npm. For scope and deferred items, see [V
 
 **Current version:** `1.0.0` (`package.json`)
 
-**Last automated audit:** 2026-05-20 — `npm test` (10 suites, 36 tests) and `npm run build` green; CI in `.github/workflows/ci.yml`.
+**Last automated audit:** 2026-05-21 — `npm test` (14 suites, 58 tests), `npm run build`, and `npm run pack:check` green; CI in `.github/workflows/ci.yml`.
 
 **Blocking publish:** complete [QA_SIGNOFF.md](./QA_SIGNOFF.md) on iOS, Android, and web, then `npm publish` + git tag (§7).
 
@@ -95,7 +95,7 @@ Use [QA_SIGNOFF.md](./QA_SIGNOFF.md) (consolidated checklist).
 
 - [x] [CHANGELOG.md](../CHANGELOG.md) — 1.0.0 section filled
 - [x] Version bump in `package.json` (`1.0.0`)
-- [ ] `npm run prepublishOnly` / `npm publish` (dry-run: `npm pack` and inspect tarball)
+- [ ] `npm run pack:check` then `npm publish` (tarball excludes `example/`, `docs/`, `src/`, `android/build/` — see [RELEASING.md](./RELEASING.md))
 - [ ] Git tag `v1.0.0` pushed
 - [ ] GitHub release notes (if using GitHub)
 
@@ -112,8 +112,10 @@ Skipped — shipping **1.0.0** after [QA_SIGNOFF.md](./QA_SIGNOFF.md).
 ```sh
 npm test
 npm run build
+npm run pack:check
 cd example && npx expo start --ios    # device
 cd example && npx expo start --android
 cd example && npx expo start --web
-npm pack   # inspect files field before publish
 ```
+
+Release automation (when QA is done): enable [RELEASING.md](./RELEASING.md) / `.github/workflows/release-please.yml`.
