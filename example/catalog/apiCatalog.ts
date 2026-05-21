@@ -25,10 +25,10 @@ export const API_MODULES: ApiModule[] = [
         summary: "Request Apple Music access. Android/web require a developer JWT.",
       },
       {
-        id: "refreshDeveloperToken",
-        name: "refreshDeveloperToken",
-        signature: "Auth.refreshDeveloperToken(developerToken)",
-        summary: "Update stored developer JWT without re-running user sign-in.",
+        id: "setDeveloperToken",
+        name: "setDeveloperToken",
+        signature: "Auth.setDeveloperToken(developerToken)",
+        summary: "Store developer JWT on native/web without re-running user sign-in.",
       },
       {
         id: "checkSubscription",

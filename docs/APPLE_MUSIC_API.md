@@ -13,7 +13,7 @@ Living checklist for `@wwdrew/expo-apple-music` vs the [Apple Music API](https:/
 | Capability | JS API | iOS | Android | Web |
 |------------|--------|-----|---------|-----|
 | Authorize | `Auth.authorize(developerToken?, options?)` → `AuthorizeResult` | ✅ | ✅ | ✅ |
-| Refresh developer JWT | `Auth.refreshDeveloperToken(developerToken)` | ✅ | ✅ | ✅ |
+| Set developer JWT | `Auth.setDeveloperToken(developerToken)` | ✅ | ✅ | ✅ |
 | Subscription check | `Auth.checkSubscription(musicUserToken)` | ✅ | ⚠️ inferred | ⚠️ inferred |
 | Storefront | `Auth.getStorefront(musicUserToken)` | ✅ | ✅ | ✅ |
 

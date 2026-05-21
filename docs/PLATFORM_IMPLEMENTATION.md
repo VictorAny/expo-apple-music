@@ -22,7 +22,7 @@ How each **public JS method** is implemented on iOS vs Android. The TypeScript A
 | JS API | iOS | Android |
 |--------|-----|---------|
 | `Auth.authorize(developerToken?)` | Native `SKCloudServiceController` + optional dev JWT; returns `musicUserToken` to JS | MusicKit Auth SDK activity |
-| `Auth.refreshDeveloperToken(developerToken)` | `setDeveloperToken` — no user UI | Same storage update |
+| `Auth.setDeveloperToken(developerToken)` | Native `setDeveloperToken` — no user UI | Same storage update |
 | `Auth.checkSubscription(musicUserToken)` | Native `MusicSubscription` / capability checks | Heuristic (token + library probe) |
 | `Auth.getStorefront(musicUserToken)` | REST `GET /v1/me/storefront` | REST |
 

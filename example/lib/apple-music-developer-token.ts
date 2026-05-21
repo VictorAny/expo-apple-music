@@ -1,6 +1,6 @@
 /**
  * Example helper — your production app implements fetch/cache/rotation however you like,
- * then passes the string to Auth.authorize(jwt) or Auth.refreshDeveloperToken(jwt).
+ * then passes the string to Auth.authorize(jwt) or Auth.setDeveloperToken(jwt).
  */
 export async function fetchExampleDeveloperToken(): Promise<string> {
   const url = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN_URL?.trim();

@@ -54,12 +54,12 @@ class Auth {
   }
 
   /**
-   * Updates the stored developer JWT without re-running the user sign-in flow.
-   * Call when your app rotates the token (e.g. after fetch from your endpoint).
+   * Stores a developer JWT on native / MusicKit JS without re-running user sign-in.
+   * Your app fetches or mints the token; this method only applies the string you pass.
    */
-  public static async refreshDeveloperToken(developerToken: string): Promise<void> {
-    return callNative('Auth.refreshDeveloperToken', async () => {
-      const token = requireDeveloperTokenString(developerToken, 'Auth.refreshDeveloperToken');
+  public static async setDeveloperToken(developerToken: string): Promise<void> {
+    return callNative('Auth.setDeveloperToken', async () => {
+      const token = requireDeveloperTokenString(developerToken, 'Auth.setDeveloperToken');
       await syncDeveloperTokenToPlatform(token);
     });
   }

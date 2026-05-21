@@ -29,7 +29,7 @@ type DocOverride = Partial<
 
 const AUTH_OPTIONAL = new Set([
   "auth:authorize",
-  "auth:refreshDeveloperToken",
+  "auth:setDeveloperToken",
   "auth:checkSubscription",
   "auth:getStorefront",
 ]);
@@ -59,9 +59,9 @@ const OVERRIDES: Record<string, Record<string, DocOverride>> = {
         web: "Developer JWT required. Opens MusicKit authorize popup — allow popups for your origin.",
       },
     },
-    refreshDeveloperToken: {
+    setDeveloperToken: {
       description:
-        "Sync a new developer JWT to native/web without opening the Apple Music sign-in UI. Use when your app rotates the token.",
+        "Store a developer JWT on native/web without opening the Apple Music sign-in UI. Your app supplies the string (e.g. after rotation).",
       params: [
         {
           name: "developerToken",

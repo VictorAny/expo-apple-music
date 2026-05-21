@@ -12,7 +12,7 @@ Stable `code` strings on bridge rejections (`AppleMusicError.code`). Use `getErr
 |------|------|-----|---------|-----|
 | `ERROR` | Generic API, mapper, or native failure | ✅ (message) | ✅ | ✅ |
 | `permissionDenied` | Not authorized, no subscription, HTTP **403** | ✅ REST 403 | ✅ transport | ✅ transport |
-| `MISSING_DEVELOPER_TOKEN` | `Auth.authorize()` / `Auth.refreshDeveloperToken()` without JWT (Android/web authorize) | — | ✅ | ✅ |
+| `MISSING_DEVELOPER_TOKEN` | `Auth.authorize()` / `Auth.setDeveloperToken()` without JWT (Android/web authorize) | — | ✅ | ✅ |
 | `MISSING_MUSIC_USER_TOKEN` | User-scoped API without `musicUserToken` | ✅ | ✅ | ✅ |
 | `INVALID_LIBRARY_ID` | Catalog id passed to library playback/helpers | ✅ (TS pre-check) | ✅ (TS pre-check) | ✅ (TS pre-check) |
 | `PLAYBACK_ERROR` | Queue / transport failure | Events (`onPlaybackError`) | ✅ | — |

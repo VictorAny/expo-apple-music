@@ -29,7 +29,7 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 
 **App-owned music user token (multi-account):** The consuming app stores each user’s music user token (e.g. Zustand). Native does **not** persist it. `authorize()` returns the token to JS when successful. User-scoped APIs take `musicUserToken` as the **first parameter only** (never inside pagination/options objects). TypeScript and native reject missing tokens on `/v1/me/` routes.
 
-**Developer JWT (app-level):** Signing, rotation, and delivery are **consumer app** concerns ([docs/AUTH.md](./docs/AUTH.md#production-apps-your-responsibility--not-this-library)). Pass JWTs via `Auth.authorize(developerToken)` and `Auth.refreshDeveloperToken(developerToken)`. Optional on iOS for `authorize()`; required on Android/web. **iOS `Catalog.search` uses native MusicKit first**; REST is fallback only.
+**Developer JWT (app-level):** Signing, rotation, and delivery are **consumer app** concerns ([docs/AUTH.md](./docs/AUTH.md#production-apps-your-responsibility--not-this-library)). Pass JWTs via `Auth.authorize(developerToken)` and `Auth.setDeveloperToken(developerToken)`. Optional on iOS for `authorize()`; required on Android/web. **iOS `Catalog.search` uses native MusicKit first**; REST is fallback only.
 
 ## JS API map (by domain)
 
@@ -38,7 +38,7 @@ Do **not** prefix types with `I` or `T`. Use plain names (`Song`, `Album`, `Pagi
 | Method                | Domain              | Purpose                                                       |
 | --------------------- | ------------------- | ------------------------------------------------------------- |
 | `authorize(developerToken?, options?)` | Auth | User sign-in; returns `AuthorizeResult` with optional `musicUserToken` |
-| `refreshDeveloperToken(developerToken)` | Auth | Update stored developer JWT without user UI |
+| `setDeveloperToken(developerToken)` | Auth | Store developer JWT on native/web without user UI |
 | `checkSubscription(musicUserToken)` | Auth / subscription | Can they play catalog, become subscriber, cloud library, etc. |
 | `getStorefront(musicUserToken)` | Auth | User’s storefront id (e.g. `us`) |
 

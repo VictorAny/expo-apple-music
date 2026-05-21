@@ -46,8 +46,8 @@ if (status === AuthStatus.AUTHORIZED && musicUserToken) {
   Player.play();
 }
 
-// When the developer JWT rotates (no user re-auth UI):
-await Auth.refreshDeveloperToken(await fetchDeveloperJwtFromYourApp());
+// When you have a new developer JWT (no user re-auth UI):
+await Auth.setDeveloperToken(await fetchDeveloperJwtFromYourApp());
 ```
 
 **iOS setup** (signing, MusicKit in the portal, JWT, release): **[docs/IOS_SETUP.md](./docs/IOS_SETUP.md)**  

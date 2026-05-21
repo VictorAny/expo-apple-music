@@ -83,7 +83,7 @@ That sets `NSAppleMusicUsageDescription`. Re-run `npx expo prebuild` when you ch
 
 **`Catalog.search` uses native MusicKit first** (`MusicCatalogSearchRequest` + Apple’s automatic developer token for your bundle ID). Enable **MusicKit** on your App ID in the Developer portal so auto-token registration succeeds.
 
-If auto-token fails (404 “client not registered”), the module falls back to **REST** catalog search **only when** a developer JWT was stored via `Auth.authorize(token)` or `Auth.refreshDeveloperToken(token)`. Mint tokens with [CLI.md](./CLI.md); production rotation is your app’s job ([AUTH.md](./AUTH.md#production-apps-your-responsibility--not-this-library)).
+If auto-token fails (404 “client not registered”), the module falls back to **REST** catalog search **only when** a developer JWT was stored via `Auth.authorize(token)` or `Auth.setDeveloperToken(token)`. Mint tokens with [CLI.md](./CLI.md); production rotation is your app’s job ([AUTH.md](./AUTH.md#production-apps-your-responsibility--not-this-library)).
 
 ### 6.1 Repo / example app
 
@@ -135,7 +135,7 @@ For **this npm package**, use [QA_SIGNOFF.md](./QA_SIGNOFF.md) (iOS section). Th
 |---------|----------------|-------------|
 | Xcode: provisioning profile does not include `…applemusickit` / `…musickit` | Entitlements file claims a key profiles do not carry. | Remove MusicKit keys from entitlements; MusicKit is App Services only. See section 3. |
 | Automatic signing cannot create a profile | Same as above, or wrong team / bundle ID. | Fix entitlements first; verify Team and bundle ID. |
-| `404` / “Client not found” / `developerTokenRequestFailed` on search | Auto-token path; bundle ID not accepted yet by token service. | Enable MusicKit on App ID; or pass developer JWT via `authorize()` / `refreshDeveloperToken()` for REST fallback (section 6). |
+| `404` / “Client not found” / `developerTokenRequestFailed` on search | Auto-token path; bundle ID not accepted yet by token service. | Enable MusicKit on App ID; or pass developer JWT via `authorize()` / `setDeveloperToken()` for REST fallback (section 6). |
 | `authorize` works but search fails | JWT not in JS bundle or not persisted. | `npx expo start --clear`, rebuild, tap Authorize again; confirm `example/.env.local` exists. |
 | “Bundle ID already exists” when creating App ID | ID exists on your team (use existing) or globally (pick a new ID). | Edit existing App ID for MusicKit, or change bundle ID everywhere. |
 
