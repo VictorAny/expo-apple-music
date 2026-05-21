@@ -60,11 +60,13 @@
     "@expo/config-plugins": "^55.0.9",
     "@types/node": "^22.10.0",
     "@types/react": "~19.1.1",
+    "eslint": "^9.39.0",
     "expo": "^55.0.24",
     "expo-module-scripts": "^55.0.2",
     "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "react-native": "0.82.1"
+    "react": "^19.1.0",
+    "react-native": "0.82.1",
+    "ts-jest": "^29.2.5"
   },
   "peerDependencies": {
     "@expo/config-plugins": ">=9.0.0",
