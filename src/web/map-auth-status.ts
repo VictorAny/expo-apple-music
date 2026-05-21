@@ -16,6 +16,12 @@ export type AuthStatusValue =
   | 'restricted'
   | 'unknown';
 
+/** MusicKit JS `authorize()` resolves with a music user token string on success. */
+function isMusicUserTokenString(value: string): boolean {
+  const trimmed = value.trim();
+  return trimmed.length > 20 && !trimmed.toLowerCase().includes('authorized');
+}
+
 function fromAuthorizationStatus(status: number): AuthStatusValue {
   switch (status) {
     case MusicKitAuthorizationStatus.AUTHORIZED:
@@ -47,10 +53,6 @@ export function authStatusFromMusicKit(
     return 'restricted';
   }
 
-  if (typeof music.authorizationStatus === 'number') {
-    return fromAuthorizationStatus(music.authorizationStatus);
-  }
-
   if (typeof authorizeResult === 'number') {
     return fromAuthorizationStatus(authorizeResult);
   }
@@ -69,10 +71,13 @@ export function authStatusFromMusicKit(
     if (value.includes('not_determined')) {
       return 'notDetermined';
     }
-    // Non-empty token-shaped string after a failed isAuthorized check → still denied.
-    if (authorizeResult.length > 0) {
-      return 'denied';
+    if (isMusicUserTokenString(authorizeResult)) {
+      return 'authorized';
     }
+  }
+
+  if (typeof music.authorizationStatus === 'number') {
+    return fromAuthorizationStatus(music.authorizationStatus);
   }
 
   return 'unknown';

@@ -49,11 +49,22 @@ describe('authStatusFromMusicKit', () => {
     ).toBe('denied');
   });
 
-  it('does not treat a user token string as authorized', () => {
+  it('maps authorize() token string to authorized when MusicKit returns a user token', () => {
+    expect(
+      authStatusFromMusicKit(
+        mockMusic({
+          isAuthorized: false,
+          authorizationStatus: MusicKitAuthorizationStatus.NOT_DETERMINED,
+        }),
+        'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.payload.sig',
+      ),
+    ).toBe('authorized');
+  });
+
+  it('maps denied authorizationStatus when authorize() did not return a token', () => {
     expect(
       authStatusFromMusicKit(
         mockMusic({ authorizationStatus: MusicKitAuthorizationStatus.DENIED }),
-        'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.payload.sig',
       ),
     ).toBe('denied');
   });

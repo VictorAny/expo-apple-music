@@ -140,6 +140,16 @@ export async function getMusic(): Promise<MusicKitInstance> {
   return music;
 }
 
+/** Prefer after `authorize()` — MusicKit may update the singleton instance in place. */
+export async function getMusicKitInstance(): Promise<MusicKitInstance> {
+  const MusicKit = await loadMusicKitScript();
+  const instance = MusicKit.getInstance();
+  if (!instance) {
+    throw new Error('MusicKit JS did not return an instance');
+  }
+  return instance;
+}
+
 export function resetMusicKitForTests(): void {
   configurePromise = null;
   configuredToken = null;

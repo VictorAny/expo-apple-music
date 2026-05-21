@@ -1,4 +1,4 @@
-import { configureMusicKit } from '../../web/MusicKitLoader';
+import { configureMusicKit, getMusicKitInstance } from '../../web/MusicKitLoader';
 import { extractMusicUserToken } from '../../web/extract-music-user-token';
 import { authStatusFromAuthorizeError, authStatusFromMusicKit } from '../../web/map-auth-status';
 import * as errors from '../../web/apple-music-errors';
@@ -34,10 +34,15 @@ export function createAuthBridge(api: WebAppleMusicApiClient, subscription: WebS
       }
       try {
         const result = await music.authorize();
-        const status = authStatusFromMusicKit(music, result);
+        const musicAfter = await getMusicKitInstance();
+        const status = authStatusFromMusicKit(musicAfter, result);
+        const resolvedStatus = status ?? 'unknown';
         return {
-          status,
-          musicUserToken: status === 'authorized' ? extractMusicUserToken(music, result) : undefined,
+          status: resolvedStatus,
+          musicUserToken:
+            resolvedStatus === 'authorized'
+              ? extractMusicUserToken(musicAfter, result)
+              : undefined,
         };
       } catch (error) {
         return { status: authStatusFromAuthorizeError(error) };
