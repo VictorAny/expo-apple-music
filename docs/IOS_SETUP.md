@@ -107,12 +107,11 @@ The example reads `EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN` and passes it to `au
 - **Rebuild** the native app after native code changes.
 - **Authorize** after adding the token so it is saved (the module stores the JWT even if the user was already authorized).
 
-### 6.2 Production
+### 6.2 Production (consumer app — not this npm package)
 
-- Issue short-lived JWTs from **your backend** and call `Auth.authorize(token)` before catalog operations that need REST.
-- Do not ship your `.p8` key in the app.
+JWT signing, rotation, and how the token reaches the app are **your** responsibility. This module only needs a valid string at `Auth.authorize(developerToken)`.
 
-See [Generating developer tokens](https://developer.apple.com/documentation/applemusicapi/generating_developer_tokens).
+See [AUTH.md § Production apps](./AUTH.md#production-apps-your-responsibility--not-this-library) and Apple’s [Generating developer tokens](https://developer.apple.com/documentation/applemusicapi/generating_developer_tokens).
 
 ---
 

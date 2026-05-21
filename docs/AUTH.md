@@ -116,22 +116,36 @@ type AndroidAuthorizeOptions = {
 
 ## Developer token (MusicKit JWT)
 
-A **developer token** is a **signed JWT** you create with your MusicKit **private key** from the Apple Developer portal. It identifies **your app** to Apple’s services.
+A **developer token** is a **signed JWT** that identifies **your app** to Apple’s services. This library **accepts** a token string when you call `Auth.authorize(developerToken)` (and can sync updates via `Auth.refreshDeveloperToken()`). It does **not** mint, host, or rotate tokens for you.
 
 | | Developer JWT | Music user token |
 | - | ------------- | ---------------- |
 | **What** | App credentials | Per-user token after sign-in |
-| **Who creates it** | Your server (or dev tooling) | Returned by `authorize()` on success |
-| **Used for** | Starting Android auth; catalog REST | Library REST (`/v1/me/...`) |
-| **Passed to** | `Auth.authorize(token?)` and/or `AppleMusic.configure({ getDeveloperToken })` | App-owned: first arg on user-scoped APIs (see below) |
+| **Who creates it** | **Your app / infrastructure** (out of scope here) | Returned by `authorize()` on success |
+| **Used for** | Starting Android auth; REST; optional iOS REST fallback | Library REST (`/v1/me/...`) |
+| **Passed to** | `Auth.authorize(developerToken)` — you supply the string | App-owned: first arg on user-scoped APIs |
 
 On **iOS**, the developer token is **optional** for `authorize()` (media-library permission can succeed without it). **`Catalog.search` uses native MusicKit first**; REST is only a fallback when auto-token fails and a developer JWT is already stored. Enable **MusicKit** on your App ID so native catalog search works without a manual JWT.
 
-Apple caps JWT lifetime at **~6 months** — there is no infinite expiry. Do **not** bake a long-lived JWT into the app binary; rotate via a provider (below).
+### Production apps (your responsibility — not this library)
 
-### Developer token rotation
+Document and implement this in **your** shipping app. The checklist below is guidance for integrators; `@wwdrew/expo-apple-music` only requires a valid JWT string at the API boundary.
 
-Register how your app obtains a fresh JWT. The library caches it, checks `exp` (with a refresh buffer), and syncs to native / MusicKit JS.
+| Topic | What you do | What this package does |
+| ----- | ----------- | ---------------------- |
+| **Signing** | Hold the MusicKit `.p8` key off-device; sign JWTs (server, Cloud Function, CI, etc.) | Nothing |
+| **Lifetime** | Apple max ~**6 months** per JWT; plan rotation before `exp` | Optionally reads `exp` if you use `AppleMusic.configure` |
+| **Delivery** | HTTPS endpoint, Remote Config, manual ops — your choice | Receives token via `authorize(token)` or optional provider |
+| **Storage** | Your policy (memory-only, Keychain, refetch every time) | Copies into native / MusicKit JS for REST and Android auth |
+| **User re-auth** | Developer JWT refresh must **not** force Apple Music sign-in again | `refreshDeveloperToken()` syncs app token only; `authorize()` is for the **user** |
+
+**Do not** embed the `.p8` private key or a non-rotating JWT in the app binary. **Do** pass a current JWT into `Auth.authorize()` (or sync with `Auth.refreshDeveloperToken()` when yours expires).
+
+See Apple: [Generating developer tokens](https://developer.apple.com/documentation/applemusicapi/generating_developer_tokens). Local dev: [CLI.md](./CLI.md) (repo-only; not for production signing).
+
+### Optional: `AppleMusic.configure({ getDeveloperToken })`
+
+If you want help fetching and syncing a token before `authorize()`, register an async callback. **You** still implement fetch/cache/rotation inside it (refetch every time, Remote Config, etc.). The library does not prescribe how.
 
 ```ts
 import {
@@ -168,9 +182,7 @@ await Auth.refreshDeveloperToken(); // force fetch + sync anytime
 | `useAppleMusicDeveloperToken()` | Hook: call provider once on mount (when configured) |
 | `getCachedDeveloperToken()` / `isDeveloperTokenExpired(token)` | Inspect cache for UI or custom retry logic |
 
-**Security:** The JWT is not as sensitive as your `.p8` private key, but it still authenticates your app — treat cached tokens like credentials (Keychain if you persist them yourself). Never ship the `.p8` in the client.
-
-**Signing:** Something you control must sign JWTs (Cloud Function, CI, admin script). Remote Config only **distributes** an already-signed string.
+**Security (your app):** The JWT is weaker than the `.p8` key but still identifies your app — disclose and protect per your threat model.
 
 ### Native session (iOS / Android)
 
@@ -205,7 +217,7 @@ npm run dev-token -- --verify "$(grep EXPO_PUBLIC example/.env.local | cut -d= -
 | No token and no `getDeveloperToken` provider (Android/web) | Promise **rejects** with `MISSING_DEVELOPER_TOKEN` |
 | Invalid / expired JWT | `AuthStatus.UNKNOWN` (`TOKEN_FETCH_ERROR` from SDK) |
 
-Developer tokens expire (max **~6 months** per Apple). Use `AppleMusic.configure` + `Auth.refreshDeveloperToken()` or call `authorize()` again after your provider returns a new JWT.
+When a JWT expires, Apple returns **401** on REST calls. Fetch a new token in your app and pass it to `Auth.authorize(token)` or `Auth.refreshDeveloperToken()` — rotation policy is yours, not the library’s.
 
 Apple’s reference: [Creating a developer token](https://developer.apple.com/documentation/applemusicapi/generating_developer_tokens) and [Android MusicKit](https://developer.apple.com/documentation/musickit/android).
 
@@ -295,7 +307,7 @@ There is **no** `Auth.isAvailable()` — use `authorize()` + `checkSubscription(
 
 **Full walkthrough:** **[IOS_SETUP.md](./IOS_SETUP.md)** (portal, entitlements mistakes, signing, developer JWT, release checklist).
 
-Short version: MusicKit is an **App Service** on your App ID — not a MusicKit row in Xcode Capabilities and **not** an entitlement you expect inside the provisioning profile ([Apple DTS](https://developer.apple.com/forums/thread/799000)). Do **not** add `com.apple.developer.applemusickit` / `musickit` to entitlements; that breaks automatic signing. For reliable `Catalog.search`, pass a developer JWT from your backend or [CLI.md](./CLI.md) and call `Auth.authorize(token)` so catalog uses REST.
+Short version: MusicKit is an **App Service** on your App ID — not a MusicKit row in Xcode Capabilities and **not** an entitlement you expect inside the provisioning profile ([Apple DTS](https://developer.apple.com/forums/thread/799000)). Do **not** add `com.apple.developer.applemusickit` / `musickit` to entitlements; that breaks automatic signing. Prefer native `Catalog.search` with MusicKit enabled on the App ID; use a developer JWT only when you need REST fallback or Android/web ([§Production apps](#production-apps-your-responsibility--not-this-library)).
 
 | Symptom | What to do |
 | ------- | ---------- |

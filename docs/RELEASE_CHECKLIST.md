@@ -63,7 +63,8 @@ From [V1_PLAN.md §9](./V1_PLAN.md#9-v10-release-criteria):
 - [x] [V1_PLAN.md](./V1_PLAN.md) §2 baseline updated (web ✅, domain API, ~coverage %)
 - [x] [README.md](../README.md) parity table: **Web** column; names match public API (`Library.getPlaylists`, `Player.setQueue`, …)
 - [x] [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md) definition-of-done checkboxes checked where complete (browser QA rows still open)
-- [ ] Consumer app: [IOS_SETUP.md](./IOS_SETUP.md) §7 release checklist (portal, entitlements, JWT, Archive) — **your** App Store app, not this package
+- [ ] Consumer app: [IOS_SETUP.md](./IOS_SETUP.md) §7 release checklist (portal, entitlements, Archive) — **your** App Store app, not this package
+- [ ] Consumer app: developer JWT signing/rotation documented and implemented per [AUTH.md § Production apps](./AUTH.md#production-apps-your-responsibility--not-this-library) — **not** provided by this package
 
 ---
 

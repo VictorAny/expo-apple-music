@@ -62,7 +62,7 @@ if (status === AuthStatus.AUTHORIZED && musicUserToken) {
 ```
 
 **iOS setup** (signing, MusicKit in the portal, JWT, release): **[docs/IOS_SETUP.md](./docs/IOS_SETUP.md)**  
-**Auth details**: **[docs/AUTH.md](./docs/AUTH.md)**  
+**Auth details**: **[docs/AUTH.md](./docs/AUTH.md)** (production JWT signing/rotation is **your app’s** job — see § Production apps)  
 **CLI** (mint JWTs locally): **[docs/CLI.md](./docs/CLI.md)**
 
 **1.0.0** — see [CHANGELOG.md](./CHANGELOG.md). Plan and deferred APIs: [docs/V1_PLAN.md](./docs/V1_PLAN.md). Attribution: [ATTRIBUTION.md](./ATTRIBUTION.md). Pre-publish QA: [docs/QA_SIGNOFF.md](./docs/QA_SIGNOFF.md).
