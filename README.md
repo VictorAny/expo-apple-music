@@ -35,30 +35,19 @@ Android **package visibility** for the Apple Music app comes from this module’
 ## Usage
 
 ```ts
-import {
-  AppleMusic,
-  Auth,
-  AuthStatus,
-  Catalog,
-  CatalogSearchType,
-  Player,
-} from '@wwdrew/expo-apple-music';
+import { Auth, AuthStatus, Catalog, CatalogSearchType, Player } from '@wwdrew/expo-apple-music';
 
-AppleMusic.configure({
-  getDeveloperToken: async () => {
-    const { token } = await fetch('https://your.app/api/apple-music/developer-token').then((r) =>
-      r.json(),
-    );
-    return token;
-  },
-});
+const developerToken = await fetchDeveloperJwtFromYourApp(); // your endpoint, Remote Config, etc.
 
-const { status, musicUserToken } = await Auth.authorize();
+const { status, musicUserToken } = await Auth.authorize(developerToken);
 
 if (status === AuthStatus.AUTHORIZED && musicUserToken) {
   await Catalog.search('Beatles', [CatalogSearchType.SONGS, CatalogSearchType.ALBUMS]);
   Player.play();
 }
+
+// When the developer JWT rotates (no user re-auth UI):
+await Auth.refreshDeveloperToken(await fetchDeveloperJwtFromYourApp());
 ```
 
 **iOS setup** (signing, MusicKit in the portal, JWT, release): **[docs/IOS_SETUP.md](./docs/IOS_SETUP.md)**  

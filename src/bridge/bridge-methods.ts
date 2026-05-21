@@ -23,7 +23,7 @@ export type BridgeMethodSpec = {
 };
 
 export const BRIDGE_METHODS: readonly BridgeMethodSpec[] = [
-  { domain: 'auth', nativeName: 'setDeveloperToken', publicName: 'Auth.syncDeveloperToken (native)' },
+  { domain: 'auth', nativeName: 'setDeveloperToken', publicName: 'Auth.refreshDeveloperToken' },
   { domain: 'auth', nativeName: 'authorization', publicName: 'Auth.authorize' },
   { domain: 'auth', nativeName: 'checkSubscription', publicName: 'Auth.checkSubscription' },
   { domain: 'auth', nativeName: 'getStorefront', publicName: 'Auth.getStorefront' },

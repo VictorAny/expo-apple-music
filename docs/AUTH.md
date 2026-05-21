@@ -7,14 +7,14 @@ How `Auth.authorize()` and `Auth.checkSubscription()` work on **iOS**, **Android
 ```ts
 import { Auth, AuthStatus } from '@wwdrew/expo-apple-music';
 
-// developerToken: optional on iOS (but recommended for Catalog.search); required on Android / web
-const status = await Auth.authorize(developerToken, {
+// developerToken from your app; required on Android / web, optional on iOS
+const { status, musicUserToken } = await Auth.authorize(developerToken, {
   hideStartScreen: false,
   startScreenMessage: '<b>My App</b> wants to connect to Apple Music.',
 });
 
-if (status === AuthStatus.AUTHORIZED) {
-  const sub = await Auth.checkSubscription();
+if (status === AuthStatus.AUTHORIZED && musicUserToken) {
+  const sub = await Auth.checkSubscription(musicUserToken);
 }
 ```
 
@@ -134,67 +134,47 @@ Document and implement this in **your** shipping app. The checklist below is gui
 | Topic | What you do | What this package does |
 | ----- | ----------- | ---------------------- |
 | **Signing** | Hold the MusicKit `.p8` key off-device; sign JWTs (server, Cloud Function, CI, etc.) | Nothing |
-| **Lifetime** | Apple max ~**6 months** per JWT; plan rotation before `exp` | Optionally reads `exp` if you use `AppleMusic.configure` |
-| **Delivery** | HTTPS endpoint, Remote Config, manual ops — your choice | Receives token via `authorize(token)` or optional provider |
-| **Storage** | Your policy (memory-only, Keychain, refetch every time) | Copies into native / MusicKit JS for REST and Android auth |
-| **User re-auth** | Developer JWT refresh must **not** force Apple Music sign-in again | `refreshDeveloperToken()` syncs app token only; `authorize()` is for the **user** |
+| **Lifetime** | Apple max ~**6 months** per JWT; plan rotation before `exp` | Nothing (optional `isDeveloperTokenExpired()` helper in JS) |
+| **Delivery** | HTTPS endpoint, Remote Config, manual ops — your choice | You pass the string to `authorize` / `refreshDeveloperToken` |
+| **Storage** | Your policy (memory-only, Keychain, refetch every time) | Copies into native / MusicKit JS when you pass a token |
+| **User re-auth** | Developer JWT refresh must **not** force Apple Music sign-in again | `refreshDeveloperToken(jwt)` syncs only; `authorize(jwt)` is for the **user** |
 
-**Do not** embed the `.p8` private key or a non-rotating JWT in the app binary. **Do** pass a current JWT into `Auth.authorize()` (or sync with `Auth.refreshDeveloperToken()` when yours expires).
+**Do not** embed the `.p8` private key or a non-rotating JWT in the app binary. Fetch or mint a JWT in **your** app, then pass it in.
 
 See Apple: [Generating developer tokens](https://developer.apple.com/documentation/applemusicapi/generating_developer_tokens). Local dev: [CLI.md](./CLI.md) (repo-only; not for production signing).
 
-### Optional: `AppleMusic.configure({ getDeveloperToken })`
-
-If you want help fetching and syncing a token before `authorize()`, register an async callback. **You** still implement fetch/cache/rotation inside it (refetch every time, Remote Config, etc.). The library does not prescribe how.
+### API (you pass the JWT)
 
 ```ts
-import {
-  AppleMusic,
-  Auth,
-  useAppleMusicDeveloperToken,
-} from '@wwdrew/expo-apple-music';
+import { Auth, AuthStatus, isDeveloperTokenExpired } from '@wwdrew/expo-apple-music';
 
-AppleMusic.configure({
-  getDeveloperToken: async () => {
-    // Remote Config, your HTTPS endpoint, Firebase Callable, etc.
-    const res = await fetch('https://your.app/api/apple-music/developer-token');
-    const { token } = await res.json();
-    return token;
-  },
-  refreshBufferSeconds: 300, // optional, default 5 minutes before exp
-});
-
-// Optional: refresh on app startup
-function Root() {
-  useAppleMusicDeveloperToken();
-  // ...
+async function getDeveloperJwtFromYourApp(): Promise<string> {
+  const res = await fetch('https://your.app/api/apple-music/developer-token');
+  const { token } = await res.json();
+  return token;
 }
 
-await Auth.authorize(); // uses provider on Android/web; iOS optional
-await Auth.refreshDeveloperToken(); // force fetch + sync anytime
+// First sign-in (Android/web: developerToken required)
+const jwt = await getDeveloperJwtFromYourApp();
+const { status, musicUserToken } = await Auth.authorize(jwt);
+
+// Later: rotate developer JWT without re-prompting the user
+const freshJwt = await getDeveloperJwtFromYourApp();
+await Auth.refreshDeveloperToken(freshJwt);
 ```
 
-| API | Purpose |
-| --- | ------- |
-| `AppleMusic.configure({ getDeveloperToken })` | Register your async supplier (required for provider-driven apps) |
-| `Auth.authorize(developerToken?)` | User sign-in; resolves token from argument → cache → provider |
-| `Auth.refreshDeveloperToken()` | Force new JWT from provider and `setDeveloperToken` on native/web |
-| `useAppleMusicDeveloperToken()` | Hook: call provider once on mount (when configured) |
-| `getCachedDeveloperToken()` / `isDeveloperTokenExpired(token)` | Inspect cache for UI or custom retry logic |
+| Method | Purpose |
+| ------ | ------- |
+| `Auth.authorize(developerToken?, options?)` | User sign-in; stores developer JWT on native/web when provided |
+| `Auth.refreshDeveloperToken(developerToken)` | Replace stored developer JWT only (no Apple Music UI) |
+
+Optional export `isDeveloperTokenExpired(token)` decodes JWT `exp` so **your** app can decide when to fetch a new token.
 
 **Security (your app):** The JWT is weaker than the `.p8` key but still identifies your app — disclose and protect per your threat model.
 
 ### Native session (iOS / Android)
 
-The module **persists the developer JWT** in native storage when provided (for REST, Android auth, and optional iOS REST fallback). The **music user token is not persisted** — your app passes it per call.
-
-### Providing the token (one-off)
-
-You can still pass a token directly:
-
-```ts
-await Auth.authorize(jwtFromYourPipeline);
-```
+The module **persists the developer JWT** in native storage when you pass it (for REST, Android auth, and optional iOS REST fallback). The **music user token is not persisted** — your app passes it per call.
 
 **Repo CLI (local dev / example app only)**
 
@@ -214,10 +194,10 @@ npm run dev-token -- --verify "$(grep EXPO_PUBLIC example/.env.local | cut -d= -
 
 | Situation | Result |
 | --------- | ------ |
-| No token and no `getDeveloperToken` provider (Android/web) | Promise **rejects** with `MISSING_DEVELOPER_TOKEN` |
+| No `developerToken` on Android/web | Promise **rejects** with `MISSING_DEVELOPER_TOKEN` |
 | Invalid / expired JWT | `AuthStatus.UNKNOWN` (`TOKEN_FETCH_ERROR` from SDK) |
 
-When a JWT expires, Apple returns **401** on REST calls. Fetch a new token in your app and pass it to `Auth.authorize(token)` or `Auth.refreshDeveloperToken()` — rotation policy is yours, not the library’s.
+When a JWT expires, Apple returns **401** on REST calls. Fetch a new token in your app and call `Auth.refreshDeveloperToken(freshJwt)` (or `authorize(freshJwt)` if you also need user auth).
 
 Apple’s reference: [Creating a developer token](https://developer.apple.com/documentation/applemusicapi/generating_developer_tokens) and [Android MusicKit](https://developer.apple.com/documentation/musickit/android).
 

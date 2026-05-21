@@ -83,7 +83,7 @@ That sets `NSAppleMusicUsageDescription`. Re-run `npx expo prebuild` when you ch
 
 **`Catalog.search` uses native MusicKit first** (`MusicCatalogSearchRequest` + Apple’s automatic developer token for your bundle ID). Enable **MusicKit** on your App ID in the Developer portal so auto-token registration succeeds.
 
-If auto-token fails (404 “client not registered”), the module falls back to **REST** catalog search **only when** a developer JWT was stored (e.g. via `Auth.authorize(token)` or `AppleMusic.configure`). Mint tokens with [CLI.md](./CLI.md); rotate with [AUTH.md](./AUTH.md#developer-token-rotation) — do not bake long-lived JWTs into the binary.
+If auto-token fails (404 “client not registered”), the module falls back to **REST** catalog search **only when** a developer JWT was stored via `Auth.authorize(token)` or `Auth.refreshDeveloperToken(token)`. Mint tokens with [CLI.md](./CLI.md); production rotation is your app’s job ([AUTH.md](./AUTH.md#production-apps-your-responsibility--not-this-library)).
 
 ### 6.1 Repo / example app
 

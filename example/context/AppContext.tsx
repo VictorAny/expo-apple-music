@@ -1,8 +1,6 @@
 import {
   Auth,
   AuthStatus,
-  getCachedDeveloperToken,
-  useAppleMusicDeveloperToken,
   type Album,
   type Artist,
   type AuthorizeResult,
@@ -70,11 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [lastPlaylistId, setLastPlaylistId] = useState<string | null>(null);
 
-  useAppleMusicDeveloperToken();
-
-  const devToken =
-    getCachedDeveloperToken() ??
-    process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
+  const devToken = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
 
   const hasStoredSession = Boolean(musicUserToken);
 
@@ -120,7 +114,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const authorize = useCallback(async () => {
     try {
-      const result = await Auth.authorize(undefined, {
+      const result = await Auth.authorize(devToken, {
         startScreenMessage:
           "Start screen message for <b>Expo Apple Music Example App</b>",
       });
@@ -131,7 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       appendLog(`authorize error: ${formatApiError(error)}`);
     }
-  }, [appendLog, applyAuthorizeResult]);
+  }, [appendLog, applyAuthorizeResult, devToken]);
 
   useEffect(() => {
     const sub = Player.addListener("onPlaybackError", (err) => {

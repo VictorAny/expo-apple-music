@@ -40,7 +40,7 @@ export function CatalogSearchField({ onResults, limit = 10 }: CatalogSearchField
   async function runSearch() {
     if (Platform.OS === "android" && !devToken?.trim()) {
       appendLog(
-        "Search blocked: authorize first (developer JWT via AppleMusic.configure).",
+        "Search blocked: authorize first (pass developer JWT to Auth.authorize).",
       );
       return;
     }

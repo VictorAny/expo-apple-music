@@ -59,7 +59,7 @@ export function SearchDemo() {
       headerExtra={<CatalogSearchField limit={5} />}
       hint={
         Platform.OS === "android" && !devToken?.trim()
-          ? "Android needs a developer JWT — configure AppleMusic.configure and Authorize (see docs/AUTH.md)."
+          ? "Android needs a developer JWT — pass it to Auth.authorize (see docs/AUTH.md)."
           : undefined
       }
       items={items}

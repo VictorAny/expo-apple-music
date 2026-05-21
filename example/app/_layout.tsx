@@ -1,18 +1,12 @@
-import { AppleMusic } from "@wwdrew/expo-apple-music";
 import { Stack } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthStatusChip } from "../components/AuthStatusChip";
-import { fetchExampleDeveloperToken } from "../lib/apple-music-developer-token";
 import { GlobalLogDrawer } from "../components/GlobalLogDrawer";
 import { HeaderLogButton } from "../components/HeaderLogButton";
 import { PlayerBar } from "../components/PlayerBar";
 import { AppProvider } from "../context/AppContext";
 import { theme } from "../lib/theme";
-
-AppleMusic.configure({
-  getDeveloperToken: fetchExampleDeveloperToken,
-});
 
 function headerRight() {
   return (

@@ -1,6 +1,6 @@
 /**
- * Example: supply a developer JWT without baking rotation into the library.
- * Production: return a token from Remote Config, your API, or a Cloud Function.
+ * Example helper — your production app implements fetch/cache/rotation however you like,
+ * then passes the string to Auth.authorize(jwt) or Auth.refreshDeveloperToken(jwt).
  */
 export async function fetchExampleDeveloperToken(): Promise<string> {
   const url = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN_URL?.trim();
