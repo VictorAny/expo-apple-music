@@ -87,7 +87,8 @@ export default function PlaygroundScreen() {
         <RunButton
           title="Load my library songs"
           onPress={() => {
-            void Library.getSongs({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Library.getSongs(musicUserToken, { limit: 10 })
               .then((r) => {
                 setLibrarySongs(r.songs);
                 appendLog(`${r.songs.length} library song(s)`);
@@ -113,7 +114,8 @@ export default function PlaygroundScreen() {
         <RunButton
           title="Load recently played tracks"
           onPress={() => {
-            void History.getRecentlyPlayedTracks({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void History.getRecentlyPlayedTracks(musicUserToken, { limit: 10 })
               .then((r) => {
                 setHistorySongs(r.songs);
                 appendLog(`${r.songs.length} recent track(s)`);
@@ -139,7 +141,8 @@ export default function PlaygroundScreen() {
         <RunButton
           title="Load recommendations"
           onPress={() => {
-            void Recommendations.get()
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Recommendations.get(musicUserToken)
               .then((r) => {
                 setRecTitles(r.recommendations.map((g) => g.title));
                 appendLog(`${r.recommendations.length} recommendation group(s)`);

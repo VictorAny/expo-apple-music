@@ -8,6 +8,7 @@ import { ApiScreen } from "../components/ApiScreen";
 import { IdField } from "../components/IdField";
 import { useApp } from "../context/AppContext";
 import { formatApiError } from "../lib/format-error";
+import { requireMusicToken } from "../lib/require-music-token";
 import { RunButton } from "./helpers";
 
 function useSongIdField() {
@@ -22,7 +23,7 @@ function useSongIdField() {
 }
 
 export function AddToLibraryDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen
@@ -34,7 +35,8 @@ export function AddToLibraryDemo() {
           title="Run addToLibrary({ songs: [id] })"
           disabled={!songId.trim()}
           onPress={() => {
-            void LibraryMutations.addToLibrary({
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void LibraryMutations.addToLibrary(musicUserToken, {
               [LibraryResourceType.SONGS]: [songId.trim()],
             })
               .then(() =>
@@ -49,7 +51,7 @@ export function AddToLibraryDemo() {
 }
 
 export function CreatePlaylistDemo() {
-  const { appendLog } = useApp();
+  const { musicUserToken, appendLog } = useApp();
   const { songId, setSongId } = useSongIdField();
   return (
     <ApiScreen
@@ -65,7 +67,8 @@ export function CreatePlaylistDemo() {
         <RunButton
           title="Run createPlaylist({ name, tracks? })"
           onPress={() => {
-            void LibraryMutations.createPlaylist({
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void LibraryMutations.createPlaylist(musicUserToken, {
               name: `Expo test ${new Date().toISOString().slice(11, 19)}`,
               description: "Created from expo-apple-music example",
               tracks: songId.trim()
@@ -82,7 +85,7 @@ export function CreatePlaylistDemo() {
 }
 
 export function AddTracksToPlaylistDemo() {
-  const { appendLog, lastPlaylistId } = useApp();
+  const { musicUserToken, appendLog, lastPlaylistId } = useApp();
   const { songId, setSongId } = useSongIdField();
   const [playlistId, setPlaylistId] = useState(lastPlaylistId ?? "");
   useEffect(() => {
@@ -106,7 +109,8 @@ export function AddTracksToPlaylistDemo() {
           title="Run addTracksToPlaylist(playlistId, tracks)"
           disabled={!playlistId.trim() || !songId.trim()}
           onPress={() => {
-            void LibraryMutations.addTracksToPlaylist(playlistId.trim(), [
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void LibraryMutations.addTracksToPlaylist(musicUserToken, playlistId.trim(), [
               { id: songId.trim(), type: PlaylistTrackType.SONG },
             ])
               .then(() => appendLog(`added track to playlist ${playlistId.trim()}`))

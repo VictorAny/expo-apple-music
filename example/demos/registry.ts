@@ -14,6 +14,7 @@ export type MethodDemoMap = Record<string, ComponentType>;
 export const METHOD_DEMOS: Record<string, MethodDemoMap> = {
   auth: {
     authorize: auth.AuthorizeDemo,
+    setDeveloperToken: auth.SetDeveloperTokenDemo,
     checkSubscription: auth.CheckSubscriptionDemo,
     getStorefront: auth.GetStorefrontDemo,
   },

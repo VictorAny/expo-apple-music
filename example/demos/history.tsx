@@ -24,7 +24,8 @@ export function GetRecentlyPlayedResourcesDemo() {
         <RunButton
           title="Run getRecentlyPlayedResources()"
           onPress={() => {
-            void History.getRecentlyPlayedResources()
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void History.getRecentlyPlayedResources(musicUserToken)
               .then((r) => {
                 setItems(r.recentlyPlayedItems);
                 appendLog(`${r.recentlyPlayedItems.length} resource(s)`);
@@ -53,7 +54,8 @@ export function GetRecentlyPlayedTracksDemo() {
         <RunButton
           title="Run getRecentlyPlayedTracks()"
           onPress={() => {
-            void History.getRecentlyPlayedTracks({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void History.getRecentlyPlayedTracks(musicUserToken, { limit: 10 })
               .then((r) => {
                 setSongs(r.songs);
                 appendLog(`${r.songs.length} track(s)`);
@@ -82,7 +84,8 @@ export function GetHeavyRotationDemo() {
         <RunButton
           title="Run getHeavyRotation()"
           onPress={() => {
-            void History.getHeavyRotation({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void History.getHeavyRotation(musicUserToken, { limit: 10 })
               .then((r) => {
                 setItems(r.items);
                 appendLog(`${r.items.length} resource(s)`);
@@ -111,7 +114,8 @@ export function GetRecentlyPlayedStationsDemo() {
         <RunButton
           title="Run getRecentlyPlayedStations()"
           onPress={() => {
-            void History.getRecentlyPlayedStations({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void History.getRecentlyPlayedStations(musicUserToken, { limit: 10 })
               .then((r) => {
                 setStations(r.stations);
                 appendLog(`${r.stations.length} station(s)`);
@@ -140,7 +144,8 @@ export function GetRecentlyAddedDemo() {
         <RunButton
           title="Run getRecentlyAdded()"
           onPress={() => {
-            void History.getRecentlyAdded({ limit: 10 })
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void History.getRecentlyAdded(musicUserToken, { limit: 10 })
               .then((r) => {
                 setItems(r.items);
                 appendLog(`${r.items.length} resource(s)`);

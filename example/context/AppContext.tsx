@@ -8,6 +8,7 @@ import {
   type Song,
   Player,
 } from "@wwdrew/expo-apple-music";
+import { fetchExampleDeveloperToken } from "../lib/apple-music-developer-token";
 import { formatApiError } from "../lib/format-error";
 import {
   createContext,
@@ -68,7 +69,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [lastPlaylistId, setLastPlaylistId] = useState<string | null>(null);
 
-  const devToken = process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN;
+  const [devToken, setDevToken] = useState<string | undefined>(
+    () => process.env.EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN,
+  );
 
   const hasStoredSession = Boolean(musicUserToken);
 
@@ -114,7 +117,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const authorize = useCallback(async () => {
     try {
-      const result = await Auth.authorize(devToken, {
+      const jwt = await fetchExampleDeveloperToken();
+      setDevToken(jwt);
+      const result = await Auth.authorize(jwt, {
         startScreenMessage:
           "Start screen message for <b>Expo Apple Music Example App</b>",
       });
@@ -125,7 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       appendLog(`authorize error: ${formatApiError(error)}`);
     }
-  }, [appendLog, applyAuthorizeResult, devToken]);
+  }, [appendLog, applyAuthorizeResult]);
 
   useEffect(() => {
     const sub = Player.addListener("onPlaybackError", (err) => {

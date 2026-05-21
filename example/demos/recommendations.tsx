@@ -17,7 +17,8 @@ export function GetRecommendationsDemo() {
         <RunButton
           title="Run get()"
           onPress={() => {
-            void Recommendations.get()
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Recommendations.get(musicUserToken)
               .then((r) => {
                 setTitles(r.recommendations.map((g) => g.title));
                 const first = r.recommendations[0];
@@ -46,7 +47,8 @@ export function GetReplayDemo() {
         <RunButton
           title="Run getReplay()"
           onPress={() => {
-            void Recommendations.getReplay()
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Recommendations.getReplay(musicUserToken)
               .then((r) => appendLog(`replay summaries: ${r.summaries.length}`))
               .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}

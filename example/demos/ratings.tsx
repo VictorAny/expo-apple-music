@@ -37,7 +37,8 @@ export function GetRatingDemo() {
           title="Run getRating(SONG, id)"
           disabled={!songId.trim()}
           onPress={() => {
-            void Ratings.getRating(RatingResourceType.SONG, songId.trim())
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Ratings.getRating(musicUserToken, RatingResourceType.SONG, songId.trim())
               .then((r) =>
                 appendLog(r ? `rating: ${r.value}` : "no rating set"),
               )
@@ -62,7 +63,9 @@ export function SetRatingDemo() {
           title="Run setRating(SONG, id, LIKE)"
           disabled={!songId.trim()}
           onPress={() => {
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
             void Ratings.setRating(
+              musicUserToken,
               RatingResourceType.SONG,
               songId.trim(),
               RatingValue.LIKE,
@@ -89,7 +92,8 @@ export function ClearRatingDemo() {
           title="Run clearRating(SONG, id)"
           disabled={!songId.trim()}
           onPress={() => {
-            void Ratings.clearRating(RatingResourceType.SONG, songId.trim())
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Ratings.clearRating(musicUserToken, RatingResourceType.SONG, songId.trim())
               .then(() => appendLog(`cleared rating for ${songId.trim()}`))
               .catch((e) => appendLog(`error: ${formatApiError(e)}`));
           }}
@@ -112,7 +116,8 @@ export function AddToFavoritesDemo() {
           title="Run addToFavorites({ songs: [id] })"
           disabled={!songId.trim()}
           onPress={() => {
-            void Ratings.addToFavorites({
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Ratings.addToFavorites(musicUserToken, {
               [LibraryResourceType.SONGS]: [songId.trim()],
             })
               .then(() => appendLog(`favorited ${songId.trim()}`))
@@ -137,7 +142,8 @@ export function RemoveFromFavoritesDemo() {
           title="Run removeFromFavorites({ songs: [id] })"
           disabled={!songId.trim()}
           onPress={() => {
-            void Ratings.removeFromFavorites({
+            if (!requireMusicToken(musicUserToken, appendLog)) return;
+            void Ratings.removeFromFavorites(musicUserToken, {
               [LibraryResourceType.SONGS]: [songId.trim()],
             })
               .then(() => appendLog(`removed ${songId.trim()} from favorites`))

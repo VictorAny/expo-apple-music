@@ -6,6 +6,31 @@ import { useApp } from "../context/AppContext";
 import { requireMusicToken } from "../lib/require-music-token";
 import { RunButton } from "./helpers";
 
+export function SetDeveloperTokenDemo() {
+  const { devToken, appendLog } = useApp();
+  return (
+    <ApiScreen
+      actions={
+        <RunButton
+          title="Run setDeveloperToken()"
+          onPress={() => {
+            if (!devToken?.trim()) {
+              appendLog(
+                "Set EXPO_PUBLIC_APPLE_MUSIC_DEVELOPER_TOKEN in example/.env.local (see docs/CLI.md)",
+              );
+              return;
+            }
+            void Auth.setDeveloperToken(devToken)
+              .then(() => appendLog("setDeveloperToken: stored on native/web"))
+              .catch((e) => appendLog(`error: ${formatApiError(e)}`));
+          }}
+          requiresAuth={false}
+        />
+      }
+    />
+  );
+}
+
 export function AuthorizeDemo() {
   const { authorize, devToken, hasStoredSession } = useApp();
   return (
