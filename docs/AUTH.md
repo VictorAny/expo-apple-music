@@ -41,7 +41,7 @@ Returns `Promise<AuthorizeResult>`: `{ status: AuthStatus, musicUserToken?: stri
 
 #### iOS
 
-- **Expo SDK 55**, **iOS 16+**
+- **Expo SDK 56**, **iOS 16.4+**
 - Config plugin with `musicUsageDescription` (sets `NSAppleMusicUsageDescription`)
 - **MusicKit** enabled on your App ID in the [Apple Developer portal](https://developer.apple.com) (not added by this plugin)
 - User can respond to the system media-library permission prompt
@@ -305,6 +305,8 @@ Short version: MusicKit is an **App Service** on your App ID — not a MusicKit 
 ---
 
 ## Config plugin reference
+
+Import from `@wwdrew/expo-apple-music/plugin` for typed options (Expo SDK 56+). The plugin sets **iOS deployment target 16.4**.
 
 ```ts
 type ExpoAppleMusicPluginProps = {

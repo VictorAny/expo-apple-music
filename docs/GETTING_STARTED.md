@@ -1,6 +1,6 @@
 # Getting started
 
-Minimal path to Apple Music in an Expo app (SDK 55). For auth edge cases and production JWT rotation, see **[AUTH.md](./AUTH.md)**.
+Minimal path to Apple Music in an Expo app (SDK 56). For auth edge cases and production JWT rotation, see **[AUTH.md](./AUTH.md)**.
 
 ## 1. Install
 
@@ -11,16 +11,20 @@ npx expo install @wwdrew/expo-apple-music
 ## 2. Config plugin
 
 ```ts
-// app.config.ts
-export default {
+// app.config.ts (typed plugins — Expo SDK 56+)
+import type { ExpoConfig } from 'expo/config';
+import expoAppleMusic from '@wwdrew/expo-apple-music/plugin';
+
+const config: ExpoConfig = {
   plugins: [
-    [
-      '@wwdrew/expo-apple-music',
-      { musicUsageDescription: 'We use Apple Music in this app.' },
-    ],
+    expoAppleMusic({ musicUsageDescription: 'We use Apple Music in this app.' }),
   ],
 };
+
+export default config;
 ```
+
+The plugin sets **iOS deployment target 16.4** (MusicKit + Expo SDK 56 minimum). You can also use the string form `'@wwdrew/expo-apple-music'` in `plugins` if you prefer.
 
 Then `npx expo prebuild` when you change native config.
 
@@ -73,7 +77,7 @@ await Auth.setDeveloperToken(await fetchDeveloperJwtFromYourApp());
 
 ### iOS
 
-- Physical device, iOS 16+
+- Physical device, iOS 16.4+
 - MusicKit enabled on App ID
 - Optional: pass developer JWT to `Auth.authorize()` for REST catalog fallback
 

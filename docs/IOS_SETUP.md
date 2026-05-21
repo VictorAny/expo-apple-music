@@ -13,7 +13,7 @@ For API behavior, see [AUTH.md](./AUTH.md). To mint JWTs locally, see [CLI.md](.
 | **Apple Developer Program** (paid) | Free accounts cannot use Certificates, Identifiers & Profiles for MusicKit. |
 | **Explicit App ID** | Wildcard App IDs do not support per-app MusicKit the way this flow expects. |
 | **Bundle identifier** | Must match **exactly** between `app.json` → `expo.ios.bundleIdentifier`, the Xcode target, and the App ID in the portal. |
-| **iOS 16+** | Required by this module. |
+| **iOS 16.4+** | Required by this module (Expo SDK 56 minimum). |
 
 ---
 

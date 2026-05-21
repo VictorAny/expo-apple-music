@@ -367,7 +367,7 @@ Follow [WEB_IMPLEMENTATION.md](./WEB_IMPLEMENTATION.md) with REST client shared 
 | **Mapper unit tests** | Kotlin + TS (+ Swift when feasible) against checked-in JSON fixtures |
 | **Contract tests** | Optional nightly job with real tokens (CI secret); not required for every PR |
 | **Example app** | One screen per domain; manual QA checklist in PR template |
-| **Device matrix** | iOS 16+ physical; Android ARM physical + Apple Music installed; Web Chrome + Safari |
+| **Device matrix** | iOS 16.4+ physical; Android ARM physical + Apple Music installed; Web Chrome + Safari |
 | **Regression** | Example app + mapper fixtures per domain |
 
 ---

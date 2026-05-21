@@ -83,7 +83,7 @@ Use [QA_SIGNOFF.md](./QA_SIGNOFF.md) (consolidated checklist).
 
 | Platform | Environment | Smoke |
 |----------|-------------|-------|
-| iOS 16+ | Physical device, MusicKit on App ID | `Auth.authorize` → `Catalog.search` → `Library.getSongs` → `History.getRecentlyPlayedTracks` → `Player.setQueue` + transport |
+| iOS 16.4+ | Physical device, MusicKit on App ID | `Auth.authorize` → `Catalog.search` → `Library.getSongs` → `History.getRecentlyPlayedTracks` → `Player.setQueue` + transport |
 | Android | Physical **ARM**, Apple Music app installed | Same flow with **developer JWT** required |
 | Web | Chrome + Safari, `example/.env.local` JWT | Same read flow + playback + hooks 30s+ |
 

@@ -6,7 +6,7 @@ Check each box, note device/browser + date, then tag `v1.0.0`.
 
 ---
 
-## iOS (physical device, iOS 16+, MusicKit on App ID)
+## iOS (physical device, iOS 16.4+, MusicKit on App ID)
 
 - [ ] `Auth.authorize(developerToken)` → `authorized`
 - [ ] `Catalog.search` (native MusicKit path when App ID registered)

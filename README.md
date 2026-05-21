@@ -1,6 +1,6 @@
 # @wwdrew/expo-apple-music
 
-Cross-platform Apple Music API for **Expo** (SDK 55 · iOS 16+ · Android · Web).
+Cross-platform Apple Music API for **Expo** (SDK 56 · iOS 16.4+ · Android · Web).
 
 Inspired by [`@lomray/react-native-apple-music`](https://github.com/Lomray-Software/react-native-apple-music) — not a drop-in replacement. See [ATTRIBUTION.md](./ATTRIBUTION.md).
 
@@ -14,12 +14,11 @@ Add the config plugin and enable **MusicKit** on your App ID in the Apple Develo
 
 ```ts
 // app.config.ts
+import expoAppleMusic from '@wwdrew/expo-apple-music/plugin';
+
 export default {
   plugins: [
-    [
-      '@wwdrew/expo-apple-music',
-      { musicUsageDescription: 'We use Apple Music in this app.' },
-    ],
+    expoAppleMusic({ musicUsageDescription: 'We use Apple Music in this app.' }),
   ],
 };
 ```
