@@ -47,6 +47,7 @@ All guides live in **[docs/](./docs/)** (browse on GitHub):
 | | |
 | --- | --- |
 | **[Getting started](./docs/GETTING_STARTED.md)** | Install → authorize → search → play |
+| **[Building locally](./docs/BUILDING_LOCALLY.md)** | Clone, Android `.aar` libs, example app |
 | **[Auth](./docs/AUTH.md)** | JWT, `AuthStatus`, platform requirements |
 | **[iOS setup](./docs/IOS_SETUP.md)** | Portal, signing, entitlements |
 | **[API coverage](./docs/APPLE_MUSIC_API.md)** | Per-method iOS / Android / web matrix |
@@ -66,11 +67,12 @@ Same TypeScript API everywhere; a few features differ on Android and web.
 
 Details: [docs/APPLE_MUSIC_API.md](./docs/APPLE_MUSIC_API.md).
 
-## Example app
+## Building locally (repo clone)
 
-Not shipped on npm — clone this repo:
+The **example app** and Android native builds need Apple’s MusicKit Android `.aar` libraries in `android/libs/`. Those binaries are **gitignored** and are **not** in the repository — download them from Apple. Full steps: **[docs/BUILDING_LOCALLY.md](./docs/BUILDING_LOCALLY.md)**.
 
 ```sh
+# After placing mediaplayback-release-1.1.1.aar and musickitauth-release-1.1.2.aar in android/libs/
 npm run dev-token -- --write-env example/.env.local
 cd example && npx expo start
 ```

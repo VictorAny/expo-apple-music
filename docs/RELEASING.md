@@ -43,7 +43,7 @@ Only runtime artifacts ship — see **`files`** in `package.json`:
 
 - `build/` — compiled JS API
 - `plugin/build/` — config plugin
-- `ios/`, `android/src/main`, `android/libs/*.aar`
+- `ios/`, `android/src/main`, `android/build.gradle` (Apple `.aar` files in `android/libs/` must be present locally before pack — see [BUILDING_LOCALLY.md](./BUILDING_LOCALLY.md); not in git)
 - `app.plugin.js`, `expo-module.config.json`
 
 Not published: `example/`, `docs/`, `src/`, tests, `scripts/`.

@@ -94,11 +94,14 @@ Details: **[IOS_SETUP.md](./IOS_SETUP.md)**
 
 ## 6. Example app
 
-This repository includes a full explorer (not published to npm):
+This repository includes a full explorer (not published to npm).
+
+**From a git clone:** download Apple’s Android MusicKit `.aar` files into `android/libs/` before building Android — see **[BUILDING_LOCALLY.md](./BUILDING_LOCALLY.md)**.
 
 ```sh
 git clone https://github.com/wwdrew/expo-apple-music.git
 cd expo-apple-music
+# android/libs/*.aar — see BUILDING_LOCALLY.md
 npm run dev-token -- --write-env example/.env.local
 cd example && npx expo start
 ```

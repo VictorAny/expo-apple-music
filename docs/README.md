@@ -32,6 +32,7 @@ Guides for using **@wwdrew/expo-apple-music** in your Expo app. Browse this fold
 
 | Guide | What it covers |
 | ----- | -------------- |
+| **[BUILDING_LOCALLY.md](./BUILDING_LOCALLY.md)** | Clone, Android MusicKit `.aar` files, example app |
 | [CONTEXT.md](../CONTEXT.md) | Terminology (catalog vs library) |
 | [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md) | Pre-1.0 publish gate |
 | [QA_SIGNOFF.md](./QA_SIGNOFF.md) | Manual device QA |
