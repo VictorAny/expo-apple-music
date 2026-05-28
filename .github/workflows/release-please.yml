@@ -1,5 +1,4 @@
 # Opens a Release PR (version + CHANGELOG) and publishes to npm when merged.
-# Enable after QA sign-off: remove the `if: false` guard below.
 name: Release Please
 
 on:
@@ -13,7 +12,6 @@ permissions:
 
 jobs:
   release-please:
-    if: false # TODO: set to true when ready to automate releases
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
