@@ -1,10 +1,17 @@
 # Opens a Release PR (version + CHANGELOG) and publishes to npm when merged.
+# Use "Publish tag" (workflow_dispatch) to republish when GitHub release exists but npm publish failed.
 name: Release Please
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag to publish to npm (e.g. v1.1.0)
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -13,6 +20,7 @@ permissions:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
@@ -35,5 +43,25 @@ jobs:
 
       - run: npm publish --provenance --access public
         if: ${{ steps.release.outputs.release_created }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-tag:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+          registry-url: https://registry.npmjs.org
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+
+      - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
