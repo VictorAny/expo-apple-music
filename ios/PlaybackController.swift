@@ -256,10 +256,12 @@ final class PlaybackController {
   }
 
   private func fetchCurrentSongInfo(for entry: MusicKit.MusicPlayer.Queue.Entry) async -> [String: Any]? {
-    let currentId = currentQueueEntryId(entry.item)
+    // entry.item is optional on the base MusicPlayer.Queue.Entry — unwrap once.
+    guard let item = entry.item else { return cachedSongInfo }
+    let currentId = currentQueueEntryId(item)
     guard let currentId else { return cachedSongInfo }
     if currentId == cachedSongId, let cached = cachedSongInfo { return cached }
-    let songInfo = await queueEntrySongInfo(entry.item)
+    let songInfo = await queueEntrySongInfo(item)
     if let songInfo {
       cachedSongId = currentId
       cachedSongInfo = songInfo
