@@ -247,16 +247,15 @@ final class PlaybackController {
       return nil
     }
 
-    if let applicationEntry = entry as? ApplicationMusicPlayer.Queue.Entry {
-      return await fetchCurrentSongInfo(for: applicationEntry)
-    }
-    if let systemEntry = entry as? SystemMusicPlayer.Queue.Entry {
-      return await fetchCurrentSongInfo(for: systemEntry)
+    // ApplicationMusicPlayer.Queue.Entry and SystemMusicPlayer.Queue.Entry are
+    // the same underlying MusicPlayer.Queue.Entry, so one cast covers both players.
+    if let queueEntry = entry as? MusicKit.MusicPlayer.Queue.Entry {
+      return await fetchCurrentSongInfo(for: queueEntry)
     }
     return cachedSongInfo
   }
 
-  private func fetchCurrentSongInfo(for entry: ApplicationMusicPlayer.Queue.Entry) async -> [String: Any]? {
+  private func fetchCurrentSongInfo(for entry: MusicKit.MusicPlayer.Queue.Entry) async -> [String: Any]? {
     let currentId = currentQueueEntryId(entry.item)
     guard let currentId else { return cachedSongInfo }
     if currentId == cachedSongId, let cached = cachedSongInfo { return cached }
@@ -268,19 +267,7 @@ final class PlaybackController {
     return songInfo ?? cachedSongInfo
   }
 
-  private func fetchCurrentSongInfo(for entry: SystemMusicPlayer.Queue.Entry) async -> [String: Any]? {
-    let currentId = currentQueueEntryId(entry.item)
-    guard let currentId else { return cachedSongInfo }
-    if currentId == cachedSongId, let cached = cachedSongInfo { return cached }
-    let songInfo = await queueEntrySongInfo(entry.item)
-    if let songInfo {
-      cachedSongId = currentId
-      cachedSongInfo = songInfo
-    }
-    return songInfo ?? cachedSongInfo
-  }
-
-  private func currentQueueEntryId(_ item: MusicPlayer.Queue.Entry.Item) -> String? {
+  private func currentQueueEntryId(_ item: MusicKit.MusicPlayer.Queue.Entry.Item) -> String? {
     switch item {
     case .song(let song):
       let idString = String(describing: song.id)
@@ -293,7 +280,7 @@ final class PlaybackController {
     }
   }
 
-  private func queueEntrySongInfo(_ item: MusicPlayer.Queue.Entry.Item) async -> [String: Any]? {
+  private func queueEntrySongInfo(_ item: MusicKit.MusicPlayer.Queue.Entry.Item) async -> [String: Any]? {
     switch item {
     case .song(let song):
       return await songInfoForQueueEntry(song)
