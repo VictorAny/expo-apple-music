@@ -403,14 +403,14 @@ final class PlaybackController {
     if let stringNames = raw as? [String] {
       names = stringNames
     } else if let anyNames = raw as? [Any] {
-      names = try anyNames.map { value in
+      names = try anyNames.enumerated().map { index, value in
         guard let option = value as? String else {
           throw NSError(
             domain: "AVAudioSession",
             code: -1,
             userInfo: [
               NSLocalizedDescriptionKey:
-                "Each audio session option must be a string."
+                "Audio session option at index \(index) must be a string, got \(String(describing: type(of: value)))."
             ]
           )
         }
@@ -424,7 +424,7 @@ final class PlaybackController {
         code: -1,
         userInfo: [
           NSLocalizedDescriptionKey:
-            "Audio session options must be an array."
+            "Audio session options must be an array, got \(String(describing: type(of: raw as Any)))."
         ]
       )
     }
