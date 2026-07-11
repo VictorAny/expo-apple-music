@@ -58,15 +58,6 @@ final class PlaybackController {
     }
   }
 
-  var currentEntry: MusicPlayer.Queue.Entry? {
-    switch selectedPlayerType {
-    case .application:
-      applicationPlayer.queue.currentEntry
-    case .system:
-      systemPlayer.queue.currentEntry
-    }
-  }
-
   // MARK: - Song Info Cache
 
   private var cachedSongId: String?
@@ -240,58 +231,75 @@ final class PlaybackController {
   /// Fetches detailed info for the current queue entry from the catalog.
   /// Uses caching to avoid redundant network calls when the song hasn't changed.
   func fetchCurrentSongInfo() async -> [String: Any]? {
-    guard let entry = currentEntry else {
+    let entry: Any?
+    switch selectedPlayerType {
+    case .application:
+      entry = applicationPlayer.queue.currentEntry
+    case .system:
+      entry = systemPlayer.queue.currentEntry
+    }
+
+    guard let entry else {
       // No current entry - clear cache and return nil
       clearSongCache()
       return nil
     }
 
-    // Extract the current item's ID
-    let currentId: String?
-    switch entry.item {
-    case .song(let song):
-      let idString = String(describing: song.id)
-      // Skip if ID is empty (identifiers not yet resolved)
-      currentId = idString.isEmpty ? nil : idString
-
-    case .musicVideo(let musicVideo):
-      let idString = String(describing: musicVideo.id)
-      currentId = idString.isEmpty ? nil : idString
-
-    default:
-      currentId = nil
+    if let applicationEntry = entry as? ApplicationMusicPlayer.Queue.Entry {
+      return await fetchCurrentSongInfo(for: applicationEntry)
     }
-
-    // If no valid ID, return cached info (if any) or nil
-    guard let currentId = currentId else {
-      return cachedSongInfo
+    if let systemEntry = entry as? SystemMusicPlayer.Queue.Entry {
+      return await fetchCurrentSongInfo(for: systemEntry)
     }
+    return cachedSongInfo
+  }
 
-    // Return cached info if same song
-    if currentId == cachedSongId, let cached = cachedSongInfo {
-      return cached
-    }
-
-    // Prefer metadata from the queue entry (avoids catalog re-fetch by cloud playback ids).
-    let songInfo: [String: Any]?
-    switch entry.item {
-    case .song(let song):
-      songInfo = await songInfoForQueueEntry(song)
-
-    case .musicVideo(let musicVideo):
-      songInfo = await musicVideoInfoForQueueEntry(musicVideo)
-
-    default:
-      songInfo = nil
-    }
-
-    // Update cache only if we got valid info
-    if let songInfo = songInfo {
+  private func fetchCurrentSongInfo(for entry: ApplicationMusicPlayer.Queue.Entry) async -> [String: Any]? {
+    let currentId = currentQueueEntryId(entry.item)
+    guard let currentId else { return cachedSongInfo }
+    if currentId == cachedSongId, let cached = cachedSongInfo { return cached }
+    let songInfo = await queueEntrySongInfo(entry.item)
+    if let songInfo {
       cachedSongId = currentId
       cachedSongInfo = songInfo
     }
-
     return songInfo ?? cachedSongInfo
+  }
+
+  private func fetchCurrentSongInfo(for entry: SystemMusicPlayer.Queue.Entry) async -> [String: Any]? {
+    let currentId = currentQueueEntryId(entry.item)
+    guard let currentId else { return cachedSongInfo }
+    if currentId == cachedSongId, let cached = cachedSongInfo { return cached }
+    let songInfo = await queueEntrySongInfo(entry.item)
+    if let songInfo {
+      cachedSongId = currentId
+      cachedSongInfo = songInfo
+    }
+    return songInfo ?? cachedSongInfo
+  }
+
+  private func currentQueueEntryId(_ item: MusicPlayer.Queue.Entry.Item) -> String? {
+    switch item {
+    case .song(let song):
+      let idString = String(describing: song.id)
+      return idString.isEmpty ? nil : idString
+    case .musicVideo(let musicVideo):
+      let idString = String(describing: musicVideo.id)
+      return idString.isEmpty ? nil : idString
+    default:
+      return nil
+    }
+  }
+
+  private func queueEntrySongInfo(_ item: MusicPlayer.Queue.Entry.Item) async -> [String: Any]? {
+    switch item {
+    case .song(let song):
+      return await songInfoForQueueEntry(song)
+    case .musicVideo(let musicVideo):
+      return await musicVideoInfoForQueueEntry(musicVideo)
+    default:
+      return nil
+    }
   }
 
   private func songInfoForQueueEntry(_ song: Song) async -> [String: Any] {

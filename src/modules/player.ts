@@ -177,7 +177,8 @@ function normalizePlayerConfig(options: boolean | ConfigurePlayerOptions): Confi
   if (typeof options === 'boolean') {
     return { mixWithOthers: options };
   }
-  return { mixWithOthers: false, ...options };
+  const { mixWithOthers = false, ...rest } = options;
+  return { mixWithOthers, ...rest };
 }
 
 export default Player;
