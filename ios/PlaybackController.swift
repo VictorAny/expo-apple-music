@@ -410,7 +410,7 @@ final class PlaybackController {
             code: -1,
             userInfo: [
               NSLocalizedDescriptionKey:
-                "Audio session option at index \(index) must be a string, got \(String(describing: type(of: value)))."
+                "Audio session option at index \(index) must be a string, got value \(String(describing: value)) of type \(String(describing: type(of: value)))."
             ]
           )
         }
@@ -424,7 +424,7 @@ final class PlaybackController {
         code: -1,
         userInfo: [
           NSLocalizedDescriptionKey:
-            "Audio session options must be an array, got \(String(describing: type(of: raw as Any)))."
+            "Audio session options must be an array, got value \(String(describing: raw)) of type \(String(describing: type(of: raw as Any)))."
         ]
       )
     }
