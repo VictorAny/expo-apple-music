@@ -88,8 +88,10 @@ final class PlaybackController {
       mixWithOthers: mixWithOthers,
       options: audioSessionOptions
     )
+    let normalizedMixWithOthers =
+      (normalizedAudioSession["options"] as? [String])?.contains("mixWithOthers") ?? mixWithOthers
     return [
-      "mixWithOthers": mixWithOthers,
+      "mixWithOthers": normalizedMixWithOthers,
       "playerType": selectedPlayerType.rawValue,
       "audioSession": normalizedAudioSession,
     ]
@@ -397,12 +399,41 @@ final class PlaybackController {
   }
 
   private func parseAudioSessionOptions(_ raw: Any?, mixWithOthers: Bool) throws -> AVAudioSession.CategoryOptions {
-    guard let names = raw as? [String] else {
-      return mixWithOthers ? [.mixWithOthers, .duckOthers] : []
+    let names: [String]
+    if let stringNames = raw as? [String] {
+      names = stringNames
+    } else if let anyNames = raw as? [Any] {
+      names = try anyNames.map { value in
+        guard let option = value as? String else {
+          throw NSError(
+            domain: "AVAudioSession",
+            code: -1,
+            userInfo: [
+              NSLocalizedDescriptionKey:
+                "Audio session options must be an array of strings."
+            ]
+          )
+        }
+        return option
+      }
+    } else if raw == nil {
+      names = []
+    } else {
+      throw NSError(
+        domain: "AVAudioSession",
+        code: -1,
+        userInfo: [
+          NSLocalizedDescriptionKey:
+            "Audio session options must be an array of strings."
+        ]
+      )
     }
     var parsed: AVAudioSession.CategoryOptions = []
     for option in names {
       parsed.formUnion(try parseAudioSessionOption(option))
+    }
+    if mixWithOthers {
+      parsed.formUnion([.mixWithOthers, .duckOthers])
     }
     return parsed
   }

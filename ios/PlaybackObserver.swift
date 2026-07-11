@@ -200,8 +200,12 @@ final class PlaybackObserver {
       object: nil,
       queue: nil
     ) { [weak self] _ in
+      self?.stopTimeUpdates()
       self?.startStateObservation()
       self?.startQueueObservation()
+      if self?.playbackController.state.playbackStatus == .playing {
+        self?.startTimeUpdates()
+      }
     }
   }
 }
