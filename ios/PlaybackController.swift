@@ -89,7 +89,7 @@ final class PlaybackController {
       options: audioSessionOptions
     )
     let normalizedMixWithOthers =
-      (normalizedAudioSession["options"] as? [String])?.contains("mixWithOthers") ?? mixWithOthers
+      (normalizedAudioSession["options"] as? [String] ?? []).contains("mixWithOthers")
     return [
       "mixWithOthers": normalizedMixWithOthers,
       "playerType": selectedPlayerType.rawValue,
@@ -410,7 +410,7 @@ final class PlaybackController {
             code: -1,
             userInfo: [
               NSLocalizedDescriptionKey:
-                "Audio session options must be an array of strings."
+                "Each audio session option must be a string."
             ]
           )
         }
@@ -424,7 +424,7 @@ final class PlaybackController {
         code: -1,
         userInfo: [
           NSLocalizedDescriptionKey:
-            "Audio session options must be an array of strings."
+            "Audio session options must be an array."
         ]
       )
     }
